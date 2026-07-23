@@ -1,0 +1,226 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  name          String
+  role          Role      @default(USER)
+  phone         String?
+  avatar        String?
+  isActive      Boolean   @default(true)
+  lastLogin     DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  appointments  Appointment[]
+  notifications Notification[]
+  
+  @@map("users")
+}
+
+model Department {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String
+  icon        String?
+  image       String?
+  isActive    Boolean   @default(true)
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  doctors     Doctor[]
+  services    Service[]
+  
+  @@map("departments")
+}
+
+model Service {
+  id          String    @id @default(cuid())
+  name        String
+  description String
+  price       Float?
+  duration    Int?
+  image       String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  appointments Appointment[]
+  
+  @@map("services")
+}
+
+model Doctor {
+  id            String    @id @default(cuid())
+  name          String
+  email         String?   @unique
+  phone         String
+  specialization String
+  bio           String?
+  education     String?
+  experience    Int?
+  image         String?
+  rating        Float     @default(0)
+  isAvailable   Boolean   @default(true)
+  consultationFee Float?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  departmentId  String
+  department    Department @relation(fields: [departmentId], references: [id])
+  appointments  Appointment[]
+  workingHours  WorkingHour[]
+  
+  @@map("doctors")
+}
+
+model WorkingHour {
+  id          String   @id @default(cuid())
+  dayOfWeek   Int
+  startTime   String
+  endTime     String
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  doctorId    String
+  doctor      Doctor   @relation(fields: [doctorId], references: [id])
+  
+  @@unique([doctorId, dayOfWeek])
+  @@map("working_hours")
+}
+
+model Appointment {
+  id            String    @id @default(cuid())
+  patientName   String
+  patientEmail  String
+  patientPhone  String
+  patientAge    Int?
+  patientGender String?
+  date          DateTime
+  time          String
+  status        AppointmentStatus @default(PENDING)
+  notes         String?
+  symptoms      String?
+  isEmergency   Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  doctorId      String
+  doctor        Doctor   @relation(fields: [doctorId], references: [id])
+  serviceId     String
+  service       Service  @relation(fields: [serviceId], references: [id])
+  userId        String?
+  user          User?    @relation(fields: [userId], references: [id])
+  
+  @@map("appointments")
+}
+
+model Gallery {
+  id          String      @id @default(cuid())
+  title       String
+  description String?
+  type        GalleryType @default(IMAGE)
+  url         String
+  thumbnail   String?
+  isActive    Boolean     @default(true)
+  order       Int         @default(0)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  @@map("galleries")
+}
+
+model News {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  content     String
+  excerpt     String?
+  image       String?
+  author      String
+  isPublished Boolean   @default(false)
+  publishedAt DateTime?
+  views       Int       @default(0)
+  tags        String[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@map("news")
+}
+
+model Contact {
+  id          String        @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  subject     String
+  message     String
+  status      ContactStatus @default(UNREAD)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  @@map("contacts")
+}
+
+model Notification {
+  id          String          @id @default(cuid())
+  title       String
+  message     String
+  type        NotificationType @default(INFO)
+  isRead      Boolean         @default(false)
+  link        String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  
+  userId      String
+  user        User            @relation(fields: [userId], references: [id])
+  
+  @@map("notifications")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  DOCTOR
+  USER
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+enum GalleryType {
+  IMAGE
+  VIDEO
+}
+
+enum ContactStatus {
+  UNREAD
+  READ
+  REPLIED
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  APPOINTMENT
+}

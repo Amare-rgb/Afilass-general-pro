@@ -1,0 +1,154 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: 'Newsreader', serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+/* 
+  ========================================
+  FIX: text-size-adjust for all browsers
+  ========================================
+*/
+html {
+  scroll-behavior: smooth;
+  /* Standard property */
+  text-size-adjust: 100%;
+  /* Safari/iOS support */
+  -webkit-text-size-adjust: 100%;
+  /* Firefox support */
+  -moz-text-size-adjust: 100%;
+  /* IE/Edge support */
+  -ms-text-size-adjust: 100%;
+}
+
+body {
+  background-color: #f7f5f0;
+  color: #1f2933;
+}
+
+/*
+  ========================================
+  FIX: backdrop-filter for Safari support
+  ========================================
+*/
+
+/* WebKit browsers (Safari, iOS Safari, Chrome, Edge) */
+@supports (-webkit-backdrop-filter: blur(1px)) {
+  .backdrop-blur-sm {
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+  }
+  
+  .backdrop-blur {
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+  
+  .backdrop-blur-md {
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+  
+  .backdrop-blur-lg {
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
+  
+  .backdrop-blur-xl {
+    -webkit-backdrop-filter: blur(24px);
+    backdrop-filter: blur(24px);
+  }
+  
+  .backdrop-blur-2xl {
+    -webkit-backdrop-filter: blur(40px);
+    backdrop-filter: blur(40px);
+  }
+}
+
+/* All modern browsers with backdrop-filter support */
+@supports (backdrop-filter: blur(1px)) {
+  .backdrop-blur-sm {
+    backdrop-filter: blur(4px);
+  }
+  
+  .backdrop-blur {
+    backdrop-filter: blur(8px);
+  }
+  
+  .backdrop-blur-md {
+    backdrop-filter: blur(12px);
+  }
+  
+  .backdrop-blur-lg {
+    backdrop-filter: blur(16px);
+  }
+  
+  .backdrop-blur-xl {
+    backdrop-filter: blur(24px);
+  }
+  
+  .backdrop-blur-2xl {
+    backdrop-filter: blur(40px);
+  }
+}
+
+/* Fallback for browsers with NO backdrop-filter support */
+@supports not (backdrop-filter: blur(1px)) {
+  .backdrop-blur-sm,
+  .backdrop-blur,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl,
+  .backdrop-blur-2xl {
+    background-color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+/* 
+  ========================================
+  REDUCED MOTION PREFERENCE
+  ========================================
+*/
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 
+  ========================================
+  UTILITY CLASSES
+  ========================================
+*/
+.focus-ring:focus-visible {
+  outline: 2px solid #0f6e5f;
+  outline-offset: 2px;
+}
+
+/* Additional text-size-adjust utility */
+.text-size-auto {
+  text-size-adjust: auto;
+  -webkit-text-size-adjust: auto;
+  -moz-text-size-adjust: auto;
+  -ms-text-size-adjust: auto;
+}
+
+.text-size-100 {
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+.text-size-none {
+  text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  -moz-text-size-adjust: none;
+  -ms-text-size-adjust: none;
+}
