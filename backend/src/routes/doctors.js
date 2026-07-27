@@ -1,3 +1,4 @@
+// backend/src/routes/doctors.js
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const prisma = require('../lib/prisma');
@@ -5,16 +6,19 @@ const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Get all doctors with filters
+// Get all doctors with filters - ADDED location filter
 router.get('/', async (req, res) => {
   try {
-    const { departmentId, specialization, isAvailable, search } = req.query;
+    const { departmentId, specialization, isAvailable, search, location } = req.query;
     
     const where = {};
     
     if (departmentId) where.departmentId = departmentId;
     if (specialization) where.specialization = { contains: specialization, mode: 'insensitive' };
     if (isAvailable !== undefined) where.isAvailable = isAvailable === 'true';
+    if (location && location !== 'all' && location !== 'undefined' && location !== 'null') {
+      where.location = location;
+    }
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
@@ -22,6 +26,9 @@ router.get('/', async (req, res) => {
         { email: { contains: search, mode: 'insensitive' } },
       ];
     }
+
+    console.log('📡 Doctor query with location:', location);
+    console.log('📡 Where clause:', where);
 
     const doctors = await prisma.doctor.findMany({
       where,
@@ -55,6 +62,7 @@ router.get('/', async (req, res) => {
       rating: doc.rating,
       consultationFee: doc.consultationFee,
       scheduleSlots: doc.workingHours,
+      location: doc.location || null,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
     }));
@@ -111,6 +119,7 @@ router.get('/:id', async (req, res) => {
       rating: doctor.rating,
       consultationFee: doctor.consultationFee,
       scheduleSlots: doctor.workingHours,
+      location: doctor.location || null,
       createdAt: doctor.createdAt,
       updatedAt: doctor.updatedAt,
     };
@@ -131,7 +140,7 @@ router.get('/:id', async (req, res) => {
 // Get available doctors for appointment
 router.get('/available', async (req, res) => {
   try {
-    const { date, serviceId } = req.query;
+    const { date, serviceId, location } = req.query;
     
     if (!date) {
       return res.status(400).json({
@@ -152,6 +161,10 @@ router.get('/available', async (req, res) => {
         },
       },
     };
+
+    if (location && location !== 'all' && location !== 'undefined' && location !== 'null') {
+      where.location = location;
+    }
 
     if (serviceId) {
       const service = await prisma.service.findUnique({
@@ -215,7 +228,7 @@ router.get('/available', async (req, res) => {
   }
 });
 
-// Create doctor (Admin only)
+// Create doctor (Admin only) - ADDED location field
 router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('title').trim().notEmpty().withMessage('Title is required'),
@@ -233,7 +246,7 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
     const { 
       name, title, bio, photoUrl, departmentId,
       email, phone, specialization, experience, education,
-      consultationFee
+      consultationFee, location
     } = req.body;
 
     const department = await prisma.department.findUnique({
@@ -272,6 +285,7 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
         isAvailable: true,
         consultationFee: consultationFee ? parseFloat(consultationFee) : 0,
         departmentId,
+        location: location || 'Afilas General Hospital',
       },
       include: {
         department: true,
@@ -296,6 +310,7 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
       rating: doctor.rating,
       consultationFee: doctor.consultationFee,
       scheduleSlots: doctor.workingHours,
+      location: doctor.location,
       createdAt: doctor.createdAt,
       updatedAt: doctor.updatedAt,
     };
@@ -313,14 +328,14 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
   }
 });
 
-// Update doctor (Admin only)
+// Update doctor (Admin only) - ADDED location field
 router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
     const { 
       name, title, bio, photoUrl, departmentId,
       email, phone, specialization, experience, education,
-      consultationFee, active
+      consultationFee, active, location
     } = req.body;
 
     const doctor = await prisma.doctor.findUnique({
@@ -360,6 +375,7 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
         isAvailable: active !== undefined ? active : doctor.isAvailable,
         consultationFee: consultationFee !== undefined ? parseFloat(consultationFee) : doctor.consultationFee,
         departmentId: departmentId || doctor.departmentId,
+        location: location || doctor.location || 'Afilas General Hospital',
       },
       include: {
         department: true,
@@ -384,6 +400,7 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
       rating: updated.rating,
       consultationFee: updated.consultationFee,
       scheduleSlots: updated.workingHours,
+      location: updated.location,
       createdAt: updated.createdAt,
       updatedAt: updated.updatedAt,
     };
@@ -445,6 +462,7 @@ router.patch('/:id/toggle-status', auth, authorize('SUPER_ADMIN', 'ADMIN'), asyn
       rating: updated.rating,
       consultationFee: updated.consultationFee,
       scheduleSlots: updated.workingHours,
+      location: updated.location,
       createdAt: updated.createdAt,
       updatedAt: updated.updatedAt,
     };
@@ -463,7 +481,7 @@ router.patch('/:id/toggle-status', auth, authorize('SUPER_ADMIN', 'ADMIN'), asyn
   }
 });
 
-// ===== DELETE DOCTOR (FIXED) =====
+// Delete doctor (Admin only)
 router.delete('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
@@ -520,7 +538,7 @@ router.delete('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) 
   }
 });
 
-// ===== CLEAR ALL DOCTORS (Admin only) =====
+// Clear all doctors (Admin only)
 router.delete('/clear-all', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
   try {
     const result = await prisma.$transaction([

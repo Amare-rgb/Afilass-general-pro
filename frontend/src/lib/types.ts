@@ -64,6 +64,7 @@ export interface Appointment {
   symptoms?: string | null;
   isEmergency?: boolean;
   status: AppointmentStatus;
+  location?: string | null; // ADD THIS LINE - Location field
   reminderSentAt?: string | null;
   createdAt: string;
   updatedAt?: string;
@@ -118,10 +119,10 @@ export interface Service {
   description?: string | null;
   price?: number | null;
   duration?: number | null;
-  image?: string | null;  // Added for service image
+  image?: string | null;
   departmentId: string;
   department?: Department;
-  order?: number;  // Added for sorting
+  order?: number;
   isActive?: boolean;
   createdAt?: string;
   updatedAt?: string;

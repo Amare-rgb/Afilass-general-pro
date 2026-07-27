@@ -3,6 +3,13 @@ const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
+// Define locations
+const LOCATIONS = [
+  'Afilas General Hospital',
+  'Afilas Diagnosis Center', 
+  'Afilas Drug Manufacturing'
+];
+
 async function main() {
   console.log('🌱 Seeding database...');
 
@@ -21,23 +28,27 @@ async function main() {
 
   console.log('🧹 Cleaned database');
 
-  // Create Super Admin
+  // Create Super Admin for each location
   const hashedPassword = await bcrypt.hash('Admin@123456', 10);
   
-  const admin = await prisma.user.create({
-    data: {
-      email: 'admin@afilashospital.com',
-      password: hashedPassword,
-      name: 'Super Admin',
-      role: 'SUPER_ADMIN',
-      phone: '+1234567890',
-      isActive: true,
-    },
-  });
+  const admins = [];
+  for (const location of LOCATIONS) {
+    const admin = await prisma.user.create({
+      data: {
+        email: `admin@${location.toLowerCase().replace(/ /g, '')}.com`,
+        password: hashedPassword,
+        name: `Admin - ${location}`,
+        role: 'SUPER_ADMIN',
+        phone: '+1234567890',
+        isActive: true,
+        location: location,
+      },
+    });
+    admins.push(admin);
+    console.log(`✅ Created admin for ${location}`);
+  }
 
-  console.log(`✅ Created admin: ${admin.email}`);
-
-  // Create Departments - NO slug, NO nameAmharic
+  // Create Departments for each location
   const departmentsData = [
     {
       name: 'Cardiology',
@@ -77,18 +88,25 @@ async function main() {
     },
   ];
 
-  const departments = [];
-  for (const deptData of departmentsData) {
-    const department = await prisma.department.create({
-      data: deptData,
-    });
-    departments.push(department);
+  const allDepartments = [];
+  for (const location of LOCATIONS) {
+    for (const deptData of departmentsData) {
+      const department = await prisma.department.create({
+        data: {
+          name: `${deptData.name} - ${location}`,
+          description: `${deptData.description} (${location})`,
+          icon: deptData.icon,
+          order: deptData.order,
+          isActive: true,
+          location: location,
+        },
+      });
+      allDepartments.push(department);
+    }
+    console.log(`✅ Created ${departmentsData.length} departments for ${location}`);
   }
 
-  console.log(`✅ Created ${departments.length} departments`);
-
-  // Create Services
-  const services = [];
+  // Create Services for each location
   const serviceData = [
     { dept: 'Cardiology', services: [
       { name: 'Cardiac Consultation', description: 'Comprehensive cardiac evaluation and consultation', price: 150, duration: 45 },
@@ -123,158 +141,203 @@ async function main() {
     ]},
   ];
 
-  for (const deptData of serviceData) {
-    const department = departments.find(d => d.name === deptData.dept);
-    if (department) {
-      for (const svc of deptData.services) {
-        const service = await prisma.service.create({
+  const allServices = [];
+  for (const location of LOCATIONS) {
+    for (const deptData of serviceData) {
+      const department = allDepartments.find(d => 
+        d.name === `${deptData.dept} - ${location}`
+      );
+      if (department) {
+        for (const svc of deptData.services) {
+          const service = await prisma.service.create({
+            data: {
+              name: `${svc.name} - ${location}`,
+              description: `${svc.description} (${location})`,
+              price: svc.price,
+              duration: svc.duration,
+              departmentId: department.id,
+              isActive: true,
+              location: location,
+            },
+          });
+          allServices.push(service);
+        }
+      }
+    }
+    console.log(`✅ Created services for ${location}`);
+  }
+
+  // Create Doctors for each location
+  const doctorData = [
+    { name: 'Dr. Sarah Johnson', specialization: 'Cardiology', phone: '+1234567891' },
+    { name: 'Dr. Michael Chen', specialization: 'Neurology', phone: '+1234567892' },
+    { name: 'Dr. Emily Williams', specialization: 'Pediatrics', phone: '+1234567893' },
+    { name: 'Dr. James Smith', specialization: 'Orthopedics', phone: '+1234567894' },
+    { name: 'Dr. Maria Garcia', specialization: 'Oncology', phone: '+1234567895' },
+    { name: 'Dr. Robert Brown', specialization: 'Emergency Medicine', phone: '+1234567896' },
+  ];
+
+  const allDoctors = [];
+  for (const location of LOCATIONS) {
+    for (const doc of doctorData) {
+      const department = allDepartments.find(d => 
+        d.name === `${doc.specialization} - ${location}`
+      );
+      if (department) {
+        const doctor = await prisma.doctor.create({
           data: {
-            name: svc.name,
-            description: svc.description,
-            price: svc.price,
-            duration: svc.duration,
+            name: doc.name,
+            email: `${doc.name.toLowerCase().replace(/ /g, '.')}@${location.toLowerCase().replace(/ /g, '')}.com`,
+            phone: doc.phone,
+            specialization: doc.specialization,
+            bio: `Experienced ${doc.specialization} specialist with over 10 years of practice.`,
+            education: 'MD, PhD',
+            experience: 10,
+            rating: 4.5 + Math.random() * 0.5,
+            isAvailable: true,
+            consultationFee: Math.floor(Math.random() * 300) + 150,
             departmentId: department.id,
-            isActive: true,
+            location: location,
           },
         });
-        services.push(service);
+        allDoctors.push(doctor);
       }
+    }
+    console.log(`✅ Created ${doctorData.length} doctors for ${location}`);
+  }
+
+  // Create Working Hours for doctors
+  for (const doctor of allDoctors) {
+    for (let day = 1; day <= 5; day++) {
+      await prisma.workingHour.create({
+        data: {
+          dayOfWeek: day,
+          startTime: '09:00',
+          endTime: '17:00',
+          isAvailable: true,
+          doctorId: doctor.id,
+        },
+      });
+    }
+  }
+  console.log('✅ Created working hours for doctors');
+
+  // Create Appointments for each location
+  const statuses = ['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
+  const patientNames = ['John Doe', 'Jane Smith', 'Robert Wilson', 'Emily Davis', 'Michael Brown', 
+                        'Alice Johnson', 'David Lee', 'Sarah Kim', 'James Park', 'Lisa Chen'];
+
+  for (const location of LOCATIONS) {
+    const doctors = allDoctors.filter(d => d.location === location);
+    const services = allServices.filter(s => s.location === location);
+    const admin = admins.find(a => a.location === location);
+
+    if (doctors.length > 0 && services.length > 0 && admin) {
+      for (let i = 0; i < 30; i++) {
+        const doctor = doctors[Math.floor(Math.random() * doctors.length)];
+        const service = services[Math.floor(Math.random() * services.length)];
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
+        const date = new Date();
+        date.setDate(date.getDate() - Math.floor(Math.random() * 30) + Math.floor(Math.random() * 10));
+        
+        await prisma.appointment.create({
+          data: {
+            patientName: patientNames[Math.floor(Math.random() * patientNames.length)],
+            patientEmail: `patient${i}@example.com`,
+            patientPhone: `+123456${String(1000 + i).padStart(4, '0')}`,
+            patientAge: Math.floor(Math.random() * 60) + 18,
+            patientGender: Math.random() > 0.5 ? 'Male' : 'Female',
+            date: date,
+            time: `${String(Math.floor(Math.random() * 12) + 8).padStart(2, '0')}:${String(Math.floor(Math.random() * 6) * 10).padStart(2, '0')}`,
+            status: status,
+            symptoms: ['Chest pain', 'Headache', 'Fever', 'Fatigue', 'Joint pain', 'Shortness of breath'][Math.floor(Math.random() * 6)],
+            isEmergency: Math.random() > 0.8,
+            location: location,
+            doctorId: doctor.id,
+            serviceId: service.id,
+            userId: admin.id,
+          },
+        });
+      }
+      console.log(`✅ Created 30 appointments for ${location}`);
     }
   }
 
-  console.log(`✅ Created ${services.length} services`);
+  // Create Gallery Items for each location
+  const galleryTitles = ['Hospital Exterior', 'Surgery Center', 'Patient Rooms', 'Medical Team', 'Diagnostic Lab'];
+  for (const location of LOCATIONS) {
+    for (let i = 0; i < galleryTitles.length; i++) {
+      await prisma.gallery.create({
+        data: {
+          title: `${galleryTitles[i]} - ${location}`,
+          description: `${galleryTitles[i]} at ${location}`,
+          type: i === 4 ? 'IMAGE' : 'IMAGE',
+          url: `/uploads/gallery/${location.toLowerCase().replace(/ /g, '-')}-${i}.jpg`,
+          order: i + 1,
+          isActive: true,
+          location: location,
+        },
+      });
+    }
+    console.log(`✅ Created ${galleryTitles.length} gallery items for ${location}`);
+  }
 
-  // Create Gallery Items
-  const galleryItems = await Promise.all([
-    prisma.gallery.create({
-      data: {
-        title: 'Our Hospital Exterior',
-        description: 'Modern, state-of-the-art hospital facility',
-        type: 'IMAGE',
-        url: '/uploads/gallery/hospital-exterior.jpg',
-        order: 1,
-        isActive: true,
-      },
-    }),
-    prisma.gallery.create({
-      data: {
-        title: 'Surgery Center',
-        description: 'Advanced surgical suites with latest technology',
-        type: 'IMAGE',
-        url: '/uploads/gallery/surgery-center.jpg',
-        order: 2,
-        isActive: true,
-      },
-    }),
-    prisma.gallery.create({
-      data: {
-        title: 'Patient Rooms',
-        description: 'Comfortable and modern patient rooms',
-        type: 'IMAGE',
-        url: '/uploads/gallery/patient-rooms.jpg',
-        order: 3,
-        isActive: true,
-      },
-    }),
-    prisma.gallery.create({
-      data: {
-        title: 'Medical Team',
-        description: 'Our dedicated healthcare professionals',
-        type: 'IMAGE',
-        url: '/uploads/gallery/medical-team.jpg',
-        order: 4,
-        isActive: true,
-      },
-    }),
-    prisma.gallery.create({
-      data: {
-        title: 'Hospital Introduction',
-        description: 'Welcome to Afilas Hospital',
-        type: 'VIDEO',
-        url: '/uploads/gallery/hospital-intro.mp4',
-        order: 5,
-        isActive: true,
-      },
-    }),
-  ]);
+  // Create News for each location
+  const newsData = [
+    { title: 'New Department Opens', slug: 'new-department-opens' },
+    { title: 'Excellence Award Received', slug: 'excellence-award-received' },
+    { title: 'Community Health Camp', slug: 'community-health-camp' },
+  ];
 
-  console.log(`✅ Created ${galleryItems.length} gallery items`);
+  for (const location of LOCATIONS) {
+    for (let i = 0; i < newsData.length; i++) {
+      await prisma.news.create({
+        data: {
+          title: `${newsData[i].title} - ${location}`,
+          slug: `${newsData[i].slug}-${location.toLowerCase().replace(/ /g, '-')}`,
+          content: `This is the full content for ${newsData[i].title} at ${location}. Detailed information about the news article.`,
+          excerpt: `Excerpt for ${newsData[i].title} at ${location}`,
+          image: `/uploads/news/${location.toLowerCase().replace(/ /g, '-')}-${i}.jpg`,
+          author: `Admin - ${location}`,
+          isPublished: true,
+          publishedAt: new Date(Date.now() - i * 7 * 24 * 60 * 60 * 1000),
+          tags: ['health', 'medical'],
+          views: Math.floor(Math.random() * 1000) + 100,
+          location: location,
+        },
+      });
+    }
+    console.log(`✅ Created ${newsData.length} news articles for ${location}`);
+  }
 
-  // Create News
-  const news = await Promise.all([
-    prisma.news.create({
-      data: {
-        title: 'New Cardiology Department Opens',
-        slug: 'new-cardiology-department-opens',
-        content: 'We are proud to announce the opening of our new state-of-the-art Cardiology Department. Equipped with the latest diagnostic and treatment technologies, our department offers comprehensive heart care services including preventive cardiology, interventional procedures, and cardiac rehabilitation.',
-        excerpt: 'State-of-the-art cardiology department now open',
-        image: '/uploads/news/cardiology-dept.jpg',
-        author: 'Dr. Michael Anderson',
-        isPublished: true,
-        publishedAt: new Date(),
-        tags: ['cardiology', 'new-facility', 'healthcare'],
-        views: 1250,
-      },
-    }),
-    prisma.news.create({
-      data: {
-        title: 'Stroke Care Excellence Award',
-        slug: 'stroke-care-excellence-award',
-        content: 'Afilas Hospital has been recognized with the Stroke Care Excellence Award for our outstanding comprehensive stroke care program. Our stroke center provides rapid diagnosis and treatment, significantly improving patient outcomes.',
-        excerpt: 'Afilas Hospital receives Stroke Care Excellence Award',
-        image: '/uploads/news/stroke-award.jpg',
-        author: 'Dr. Sarah Johnson',
-        isPublished: true,
-        publishedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        tags: ['stroke', 'award', 'neurology'],
-        views: 890,
-      },
-    }),
-    prisma.news.create({
-      data: {
-        title: 'Free Health Camp in Community',
-        slug: 'free-health-camp-community',
-        content: 'In our commitment to community health, Afilas Hospital organized a free health camp providing medical check-ups, health education, and preventive screenings to over 500 community members. The camp was a great success with high participation.',
-        excerpt: 'Successful community health camp reaches over 500 people',
-        image: '/uploads/news/health-camp.jpg',
-        author: 'Dr. Emily Williams',
-        isPublished: true,
-        publishedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-        tags: ['community', 'health-camp', 'outreach'],
-        views: 650,
-      },
-    }),
-  ]);
-
-  console.log(`✅ Created ${news.length} news articles`);
-
-  // Create Sample Contacts
-  const contacts = await Promise.all([
-    prisma.contact.create({
-      data: {
-        name: 'John Smith',
-        email: 'john.smith@example.com',
-        phone: '+1234567897',
-        subject: 'Appointment Inquiry',
-        message: 'I would like to schedule a cardiology consultation. Please let me know the available dates.',
-        status: 'UNREAD',
-      },
-    }),
-    prisma.contact.create({
-      data: {
-        name: 'Alice Johnson',
-        email: 'alice.johnson@example.com',
-        phone: '+1234567898',
-        subject: 'Insurance Coverage',
-        message: 'Could you please provide information about the insurance plans accepted at your hospital?',
-        status: 'READ',
-      },
-    }),
-  ]);
-
-  console.log(`✅ Created ${contacts.length} sample contacts`);
+  // Create Contacts for each location
+  for (const location of LOCATIONS) {
+    for (let i = 0; i < 3; i++) {
+      await prisma.contact.create({
+        data: {
+          name: `Contact ${i + 1} - ${location}`,
+          email: `contact${i + 1}@example.com`,
+          phone: `+123456${String(2000 + i).padStart(4, '0')}`,
+          subject: `Inquiry about ${location}`,
+          message: `This is a test message for ${location}. Please provide more information about your services.`,
+          status: ['UNREAD', 'READ', 'REPLIED'][i],
+          location: location,
+        },
+      });
+    }
+    console.log(`✅ Created 3 contacts for ${location}`);
+  }
 
   console.log('✅ Seeding completed successfully!');
+  console.log(`📊 Summary:`);
+  console.log(`   - ${admins.length} admins created`);
+  console.log(`   - ${allDepartments.length} departments created`);
+  console.log(`   - ${allServices.length} services created`);
+  console.log(`   - ${allDoctors.length} doctors created`);
+  console.log(`   - Total appointments: 90 (30 per location)`);
+  console.log(`   - Gallery items: ${galleryTitles.length * LOCATIONS.length}`);
+  console.log(`   - News articles: ${newsData.length * LOCATIONS.length}`);
+  console.log(`   - Contacts: ${3 * LOCATIONS.length}`);
 }
 
 main()
