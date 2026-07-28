@@ -1,3 +1,4 @@
+// app/admin/blog/afilas-general/page.tsx
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -43,7 +44,7 @@ interface BlogPost {
   category: string;
   location: string;
   tags: string[];
-  imageUrl?: string;
+  image?: string;
   videoUrl?: string;
   mediaType: 'image' | 'video';
   isPublished: boolean;
@@ -61,7 +62,7 @@ interface BlogFormData {
   category: string;
   location: string;
   tags: string[];
-  imageUrl: string;
+  image: string;
   videoUrl: string;
   mediaType: 'image' | 'video';
   isPublished: boolean;
@@ -99,7 +100,7 @@ export default function AdminBlogAfilasGeneralPage() {
     category: '',
     location: LOCATION,
     tags: [],
-    imageUrl: '',
+    image: '',
     videoUrl: '',
     mediaType: 'image',
     isPublished: false
@@ -118,7 +119,6 @@ export default function AdminBlogAfilasGeneralPage() {
     setError('');
     try {
       const response = await api.get<any>(`/blog?location=${encodeURIComponent(LOCATION)}`, true);
-      console.log('📡 Blog posts response:', response);
       
       let postsData: BlogPost[] = [];
       if (response) {
@@ -182,10 +182,10 @@ export default function AdminBlogAfilasGeneralPage() {
     }
   };
 
+  // FIXED: Updated uploadImage function with correct field name
   const uploadImage = async (file: File): Promise<string> => {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', 'image');
+    formData.append('image', file); // Must match backend: upload.single('image')
     
     try {
       const token = localStorage.getItem('token');
@@ -193,7 +193,7 @@ export default function AdminBlogAfilasGeneralPage() {
         throw new Error('No authentication token found');
       }
       
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch('http://localhost:5000/api/upload?type=blog', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -202,8 +202,10 @@ export default function AdminBlogAfilasGeneralPage() {
       });
       
       const data = await response.json();
+      console.log('📡 Upload response:', data);
       
       if (!response.ok) {
+        console.error('Upload error response:', data);
         throw new Error(data.error || data.message || 'Upload failed');
       }
       
@@ -224,12 +226,12 @@ export default function AdminBlogAfilasGeneralPage() {
         category: post.category,
         location: post.location,
         tags: post.tags || [],
-        imageUrl: post.imageUrl || '',
+        image: post.image || '',
         videoUrl: post.videoUrl || '',
         mediaType: post.mediaType || 'image',
         isPublished: post.isPublished
       });
-      setPreviewImage(post.imageUrl || '');
+      setPreviewImage(post.image || '');
       setVideoPreview(post.videoUrl || '');
       setVideoUrlInput(post.videoUrl || '');
       setImageFile(null);
@@ -242,7 +244,7 @@ export default function AdminBlogAfilasGeneralPage() {
         category: '',
         location: LOCATION,
         tags: [],
-        imageUrl: '',
+        image: '',
         videoUrl: '',
         mediaType: 'image',
         isPublished: false
@@ -314,7 +316,7 @@ export default function AdminBlogAfilasGeneralPage() {
       setUploadingMedia(false);
       return;
     }
-    if (formData.mediaType === 'image' && !formData.imageUrl && !imageFile) {
+    if (formData.mediaType === 'image' && !formData.image && !imageFile) {
       setError('Please upload an image');
       setUploadingMedia(false);
       return;
@@ -326,7 +328,7 @@ export default function AdminBlogAfilasGeneralPage() {
     }
 
     try {
-      let imageUrl = formData.imageUrl;
+      let imageUrl = formData.image;
       let videoUrl = formData.videoUrl;
       let mediaType = formData.mediaType;
 
@@ -336,7 +338,7 @@ export default function AdminBlogAfilasGeneralPage() {
           imageUrl = uploadedUrl;
           mediaType = 'image';
         } catch (uploadError) {
-          setError('Failed to upload image');
+          setError('Failed to upload image. Please try again.');
           setUploadingMedia(false);
           return;
         }
@@ -354,16 +356,14 @@ export default function AdminBlogAfilasGeneralPage() {
         category: formData.category,
         location: formData.location,
         tags: formData.tags,
-        imageUrl: mediaType === 'image' ? imageUrl : '',
+        image: mediaType === 'image' ? imageUrl : '',
         videoUrl: mediaType === 'video' ? videoUrl : '',
-        mediaType: mediaType,
-        isPublished: formData.isPublished,
         author: 'Admin',
         authorId: 'admin-id'
       };
 
       if (editingPost) {
-        await api.patch(`/blog/${editingPost.id}`, submitData, true);
+        await api.put(`/blog/${editingPost.id}`, submitData, true);
         setSuccess('Blog post updated successfully!');
       } else {
         await api.post('/blog', submitData, true);
@@ -462,14 +462,14 @@ export default function AdminBlogAfilasGeneralPage() {
         <div className="flex gap-3 flex-wrap">
           <button
             onClick={loadPosts}
-            className="focus-ring rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 text-sm transition-colors flex items-center gap-2"
+            className="rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 text-sm transition-colors flex items-center gap-2"
           >
             <RefreshCw className="w-4 h-4" />
             Refresh
           </button>
           <button
             onClick={() => handleOpenModal()}
-            className="focus-ring rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm transition-colors flex items-center gap-2"
+            className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm transition-colors flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             New Blog Post
@@ -566,17 +566,17 @@ export default function AdminBlogAfilasGeneralPage() {
             {filteredPosts.map((post) => (
               <div key={post.id} className="p-6 hover:bg-gray-50 transition-colors">
                 <div className="flex flex-wrap gap-6">
-                  {post.imageUrl && (
+                  {post.image && (
                     <div className="w-48 h-32 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 relative">
                       <Image
-                        src={post.imageUrl}
+                        src={post.image}
                         alt={post.title}
                         fill
                         className="object-cover"
                       />
                     </div>
                   )}
-                  {post.videoUrl && !post.imageUrl && (
+                  {post.videoUrl && !post.image && (
                     <div className="w-48 h-32 rounded-lg overflow-hidden flex-shrink-0 bg-black relative flex items-center justify-center">
                       <Play className="w-12 h-12 text-white/50" />
                     </div>
@@ -600,7 +600,7 @@ export default function AdminBlogAfilasGeneralPage() {
                               Video
                             </span>
                           )}
-                          {post.imageUrl && !post.videoUrl && (
+                          {post.image && !post.videoUrl && (
                             <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 flex items-center gap-1">
                               <ImageIcon className="w-3 h-3" />
                               Image

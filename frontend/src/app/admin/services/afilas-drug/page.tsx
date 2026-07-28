@@ -1,3 +1,4 @@
+// app/admin/services/afilas-drug/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -12,22 +13,15 @@ import {
   CheckCircle,
   XCircle,
   X,
-  Pill,
   Clock,
   DollarSign,
-  Users,
-  Stethoscope,
-  Building2,
   Search,
-  Filter,
   ChevronDown,
-  Eye,
   Edit,
   Save,
   AlertCircle,
-  Package,
-  Syringe,
-  
+  Pill,
+  Package
 } from 'lucide-react';
 
 interface Service {
@@ -97,7 +91,6 @@ export default function AdminServicesAfilasDrugPage() {
     setError('');
     try {
       const response = await api.get<any>(`/services?location=${encodeURIComponent(LOCATION)}`, true);
-      console.log('📡 Services response:', response);
       
       let servicesData: Service[] = [];
       if (response) {
@@ -263,7 +256,7 @@ export default function AdminServicesAfilasDrugPage() {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
           <h1 className="font-display text-3xl text-clinical-900 flex items-center gap-3">
-        
+            <Pill className="w-8 h-8 text-green-600" />
             Pharmaceutical Products - {LOCATION}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
@@ -273,14 +266,14 @@ export default function AdminServicesAfilasDrugPage() {
         <div className="flex gap-3 flex-wrap">
           <button
             onClick={loadServices}
-            className="focus-ring rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 text-sm transition-colors flex items-center gap-2"
+            className="rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 text-sm transition-colors flex items-center gap-2"
           >
             <RefreshCw className="w-4 h-4" />
             Refresh
           </button>
           <button
             onClick={() => handleOpenModal()}
-            className="focus-ring rounded-lg bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm transition-colors flex items-center gap-2"
+            className="rounded-lg bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm transition-colors flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             Add Product
@@ -288,7 +281,6 @@ export default function AdminServicesAfilasDrugPage() {
         </div>
       </div>
 
-      {/* Filters and Search */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex-1 min-w-[200px]">
@@ -442,7 +434,6 @@ export default function AdminServicesAfilasDrugPage() {
         </div>
       )}
 
-      {/* Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">

@@ -1,4 +1,4 @@
-// routes/upload.js
+// backend/src/routes/upload.js
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
@@ -8,12 +8,13 @@ const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Ensure upload directories exist
-const uploadDirs = ['doctors', 'departments', 'gallery', 'news', 'services'];
+// Ensure upload directories exist - ADDED 'blog' directory
+const uploadDirs = ['doctors', 'departments', 'gallery', 'news', 'services', 'blog'];
 uploadDirs.forEach(dir => {
   const dirPath = path.join(__dirname, '../../uploads', dir);
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
+    console.log(`📁 Created upload directory: ${dirPath}`);
   }
 });
 
@@ -38,7 +39,7 @@ const storage = multer.diskStorage({
 
 // File filter
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4'];
+  const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'video/webm'];
 
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
@@ -51,11 +52,11 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 5242880, // 5MB default
+    fileSize: parseInt(process.env.MAX_FILE_SIZE) || 10485760, // 10MB default
   },
 });
 
-// ===== FIX: Return absolute URL so Next.js frontend (port 3000) can load images from backend (port 5000) =====
+// ===== MAIN UPLOAD ROUTE - Accepts 'image' field name =====
 router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), upload.single('image'), (req, res) => {
   try {
     if (!req.file) {
@@ -84,7 +85,36 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), upload.single('image')
   }
 });
 
-// Upload single file (with type parameter)
+// ===== UPLOAD WITH 'file' FIELD NAME =====
+router.post('/file', auth, authorize('SUPER_ADMIN', 'ADMIN'), upload.single('file'), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No file uploaded',
+      });
+    }
+
+    const type = req.query.type || 'doctors';
+    const fileUrl = `${req.protocol}://${req.get('host')}/uploads/${type}/${req.file.filename}`;
+
+    res.json({
+      success: true,
+      url: fileUrl,
+      filename: req.file.filename,
+      size: req.file.size,
+      mimetype: req.file.mimetype,
+    });
+  } catch (error) {
+    console.error('Upload error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'File upload failed',
+    });
+  }
+});
+
+// Upload single file
 router.post('/single', auth, authorize('SUPER_ADMIN', 'ADMIN'), upload.single('file'), (req, res) => {
   try {
     if (!req.file) {

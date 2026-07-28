@@ -39,7 +39,6 @@ model Department {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   
-  doctors     Doctor[]
   services    Service[]
   
   @@map("departments")
@@ -57,9 +56,10 @@ model Service {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   
-  departmentId String
-  department   Department @relation(fields: [departmentId], references: [id])
-  appointments Appointment[]
+  // MAKE DEPARTMENT OPTIONAL
+  departmentId  String?
+  department    Department? @relation(fields: [departmentId], references: [id])
+  appointments  Appointment[]
   
   @@map("services")
 }
@@ -81,8 +81,6 @@ model Doctor {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
-  departmentId  String
-  department    Department @relation(fields: [departmentId], references: [id])
   appointments  Appointment[]
   workingHours  WorkingHour[]
   
@@ -164,7 +162,7 @@ model News {
   views       Int       @default(0)
   likes       Int       @default(0)
   comments    Int       @default(0)
-  tags        Json?     @default("[]")  // FIXED: Use @default("[]") for JSON fields
+  tags        Json?     @default("[]")
   location    String?   @default("Afilas General Hospital")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

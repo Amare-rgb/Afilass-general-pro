@@ -1,4 +1,4 @@
-// C:\Afilass\afilas-hospital\frontend\src\app\admin\doctors\afilas-diagnosis\page.tsx
+// app/admin/doctors/afilas-diagnosis/page.tsx
 'use client';
 
 import { useEffect, useState, FormEvent, useRef } from 'react';
@@ -6,14 +6,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { api, ApiError } from '@/lib/api';
 import { getToken, clearSession } from '@/lib/auth';
-import { Department, Doctor } from '@/lib/types';
+import { Doctor } from '@/lib/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Upload,
   X,
   Stethoscope,
-  Building2,
-  Clock,
   CheckCircle,
   XCircle,
   Loader2,
@@ -24,8 +22,7 @@ import {
   Mail,
   Phone,
   ArrowLeft,
-  Activity,
-  Calendar
+  Activity
 } from 'lucide-react';
 
 const emptyForm = { 
@@ -34,8 +31,7 @@ const emptyForm = {
   bio: '', 
   photoUrl: '',
   email: '',
-  phone: '',
-  departmentId: ''
+  phone: ''
 };
 
 const LOCATION_NAME = 'Afilas Diagnosis Center';
@@ -43,7 +39,6 @@ const LOCATION_NAME = 'Afilas Diagnosis Center';
 export default function AfilasDiagnosisDoctorsPage() {
   const { t } = useLanguage();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
@@ -53,14 +48,13 @@ export default function AfilasDiagnosisDoctorsPage() {
   const [loading, setLoading] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function load() {
     setLoading(true);
     setError('');
     try {
-      console.log(`📡 Loading doctors for ${LOCATION_NAME}...`);
-      
       const doctorsResponse = await api.get<any>(`/doctors?location=${encodeURIComponent(LOCATION_NAME)}`);
       
       let doctorsData: Doctor[] = [];
@@ -74,26 +68,12 @@ export default function AfilasDiagnosisDoctorsPage() {
         }
       }
       
-      const deptResponse = await api.get<any>(`/departments?location=${encodeURIComponent(LOCATION_NAME)}`);
-      let departmentsData: Department[] = [];
-      if (deptResponse) {
-        if (Array.isArray(deptResponse)) {
-          departmentsData = deptResponse;
-        } else if (deptResponse.data && Array.isArray(deptResponse.data)) {
-          departmentsData = deptResponse.data;
-        } else if (deptResponse.departments && Array.isArray(deptResponse.departments)) {
-          departmentsData = deptResponse.departments;
-        }
-      }
-      
       setDoctors(doctorsData);
-      setDepartments(departmentsData);
       
-      console.log(`✅ Loaded ${doctorsData.length} doctors and ${departmentsData.length} departments for ${LOCATION_NAME}`);
+      console.log(`✅ Loaded ${doctorsData.length} doctors for ${LOCATION_NAME}`);
     } catch (error) {
       console.error('❌ Failed to load data:', error);
       setDoctors([]);
-      setDepartments([]);
     } finally {
       setLoading(false);
     }
@@ -121,12 +101,11 @@ export default function AfilasDiagnosisDoctorsPage() {
     
     try {
       const token = getToken();
-      
       if (!token) {
         throw new Error('No authentication token found');
       }
       
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch('http://localhost:5000/api/upload?type=doctors', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -170,8 +149,7 @@ export default function AfilasDiagnosisDoctorsPage() {
       bio: doc.bio || '',
       photoUrl: doc.photoUrl || '',
       email: doc.email || '',
-      phone: doc.phone || '',
-      departmentId: doc.departmentId,
+      phone: doc.phone || ''
     });
     setImagePreview(doc.photoUrl || '');
     setShowForm(true);
@@ -186,7 +164,17 @@ export default function AfilasDiagnosisDoctorsPage() {
     setSuccess('');
     
     try {
-      if (!form.email) {
+      if (!form.name.trim()) {
+        setError('Name is required');
+        setSaving(false);
+        return;
+      }
+      if (!form.title.trim()) {
+        setError('Title is required');
+        setSaving(false);
+        return;
+      }
+      if (!form.email.trim()) {
         setError('Email is required');
         setSaving(false);
         return;
@@ -195,13 +183,16 @@ export default function AfilasDiagnosisDoctorsPage() {
       let photoUrl = form.photoUrl;
       
       if (imageFile) {
+        setUploadingImage(true);
         try {
           photoUrl = await uploadImage(imageFile);
         } catch (uploadError) {
           setError(uploadError instanceof Error ? uploadError.message : 'Failed to upload image');
           setSaving(false);
+          setUploadingImage(false);
           return;
         }
+        setUploadingImage(false);
       }
       
       const doctorData = { 
@@ -211,7 +202,6 @@ export default function AfilasDiagnosisDoctorsPage() {
         photoUrl: photoUrl,
         email: form.email,
         phone: form.phone || '',
-        departmentId: form.departmentId,
         location: LOCATION_NAME,
         active: true
       };
@@ -233,6 +223,7 @@ export default function AfilasDiagnosisDoctorsPage() {
       setError(err instanceof Error ? err.message : 'Failed to save doctor');
     } finally {
       setSaving(false);
+      setUploadingImage(false);
     }
   }
 
@@ -250,7 +241,6 @@ export default function AfilasDiagnosisDoctorsPage() {
 
   return (
     <>
-      {/* Header with Back Button */}
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div className="flex items-center gap-3">
           <Link href="/admin/doctors" className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
@@ -273,7 +263,6 @@ export default function AfilasDiagnosisDoctorsPage() {
         </button>
       </div>
 
-      {/* Success/Error Messages */}
       {success && (
         <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5 text-green-600" />
@@ -294,7 +283,6 @@ export default function AfilasDiagnosisDoctorsPage() {
         </div>
       )}
 
-      {/* Form Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -302,12 +290,12 @@ export default function AfilasDiagnosisDoctorsPage() {
               <h2 className="font-semibold text-clinical-900 text-xl flex items-center gap-2">
                 {editingId ? (
                   <>
-                    <Edit className="w-5 h-5 text-clinical-600" />
+                    <Edit className="w-5 h-5 text-purple-600" />
                     Edit Doctor
                   </>
                 ) : (
                   <>
-                    <UserPlus className="w-5 h-5 text-clinical-600" />
+                    <UserPlus className="w-5 h-5 text-purple-600" />
                     Add New Doctor
                   </>
                 )}
@@ -379,7 +367,7 @@ export default function AfilasDiagnosisDoctorsPage() {
                   </label>
                   <input
                     required
-                    placeholder="Cardiologist"
+                    placeholder="Radiologist"
                     value={form.title}
                     onChange={(e) => setForm({ ...form, title: e.target.value })}
                     className="focus-ring w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 transition-colors"
@@ -421,7 +409,6 @@ export default function AfilasDiagnosisDoctorsPage() {
                 </div>
               </div>
               
-             
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
                   Bio
@@ -438,13 +425,13 @@ export default function AfilasDiagnosisDoctorsPage() {
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || uploadingImage}
                   className="flex-1 focus-ring rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-semibold px-6 py-2.5 transition-colors flex items-center justify-center gap-2"
                 >
-                  {saving ? (
+                  {saving || uploadingImage ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Saving...
+                      {uploadingImage ? 'Uploading Image...' : 'Saving...'}
                     </>
                   ) : (
                     editingId ? 'Update Doctor' : 'Add Doctor'
@@ -468,7 +455,6 @@ export default function AfilasDiagnosisDoctorsPage() {
         </div>
       )}
 
-      {/* Doctors List */}
       {loading ? (
         <div className="flex items-center justify-center p-12">
           <Loader2 className="w-8 h-8 text-purple-600 animate-spin" />
@@ -521,15 +507,6 @@ export default function AfilasDiagnosisDoctorsPage() {
                     {doc.email}
                   </p>
                 )}
-                
-                <div className="mt-3">
-                  {doc.department && (
-                    <p className="text-xs text-gray-500 flex items-center gap-2">
-                      <Building2 className="w-3.5 h-3.5" />
-                      {doc.department.name}
-                    </p>
-                  )}
-                </div>
                 
                 {doc.bio && (
                   <p className="text-xs text-gray-500 mt-3 line-clamp-2">{doc.bio}</p>

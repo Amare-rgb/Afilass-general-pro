@@ -1,3 +1,4 @@
+// app/admin/blog/afilas-diagnosis/page.tsx
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -43,7 +44,7 @@ interface BlogPost {
   category: string;
   location: string;
   tags: string[];
-  imageUrl?: string;
+  image?: string;
   videoUrl?: string;
   mediaType: 'image' | 'video';
   isPublished: boolean;
@@ -61,7 +62,7 @@ interface BlogFormData {
   category: string;
   location: string;
   tags: string[];
-  imageUrl: string;
+  image: string;
   videoUrl: string;
   mediaType: 'image' | 'video';
   isPublished: boolean;
@@ -97,7 +98,7 @@ export default function AdminBlogAfilasDiagnosisPage() {
     category: '',
     location: LOCATION,
     tags: [],
-    imageUrl: '',
+    image: '',
     videoUrl: '',
     mediaType: 'image',
     isPublished: false
@@ -180,10 +181,10 @@ export default function AdminBlogAfilasDiagnosisPage() {
     }
   };
 
+  // FIXED: Updated uploadImage function
   const uploadImage = async (file: File): Promise<string> => {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', 'image');
+    formData.append('image', file); // Changed from 'file' to 'image'
     
     try {
       const token = localStorage.getItem('token');
@@ -191,7 +192,7 @@ export default function AdminBlogAfilasDiagnosisPage() {
         throw new Error('No authentication token found');
       }
       
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch('http://localhost:5000/api/upload?type=blog', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -200,8 +201,10 @@ export default function AdminBlogAfilasDiagnosisPage() {
       });
       
       const data = await response.json();
+      console.log('📡 Upload response:', data);
       
       if (!response.ok) {
+        console.error('Upload error response:', data);
         throw new Error(data.error || data.message || 'Upload failed');
       }
       
@@ -222,12 +225,12 @@ export default function AdminBlogAfilasDiagnosisPage() {
         category: post.category,
         location: post.location,
         tags: post.tags || [],
-        imageUrl: post.imageUrl || '',
+        image: post.image || '',
         videoUrl: post.videoUrl || '',
         mediaType: post.mediaType || 'image',
         isPublished: post.isPublished
       });
-      setPreviewImage(post.imageUrl || '');
+      setPreviewImage(post.image || '');
       setVideoPreview(post.videoUrl || '');
       setVideoUrlInput(post.videoUrl || '');
       setImageFile(null);
@@ -240,7 +243,7 @@ export default function AdminBlogAfilasDiagnosisPage() {
         category: '',
         location: LOCATION,
         tags: [],
-        imageUrl: '',
+        image: '',
         videoUrl: '',
         mediaType: 'image',
         isPublished: false
@@ -312,7 +315,7 @@ export default function AdminBlogAfilasDiagnosisPage() {
       setUploadingMedia(false);
       return;
     }
-    if (formData.mediaType === 'image' && !formData.imageUrl && !imageFile) {
+    if (formData.mediaType === 'image' && !formData.image && !imageFile) {
       setError('Please upload an image');
       setUploadingMedia(false);
       return;
@@ -324,7 +327,7 @@ export default function AdminBlogAfilasDiagnosisPage() {
     }
 
     try {
-      let imageUrl = formData.imageUrl;
+      let imageUrl = formData.image;
       let videoUrl = formData.videoUrl;
       let mediaType = formData.mediaType;
 
@@ -335,7 +338,7 @@ export default function AdminBlogAfilasDiagnosisPage() {
           imageUrl = uploadedUrl;
           mediaType = 'image';
         } catch (uploadError) {
-          setError('Failed to upload image');
+          setError('Failed to upload image. Please try again.');
           setUploadingMedia(false);
           return;
         }
@@ -354,16 +357,14 @@ export default function AdminBlogAfilasDiagnosisPage() {
         category: formData.category,
         location: formData.location,
         tags: formData.tags,
-        imageUrl: mediaType === 'image' ? imageUrl : '',
+        image: mediaType === 'image' ? imageUrl : '',
         videoUrl: mediaType === 'video' ? videoUrl : '',
-        mediaType: mediaType,
-        isPublished: formData.isPublished,
         author: 'Admin',
         authorId: 'admin-id'
       };
 
       if (editingPost) {
-        await api.patch(`/blog/${editingPost.id}`, submitData, true);
+        await api.put(`/blog/${editingPost.id}`, submitData, true);
         setSuccess('Blog post updated successfully!');
       } else {
         await api.post('/blog', submitData, true);
@@ -564,17 +565,17 @@ export default function AdminBlogAfilasDiagnosisPage() {
             {filteredPosts.map((post) => (
               <div key={post.id} className="p-6 hover:bg-gray-50 transition-colors">
                 <div className="flex flex-wrap gap-6">
-                  {post.imageUrl && (
+                  {post.image && (
                     <div className="w-48 h-32 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 relative">
                       <Image
-                        src={post.imageUrl}
+                        src={post.image}
                         alt={post.title}
                         fill
                         className="object-cover"
                       />
                     </div>
                   )}
-                  {post.videoUrl && !post.imageUrl && (
+                  {post.videoUrl && !post.image && (
                     <div className="w-48 h-32 rounded-lg overflow-hidden flex-shrink-0 bg-black relative flex items-center justify-center">
                       <Play className="w-12 h-12 text-white/50" />
                     </div>
@@ -598,7 +599,7 @@ export default function AdminBlogAfilasDiagnosisPage() {
                               Video
                             </span>
                           )}
-                          {post.imageUrl && !post.videoUrl && (
+                          {post.image && !post.videoUrl && (
                             <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 flex items-center gap-1">
                               <ImageIcon className="w-3 h-3" />
                               Image
@@ -988,8 +989,7 @@ export default function AdminBlogAfilasDiagnosisPage() {
                 >
                   Cancel
                 </button>
-                <button
-                  type="submit"
+                <button                  type="submit"
                   disabled={uploadingMedia}
                   className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
                 >

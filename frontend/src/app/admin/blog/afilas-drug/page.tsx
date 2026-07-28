@@ -1,3 +1,4 @@
+// app/admin/blog/afilas-drug/page.tsx
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -12,7 +13,6 @@ import {
   CheckCircle,
   XCircle,
   X,
-  Hospital,
   Clock,
   User,
   Tag,
@@ -25,16 +25,12 @@ import {
   Calendar,
   Heart,
   MessageSquare,
-  Share2,
   BookOpen,
   Search,
-  Filter,
   ChevronDown,
-  Globe,
-  Link2,
-  TrendingUp,
   Upload,
-  Play
+  Play,
+  Pill
 } from 'lucide-react';
 import Image from 'next/image';
 
@@ -48,7 +44,7 @@ interface BlogPost {
   category: string;
   location: string;
   tags: string[];
-  imageUrl?: string;
+  image?: string;
   videoUrl?: string;
   mediaType: 'image' | 'video';
   isPublished: boolean;
@@ -66,27 +62,27 @@ interface BlogFormData {
   category: string;
   location: string;
   tags: string[];
-  imageUrl: string;
+  image: string;
   videoUrl: string;
   mediaType: 'image' | 'video';
   isPublished: boolean;
 }
 
-const LOCATION = 'Afilas General Hospital';
+const LOCATION = 'Afilas Drug Manufacturing';
 const CATEGORIES = [
-  'Medical News',
-  'Health Tips',
-  'Research',
-  'Patient Stories',
-  'Events',
-  'Announcements',
-  'Wellness',
-  'Technology',
-  'Education',
-  'Community'
+  'Pharmaceutical News',
+  'Drug Research',
+  'Manufacturing Updates',
+  'Quality Control',
+  'Regulatory',
+  'Patient Safety',
+  'Innovation',
+  'Supply Chain',
+  'Clinical Trials',
+  'FDA Updates'
 ];
 
-export default function AdminBlogAfilasGeneralPage() {
+export default function AdminBlogAfilasDrugPage() {
   const { t } = useLanguage();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,7 +100,7 @@ export default function AdminBlogAfilasGeneralPage() {
     category: '',
     location: LOCATION,
     tags: [],
-    imageUrl: '',
+    image: '',
     videoUrl: '',
     mediaType: 'image',
     isPublished: false
@@ -187,10 +183,10 @@ export default function AdminBlogAfilasGeneralPage() {
     }
   };
 
+  // FIXED: Updated uploadImage function
   const uploadImage = async (file: File): Promise<string> => {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', 'image');
+    formData.append('image', file);
     
     try {
       const token = localStorage.getItem('token');
@@ -198,7 +194,7 @@ export default function AdminBlogAfilasGeneralPage() {
         throw new Error('No authentication token found');
       }
       
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch('http://localhost:5000/api/upload?type=blog', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -207,8 +203,10 @@ export default function AdminBlogAfilasGeneralPage() {
       });
       
       const data = await response.json();
+      console.log('📡 Upload response:', data);
       
       if (!response.ok) {
+        console.error('Upload error response:', data);
         throw new Error(data.error || data.message || 'Upload failed');
       }
       
@@ -229,12 +227,12 @@ export default function AdminBlogAfilasGeneralPage() {
         category: post.category,
         location: post.location,
         tags: post.tags || [],
-        imageUrl: post.imageUrl || '',
+        image: post.image || '',
         videoUrl: post.videoUrl || '',
         mediaType: post.mediaType || 'image',
         isPublished: post.isPublished
       });
-      setPreviewImage(post.imageUrl || '');
+      setPreviewImage(post.image || '');
       setVideoPreview(post.videoUrl || '');
       setVideoUrlInput(post.videoUrl || '');
       setImageFile(null);
@@ -247,7 +245,7 @@ export default function AdminBlogAfilasGeneralPage() {
         category: '',
         location: LOCATION,
         tags: [],
-        imageUrl: '',
+        image: '',
         videoUrl: '',
         mediaType: 'image',
         isPublished: false
@@ -319,7 +317,7 @@ export default function AdminBlogAfilasGeneralPage() {
       setUploadingMedia(false);
       return;
     }
-    if (formData.mediaType === 'image' && !formData.imageUrl && !imageFile) {
+    if (formData.mediaType === 'image' && !formData.image && !imageFile) {
       setError('Please upload an image');
       setUploadingMedia(false);
       return;
@@ -331,7 +329,7 @@ export default function AdminBlogAfilasGeneralPage() {
     }
 
     try {
-      let imageUrl = formData.imageUrl;
+      let imageUrl = formData.image;
       let videoUrl = formData.videoUrl;
       let mediaType = formData.mediaType;
 
@@ -341,7 +339,7 @@ export default function AdminBlogAfilasGeneralPage() {
           imageUrl = uploadedUrl;
           mediaType = 'image';
         } catch (uploadError) {
-          setError('Failed to upload image');
+          setError('Failed to upload image. Please try again.');
           setUploadingMedia(false);
           return;
         }
@@ -359,16 +357,14 @@ export default function AdminBlogAfilasGeneralPage() {
         category: formData.category,
         location: formData.location,
         tags: formData.tags,
-        imageUrl: mediaType === 'image' ? imageUrl : '',
+        image: mediaType === 'image' ? imageUrl : '',
         videoUrl: mediaType === 'video' ? videoUrl : '',
-        mediaType: mediaType,
-        isPublished: formData.isPublished,
         author: 'Admin',
         authorId: 'admin-id'
       };
 
       if (editingPost) {
-        await api.patch(`/blog/${editingPost.id}`, submitData, true);
+        await api.put(`/blog/${editingPost.id}`, submitData, true);
         setSuccess('Blog post updated successfully!');
       } else {
         await api.post('/blog', submitData, true);
@@ -433,16 +429,16 @@ export default function AdminBlogAfilasGeneralPage() {
 
   const getCategoryColor = (category: string) => {
     const colors: { [key: string]: string } = {
-      'Medical News': 'bg-blue-100 text-blue-700',
-      'Health Tips': 'bg-green-100 text-green-700',
-      'Research': 'bg-purple-100 text-purple-700',
-      'Patient Stories': 'bg-pink-100 text-pink-700',
-      'Events': 'bg-orange-100 text-orange-700',
-      'Announcements': 'bg-yellow-100 text-yellow-700',
-      'Wellness': 'bg-teal-100 text-teal-700',
-      'Technology': 'bg-indigo-100 text-indigo-700',
-      'Education': 'bg-cyan-100 text-cyan-700',
-      'Community': 'bg-rose-100 text-rose-700'
+      'Pharmaceutical News': 'bg-blue-100 text-blue-700',
+      'Drug Research': 'bg-purple-100 text-purple-700',
+      'Manufacturing Updates': 'bg-green-100 text-green-700',
+      'Quality Control': 'bg-yellow-100 text-yellow-700',
+      'Regulatory': 'bg-red-100 text-red-700',
+      'Patient Safety': 'bg-pink-100 text-pink-700',
+      'Innovation': 'bg-indigo-100 text-indigo-700',
+      'Supply Chain': 'bg-orange-100 text-orange-700',
+      'Clinical Trials': 'bg-cyan-100 text-cyan-700',
+      'FDA Updates': 'bg-rose-100 text-rose-700'
     };
     return colors[category] || 'bg-gray-100 text-gray-700';
   };
@@ -457,11 +453,11 @@ export default function AdminBlogAfilasGeneralPage() {
       <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
         <div>
           <h1 className="font-display text-3xl text-clinical-900 flex items-center gap-3">
-            <Hospital className="w-8 h-8 text-blue-600" />
+            <Pill className="w-8 h-8 text-green-600" />
             Blog - {LOCATION}
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Manage all blog posts and articles for {LOCATION}
+            Manage pharmaceutical blog posts and updates for {LOCATION}
           </p>
         </div>
         <div className="flex gap-3 flex-wrap">
@@ -474,7 +470,7 @@ export default function AdminBlogAfilasGeneralPage() {
           </button>
           <button
             onClick={() => handleOpenModal()}
-            className="focus-ring rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm transition-colors flex items-center gap-2"
+            className="focus-ring rounded-lg bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm transition-colors flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
             New Blog Post
@@ -493,7 +489,7 @@ export default function AdminBlogAfilasGeneralPage() {
                 placeholder="Search blog posts..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -501,7 +497,7 @@ export default function AdminBlogAfilasGeneralPage() {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+              className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none bg-white"
             >
               <option value="">All Categories</option>
               {CATEGORIES.map(cat => (
@@ -514,7 +510,7 @@ export default function AdminBlogAfilasGeneralPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+              className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none bg-white"
             >
               <option value="">All Status</option>
               <option value="published">Published</option>
@@ -552,7 +548,7 @@ export default function AdminBlogAfilasGeneralPage() {
         {loading ? (
           <div className="flex items-center justify-center p-12">
             <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+              <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
               <p className="text-sm text-gray-500">Loading blog posts...</p>
             </div>
           </div>
@@ -571,31 +567,22 @@ export default function AdminBlogAfilasGeneralPage() {
             {filteredPosts.map((post) => (
               <div key={post.id} className="p-6 hover:bg-gray-50 transition-colors">
                 <div className="flex flex-wrap gap-6">
-                  {/* Image/Video Preview */}
-                  {post.imageUrl && (
+                  {post.image && (
                     <div className="w-48 h-32 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 relative">
                       <Image
-                        src={post.imageUrl}
+                        src={post.image}
                         alt={post.title}
                         fill
                         className="object-cover"
                       />
                     </div>
                   )}
-                  {post.videoUrl && !post.imageUrl && (
+                  {post.videoUrl && !post.image && (
                     <div className="w-48 h-32 rounded-lg overflow-hidden flex-shrink-0 bg-black relative flex items-center justify-center">
                       <Play className="w-12 h-12 text-white/50" />
-                      {post.videoUrl.includes('youtube') && (
-                        <img 
-                          src={`https://img.youtube.com/vi/${post.videoUrl.split('v=')[1]?.split('&')[0]}/hqdefault.jpg`}
-                          alt={post.title}
-                          className="w-full h-full object-cover"
-                        />
-                      )}
                     </div>
                   )}
                   
-                  {/* Content */}
                   <div className="flex-1 min-w-[200px]">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
@@ -614,7 +601,7 @@ export default function AdminBlogAfilasGeneralPage() {
                               Video
                             </span>
                           )}
-                          {post.imageUrl && !post.videoUrl && (
+                          {post.image && !post.videoUrl && (
                             <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 flex items-center gap-1">
                               <ImageIcon className="w-3 h-3" />
                               Image
@@ -622,7 +609,7 @@ export default function AdminBlogAfilasGeneralPage() {
                           )}
                         </div>
                         
-                        <h3 className="text-lg font-semibold text-gray-800 hover:text-blue-600 transition-colors">
+                        <h3 className="text-lg font-semibold text-gray-800 hover:text-green-600 transition-colors">
                           {post.title}
                         </h3>
                         
@@ -663,7 +650,6 @@ export default function AdminBlogAfilasGeneralPage() {
                         )}
                       </div>
                       
-                      {/* Actions */}
                       <div className="flex items-center gap-2 flex-shrink-0">
                         <button
                           onClick={() => handleTogglePublish(post.id, post.isPublished)}
@@ -677,7 +663,7 @@ export default function AdminBlogAfilasGeneralPage() {
                         </button>
                         <button
                           onClick={() => handleOpenModal(post)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                           title="Edit"
                         >
                           <Pencil className="w-4 h-4" />
@@ -737,7 +723,7 @@ export default function AdminBlogAfilasGeneralPage() {
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   placeholder="Enter blog post title"
                   required
                 />
@@ -751,7 +737,7 @@ export default function AdminBlogAfilasGeneralPage() {
                   <select
                     value={formData.category}
                     onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     required
                   >
                     <option value="">Select category</option>
@@ -781,7 +767,7 @@ export default function AdminBlogAfilasGeneralPage() {
                 <textarea
                   value={formData.excerpt}
                   onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   rows={2}
                   placeholder="Brief summary of the blog post"
                   required
@@ -795,7 +781,7 @@ export default function AdminBlogAfilasGeneralPage() {
                 <textarea
                   value={formData.content}
                   onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono"
                   rows={8}
                   placeholder="Write your blog post content here... (supports HTML)"
                   required
@@ -808,7 +794,6 @@ export default function AdminBlogAfilasGeneralPage() {
                   Media Type * <span className="text-xs text-red-500">(Required)</span>
                 </label>
                 
-                {/* Media Type Selection */}
                 <div className="flex gap-2 mb-4 flex-wrap">
                   <button
                     type="button"
@@ -822,7 +807,7 @@ export default function AdminBlogAfilasGeneralPage() {
                     }}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                       formData.mediaType === 'image'
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-green-600 text-white'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
@@ -838,7 +823,7 @@ export default function AdminBlogAfilasGeneralPage() {
                     }}
                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
                       formData.mediaType === 'video'
-                        ? 'bg-blue-600 text-white'
+                        ? 'bg-green-600 text-white'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
@@ -859,7 +844,7 @@ export default function AdminBlogAfilasGeneralPage() {
                     />
                     <div
                       onClick={() => fileInputRef.current?.click()}
-                      className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition-colors"
+                      className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-green-500 transition-colors"
                     >
                       {previewImage ? (
                         <div className="relative">
@@ -877,7 +862,6 @@ export default function AdminBlogAfilasGeneralPage() {
                               e.stopPropagation();
                               setPreviewImage('');
                               setImageFile(null);
-                              setFormData({ ...formData, mediaType: 'image' });
                             }}
                             className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
                           >
@@ -900,7 +884,7 @@ export default function AdminBlogAfilasGeneralPage() {
                   </div>
                 )}
 
-                {/* Video URL Only - No File Upload */}
+                {/* Video URL Only */}
                 {formData.mediaType === 'video' && (
                   <div className="space-y-3">
                     <div>
@@ -911,7 +895,7 @@ export default function AdminBlogAfilasGeneralPage() {
                         type="url"
                         value={videoUrlInput}
                         onChange={(e) => handleVideoUrlChange(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                         placeholder="https://www.youtube.com/watch?v=..."
                         required={formData.mediaType === 'video'}
                       />
@@ -955,7 +939,7 @@ export default function AdminBlogAfilasGeneralPage() {
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     placeholder="Add tag and press Enter"
                   />
                   <button
@@ -971,13 +955,13 @@ export default function AdminBlogAfilasGeneralPage() {
                     {formData.tags.map(tag => (
                       <span
                         key={tag}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm"
+                        className="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm"
                       >
                         #{tag}
                         <button
                           type="button"
                           onClick={() => handleRemoveTag(tag)}
-                          className="hover:text-blue-900"
+                          className="hover:text-green-900"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -993,7 +977,7 @@ export default function AdminBlogAfilasGeneralPage() {
                     type="checkbox"
                     checked={formData.isPublished}
                     onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
                   />
                   <span className="text-sm font-medium text-gray-700">Publish immediately</span>
                 </label>
@@ -1010,7 +994,7 @@ export default function AdminBlogAfilasGeneralPage() {
                 <button
                   type="submit"
                   disabled={uploadingMedia}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
                 >
                   {uploadingMedia ? (
                     <>

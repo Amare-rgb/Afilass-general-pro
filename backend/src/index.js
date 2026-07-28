@@ -62,6 +62,7 @@ let notificationIdCounter = 1;
 const getUserId = (req) => {
   if (req.user?.id) return req.user.id;
   if (req.user?.userId) return req.user.userId;
+  // For development, use a default admin ID
   return 'admin-123';
 };
 
@@ -142,7 +143,17 @@ const createSampleNotifications = (userId) => {
   ];
 };
 
-// ===== NOTIFICATION ROUTES (Must be after middleware, before 404) =====
+// ===== NOTIFICATION ROUTES =====
+
+// TEST ROUTE - To verify the route is working
+app.get('/api/notifications/test', (req, res) => {
+  res.json({ 
+    success: true, 
+    message: 'Notification routes are working!',
+    timestamp: new Date().toISOString(),
+    totalNotifications: notifications.length
+  });
+});
 
 // GET /api/notifications - Get all notifications
 app.get('/api/notifications', (req, res) => {
@@ -165,11 +176,16 @@ app.get('/api/notifications', (req, res) => {
       time: getTimeAgo(n.createdAt),
       read: n.read,
       type: n.type || 'general',
+      createdAt: n.createdAt,
     }));
     
-    res.json({ notifications: formatted, unreadCount });
+    res.json({ 
+      success: true,
+      notifications: formatted, 
+      unreadCount 
+    });
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error fetching notifications:', error);
     res.status(500).json({ error: 'Failed to fetch notifications' });
   }
 });
@@ -279,11 +295,11 @@ app.get('/api/notifications/sample', (req, res) => {
     
     res.json({ 
       success: true, 
-      message: `Created ${samples.length} notifications`,
+      message: `Created ${samples.length} sample notifications`,
       count: samples.length 
     });
   } catch (error) {
-    res.status(500).json({ error: 'Failed' });
+    res.status(500).json({ error: 'Failed to create sample notifications' });
   }
 });
 
@@ -358,18 +374,10 @@ app.listen(PORT, () => {
   console.log(`   - GET  /api/doctors`);
   console.log(`   - GET  /api/services`);
   console.log(`   - GET  /api/blog`);
-  console.log(`   - GET  /api/blog/:id`);
-  console.log(`   - GET  /api/blog/slug/:slug`);
-  console.log(`   - GET  /api/blog/location/:location`);
-  console.log(`   - GET  /api/blog/category/:category`);
-  console.log(`   - POST /api/blog`);
-  console.log(`   - PUT  /api/blog/:id`);
-  console.log(`   - PATCH /api/blog/:id`);
-  console.log(`   - DELETE /api/blog/:id`);
-  console.log(`   - POST /api/blog/:id/like`);
-  console.log(`   - GET  /api/blog/stats`);
   console.log(`   - GET  /api/contact`);
   console.log(`   - POST /api/upload`);
+  console.log(`   - GET  /api/users`);
+  console.log(`   - GET  /api/notifications/test`);
   console.log(`   - GET  /api/notifications`);
   console.log(`   - GET  /api/notifications/unread/count`);
   console.log(`   - PATCH /api/notifications/:id/read`);
@@ -377,13 +385,6 @@ app.listen(PORT, () => {
   console.log(`   - DELETE /api/notifications/:id`);
   console.log(`   - POST /api/notifications`);
   console.log(`   - GET  /api/notifications/sample`);
-  console.log(`   - GET  /api/users`);
-  console.log(`   - GET  /api/users/:id`);
-  console.log(`   - POST /api/users`);
-  console.log(`   - PUT  /api/users/:id`);
-  console.log(`   - DELETE /api/users/:id`);
-  console.log(`   - PATCH /api/users/:id/toggle-status`);
-  console.log(`   - GET  /api/users/stats`);
 });
 
 module.exports = app;

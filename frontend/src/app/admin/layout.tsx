@@ -36,7 +36,8 @@ import {
   BookOpen,
   Pill,
   Microscope,
-  Factory
+  Factory,
+  Loader2
 } from 'lucide-react';
 
 // Define the dropdown item type
@@ -197,11 +198,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [searchQuery, setSearchQuery] = useState('');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [notifications, setNotifications] = useState([
-    { id: 1, title: 'New appointment booked', time: '5 min ago', read: false },
+    { id: 1, title: 'New appointment booked', time: 'Just now', read: false },
     { id: 2, title: 'Patient feedback received', time: '1 hour ago', read: false },
     { id: 3, title: 'Doctor schedule updated', time: '3 hours ago', read: true },
     { id: 4, title: 'System maintenance tonight', time: '1 day ago', read: true },
   ]);
+  const [notificationLoading, setNotificationLoading] = useState(false);
   
   const profileRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
@@ -251,20 +253,39 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, [admin]);
 
   const fetchNotifications = async () => {
+    setNotificationLoading(true);
     try {
-      const response = await fetch('/api/notifications', {
+      const token = getToken();
+      if (!token) {
+        console.log('No token found, skipping notifications fetch');
+        setNotificationLoading(false);
+        return;
+      }
+      
+      const response = await fetch('http://localhost:5000/api/notifications', {
         headers: {
-          'Authorization': `Bearer ${getToken()}`,
+          'Authorization': `Bearer ${token}`,
         },
       });
+      
       if (response.ok) {
         const data = await response.json();
-        if (data && data.length > 0) {
+        console.log('📡 Notifications response:', data);
+        
+        if (data && data.notifications) {
+          setNotifications(data.notifications);
+        } else if (Array.isArray(data)) {
           setNotifications(data);
+        } else if (data && data.data && Array.isArray(data.data)) {
+          setNotifications(data.data);
         }
+      } else {
+        console.error('Failed to fetch notifications:', response.status);
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
+    } finally {
+      setNotificationLoading(false);
     }
   };
 
@@ -590,7 +611,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       )}
                     </div>
                     <div className="max-h-64 overflow-y-auto">
-                      {notifications.length === 0 ? (
+                      {notificationLoading ? (
+                        <div className="px-4 py-8 text-center">
+                          <Loader2 className="w-8 h-8 text-green-500 animate-spin mx-auto mb-2" />
+                          <p className="text-sm text-gray-500">Loading notifications...</p>
+                        </div>
+                      ) : notifications.length === 0 ? (
                         <div className="px-4 py-8 text-center">
                           <Bell size={32} className="text-gray-300 mx-auto mb-2" />
                           <p className="text-sm text-gray-500">No notifications</p>
@@ -685,7 +711,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                               <Crown size={10} />
                               Admin
                             </span>
-                           
                           </div>
                         </div>
                       </div>
@@ -709,7 +734,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         Account Settings
                       </Link>
                       <Link
-                        href="/admin/profile"
+                        href="/admin/email-preferences"
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
                         onClick={() => setProfileOpen(false)}
                       >
@@ -717,7 +742,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         Email Preferences
                       </Link>
                       <Link
-                        href="/admin/profile"
+                        href="/admin/security"
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
                         onClick={() => setProfileOpen(false)}
                       >

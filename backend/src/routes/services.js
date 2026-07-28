@@ -45,12 +45,21 @@ const upload = multer({
 // Get all services
 router.get('/', async (req, res) => {
   try {
-    const { departmentId, includeInactive } = req.query;
+    const { departmentId, includeInactive, location, search } = req.query;
     
     const where = {};
     if (departmentId) where.departmentId = departmentId;
     if (includeInactive !== 'true') {
       where.isActive = true;
+    }
+    if (location && location !== 'all' && location !== 'undefined' && location !== 'null') {
+      where.location = location;
+    }
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
     }
 
     const services = await prisma.service.findMany({
@@ -112,19 +121,19 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create service with image upload (Admin only)
-// IMPORTANT: multer MUST come BEFORE validation
 router.post('/',
   auth,
   authorize('SUPER_ADMIN', 'ADMIN'),
-  upload.single('image'), // Multer first to parse FormData
+  upload.single('image'),
   [
     body('name').trim().notEmpty().withMessage('Name is required'),
     body('description').trim().notEmpty().withMessage('Description is required'),
-    body('departmentId').notEmpty().withMessage('Department ID is required'),
+    body('departmentId').optional(),
+    body('price').optional().isNumeric().withMessage('Price must be a number'),
+    body('duration').optional().isInt({ min: 1 }).withMessage('Duration must be a positive integer'),
   ],
   async (req, res) => {
     try {
-      // Log received data after multer has parsed it
       console.log('📝 Request body after multer:', req.body);
       console.log('📁 Uploaded file:', req.file);
 
@@ -137,7 +146,10 @@ router.post('/',
         });
       }
 
-      const { name, description, price, duration, departmentId } = req.body;
+      const { 
+        name, description, price, duration, departmentId, 
+        location, category, isActive 
+      } = req.body;
 
       // Validate required fields
       if (!name || !name.trim()) {
@@ -154,23 +166,17 @@ router.post('/',
         });
       }
 
-      if (!departmentId) {
-        return res.status(400).json({
-          success: false,
-          error: 'Department ID is required'
+      // Check if department exists (only if departmentId is provided)
+      if (departmentId) {
+        const department = await prisma.department.findUnique({
+          where: { id: departmentId },
         });
-      }
-
-      // Check if department exists
-      const department = await prisma.department.findUnique({
-        where: { id: departmentId },
-      });
-
-      if (!department) {
-        return res.status(400).json({
-          success: false,
-          error: 'Department not found',
-        });
+        if (!department) {
+          return res.status(400).json({
+            success: false,
+            error: 'Department not found',
+          });
+        }
       }
 
       // Handle image upload
@@ -179,7 +185,7 @@ router.post('/',
         imageUrl = `/uploads/services/${req.file.filename}`;
       }
 
-      // Parse price and duration - handle empty strings and undefined
+      // Parse price and duration
       let parsedPrice = null;
       if (price !== undefined && price !== null && price !== '') {
         parsedPrice = parseFloat(price);
@@ -202,6 +208,21 @@ router.post('/',
         }
       }
 
+      // Check if service with same name exists at same location
+      const existing = await prisma.service.findFirst({
+        where: { 
+          name: name.trim(),
+          location: location || 'Afilas General Hospital'
+        },
+      });
+      
+      if (existing) {
+        return res.status(400).json({
+          success: false,
+          error: 'A service with this name already exists at this location. Please use a different name.',
+        });
+      }
+
       // Create service
       const service = await prisma.service.create({
         data: {
@@ -210,14 +231,21 @@ router.post('/',
           price: parsedPrice,
           duration: parsedDuration,
           image: imageUrl,
-          departmentId: departmentId,
-          isActive: true,
+          departmentId: departmentId || null,
+          location: location || 'Afilas General Hospital',
+          isActive: isActive !== undefined ? isActive : true,
         },
         include: {
-          department: true,
+          department: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       });
 
+      console.log(`✅ Service created successfully: ${service.name}`);
       res.status(201).json({
         success: true,
         data: service,
@@ -226,7 +254,6 @@ router.post('/',
     } catch (error) {
       console.error('❌ Create service error:', error);
       
-      // Handle specific Prisma errors
       if (error.code === 'P2002') {
         return res.status(400).json({
           success: false,
@@ -234,7 +261,6 @@ router.post('/',
         });
       }
       
-      // Handle other errors
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to create service. Please try again.',
@@ -244,15 +270,24 @@ router.post('/',
 );
 
 // Update service with image upload (Admin only)
-// IMPORTANT: multer MUST come BEFORE validation
 router.put('/:id',
   auth,
   authorize('SUPER_ADMIN', 'ADMIN'),
   upload.single('image'),
+  [
+    body('name').optional().trim().notEmpty().withMessage('Name cannot be empty'),
+    body('description').optional().trim().notEmpty().withMessage('Description cannot be empty'),
+    body('departmentId').optional(),
+    body('price').optional().isNumeric().withMessage('Price must be a number'),
+    body('duration').optional().isInt({ min: 1 }).withMessage('Duration must be a positive integer'),
+  ],
   async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, description, price, duration, isActive, departmentId } = req.body;
+      const { 
+        name, description, price, duration, isActive, departmentId,
+        location, category
+      } = req.body;
 
       console.log('📝 Update body:', req.body);
       console.log('📁 Update file:', req.file);
@@ -268,6 +303,7 @@ router.put('/:id',
         });
       }
 
+      // Check if department exists (only if departmentId is provided)
       if (departmentId) {
         const department = await prisma.department.findUnique({
           where: { id: departmentId },
@@ -283,7 +319,6 @@ router.put('/:id',
       // Handle image upload
       let imageUrl = existing.image;
       if (req.file) {
-        // Delete old image if exists
         if (existing.image) {
           const oldImagePath = path.join(__dirname, '../../public', existing.image);
           if (fs.existsSync(oldImagePath)) {
@@ -316,19 +351,42 @@ router.put('/:id',
         }
       }
 
+      // Check if service with same name exists (excluding current)
+      if (name && name.trim() !== existing.name) {
+        const duplicate = await prisma.service.findFirst({
+          where: { 
+            name: name.trim(),
+            location: location || existing.location,
+            id: { not: id }
+          },
+        });
+        if (duplicate) {
+          return res.status(400).json({
+            success: false,
+            error: 'A service with this name already exists at this location.',
+          });
+        }
+      }
+
       const updated = await prisma.service.update({
         where: { id },
         data: {
-          name: name || existing.name,
-          description: description || existing.description,
+          name: name ? name.trim() : existing.name,
+          description: description ? description.trim() : existing.description,
           price: parsedPrice,
           duration: parsedDuration,
           image: imageUrl,
           isActive: isActive !== undefined ? isActive : existing.isActive,
-          departmentId: departmentId || existing.departmentId,
+          departmentId: departmentId !== undefined ? departmentId : existing.departmentId,
+          location: location || existing.location,
         },
         include: {
-          department: true,
+          department: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       });
 
@@ -342,6 +400,55 @@ router.put('/:id',
       res.status(500).json({
         success: false,
         error: error.message || 'Failed to update service',
+      });
+    }
+  }
+);
+
+// Toggle service status (Admin only)
+router.patch('/:id/toggle-status',
+  auth,
+  authorize('SUPER_ADMIN', 'ADMIN'),
+  async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const service = await prisma.service.findUnique({
+        where: { id },
+      });
+
+      if (!service) {
+        return res.status(404).json({
+          success: false,
+          error: 'Service not found',
+        });
+      }
+
+      const updated = await prisma.service.update({
+        where: { id },
+        data: {
+          isActive: !service.isActive,
+        },
+        include: {
+          department: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      });
+
+      res.json({
+        success: true,
+        data: updated,
+        message: `Service ${updated.isActive ? 'activated' : 'deactivated'} successfully`,
+      });
+    } catch (error) {
+      console.error('Toggle service status error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to toggle service status',
       });
     }
   }
@@ -431,5 +538,52 @@ router.get('/department/:departmentId', async (req, res) => {
     });
   }
 });
+
+// Get services stats (Admin only)
+router.get('/stats',
+  auth,
+  authorize('SUPER_ADMIN', 'ADMIN'),
+  async (req, res) => {
+    try {
+      const { location } = req.query;
+      
+      const where = {};
+      if (location && location !== 'all' && location !== 'undefined' && location !== 'null') {
+        where.location = location;
+      }
+
+      const [total, active, inactive, byLocation] = await Promise.all([
+        prisma.service.count({ where }),
+        prisma.service.count({ where: { ...where, isActive: true } }),
+        prisma.service.count({ where: { ...where, isActive: false } }),
+        prisma.service.groupBy({
+          by: ['location'],
+          _count: true,
+        }),
+      ]);
+
+      const locationStats = {};
+      byLocation.forEach(item => {
+        locationStats[item.location] = item._count;
+      });
+
+      res.json({
+        success: true,
+        data: {
+          total,
+          active,
+          inactive,
+          byLocation: locationStats,
+        },
+      });
+    } catch (error) {
+      console.error('Get service stats error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch service statistics',
+      });
+    }
+  }
+);
 
 module.exports = router;

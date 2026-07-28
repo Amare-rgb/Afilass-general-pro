@@ -236,13 +236,14 @@ router.post('/',
         },
       });
 
+      console.log(`✅ Blog post created: ${post.title}`);
       res.status(201).json({
         success: true,
         data: post,
         message: 'Blog post created successfully',
       });
     } catch (error) {
-      console.error('Create blog post error:', error);
+      console.error('❌ Create blog post error:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to create blog post',
@@ -320,13 +321,14 @@ router.put('/:id',
         data,
       });
 
+      console.log(`✅ Blog post updated: ${updated.title}`);
       res.json({
         success: true,
         data: updated,
         message: 'Blog post updated successfully',
       });
     } catch (error) {
-      console.error('Update blog post error:', error);
+      console.error('❌ Update blog post error:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to update blog post',
@@ -371,7 +373,7 @@ router.patch('/:id',
         message: 'Blog post updated successfully',
       });
     } catch (error) {
-      console.error('Patch blog post error:', error);
+      console.error('❌ Patch blog post error:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to update blog post',
@@ -403,12 +405,13 @@ router.delete('/:id',
         where: { id },
       });
 
+      console.log(`🗑️ Blog post deleted: ${existing.title}`);
       res.json({
         success: true,
         message: 'Blog post deleted successfully',
       });
     } catch (error) {
-      console.error('Delete blog post error:', error);
+      console.error('❌ Delete blog post error:', error);
       res.status(500).json({
         success: false,
         error: 'Failed to delete blog post',
@@ -443,7 +446,7 @@ router.post('/:id/like', async (req, res) => {
       data: { likes: updated.likes },
     });
   } catch (error) {
-    console.error('Like blog post error:', error);
+    console.error('❌ Like blog post error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to like blog post',

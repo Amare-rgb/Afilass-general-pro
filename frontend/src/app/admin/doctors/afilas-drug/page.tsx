@@ -6,13 +6,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { api, ApiError } from '@/lib/api';
 import { getToken, clearSession } from '@/lib/auth';
-import { Department, Doctor } from '@/lib/types';
+import { Doctor } from '@/lib/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Upload,
   X,
   Stethoscope,
-  Building2,
   CheckCircle,
   XCircle,
   Loader2,
@@ -32,8 +31,7 @@ const emptyForm = {
   bio: '', 
   photoUrl: '',
   email: '',
-  phone: '',
-  departmentId: ''
+  phone: ''
 };
 
 const LOCATION_NAME = 'Afilas Drug Manufacturing';
@@ -41,7 +39,6 @@ const LOCATION_NAME = 'Afilas Drug Manufacturing';
 export default function AfilasDrugDoctorsPage() {
   const { t } = useLanguage();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [showForm, setShowForm] = useState(false);
@@ -51,13 +48,13 @@ export default function AfilasDrugDoctorsPage() {
   const [loading, setLoading] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
+  const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function load() {
     setLoading(true);
     setError('');
     try {
-      // Load doctors for Afilas Drug Manufacturing location
       const doctorsResponse = await api.get<any>(`/doctors?location=${encodeURIComponent(LOCATION_NAME)}`);
       
       let doctorsData: Doctor[] = [];
@@ -71,27 +68,12 @@ export default function AfilasDrugDoctorsPage() {
         }
       }
       
-      // Load all departments
-      const deptResponse = await api.get<any>(`/departments`);
-      let departmentsData: Department[] = [];
-      if (deptResponse) {
-        if (Array.isArray(deptResponse)) {
-          departmentsData = deptResponse;
-        } else if (deptResponse.data && Array.isArray(deptResponse.data)) {
-          departmentsData = deptResponse.data;
-        } else if (deptResponse.departments && Array.isArray(deptResponse.departments)) {
-          departmentsData = deptResponse.departments;
-        }
-      }
-      
       setDoctors(doctorsData);
-      setDepartments(departmentsData);
       
       console.log(`✅ Loaded ${doctorsData.length} doctors for ${LOCATION_NAME}`);
     } catch (error) {
       console.error('❌ Failed to load data:', error);
       setDoctors([]);
-      setDepartments([]);
     } finally {
       setLoading(false);
     }
@@ -123,7 +105,7 @@ export default function AfilasDrugDoctorsPage() {
         throw new Error('No authentication token found');
       }
       
-      const response = await fetch('http://localhost:5000/api/upload', {
+      const response = await fetch('http://localhost:5000/api/upload?type=doctors', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -167,8 +149,7 @@ export default function AfilasDrugDoctorsPage() {
       bio: doc.bio || '',
       photoUrl: doc.photoUrl || '',
       email: doc.email || '',
-      phone: doc.phone || '',
-      departmentId: doc.departmentId,
+      phone: doc.phone || ''
     });
     setImagePreview(doc.photoUrl || '');
     setShowForm(true);
@@ -183,7 +164,17 @@ export default function AfilasDrugDoctorsPage() {
     setSuccess('');
     
     try {
-      if (!form.email) {
+      if (!form.name.trim()) {
+        setError('Name is required');
+        setSaving(false);
+        return;
+      }
+      if (!form.title.trim()) {
+        setError('Title is required');
+        setSaving(false);
+        return;
+      }
+      if (!form.email.trim()) {
         setError('Email is required');
         setSaving(false);
         return;
@@ -192,13 +183,16 @@ export default function AfilasDrugDoctorsPage() {
       let photoUrl = form.photoUrl;
       
       if (imageFile) {
+        setUploadingImage(true);
         try {
           photoUrl = await uploadImage(imageFile);
         } catch (uploadError) {
           setError(uploadError instanceof Error ? uploadError.message : 'Failed to upload image');
           setSaving(false);
+          setUploadingImage(false);
           return;
         }
+        setUploadingImage(false);
       }
       
       const doctorData = { 
@@ -208,7 +202,6 @@ export default function AfilasDrugDoctorsPage() {
         photoUrl: photoUrl,
         email: form.email,
         phone: form.phone || '',
-        departmentId: form.departmentId,
         location: LOCATION_NAME,
         active: true
       };
@@ -230,6 +223,7 @@ export default function AfilasDrugDoctorsPage() {
       setError(err instanceof Error ? err.message : 'Failed to save doctor');
     } finally {
       setSaving(false);
+      setUploadingImage(false);
     }
   }
 
@@ -414,27 +408,6 @@ export default function AfilasDrugDoctorsPage() {
                   </div>
                 </div>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  Department
-                </label>
-                <div className="relative">
-                  <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <select
-                    value={form.departmentId}
-                    onChange={(e) => setForm({ ...form, departmentId: e.target.value })}
-                    className="focus-ring w-full rounded-lg border border-gray-300 pl-10 pr-4 py-2.5 focus:border-green-500 transition-colors appearance-none bg-white"
-                  >
-                    <option value="">Select Department</option>
-                    {departments.map((dept) => (
-                      <option key={dept.id} value={dept.id}>
-                        {dept.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -452,13 +425,13 @@ export default function AfilasDrugDoctorsPage() {
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
-                  disabled={saving}
+                  disabled={saving || uploadingImage}
                   className="flex-1 focus-ring rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-sm font-semibold px-6 py-2.5 transition-colors flex items-center justify-center gap-2"
                 >
-                  {saving ? (
+                  {saving || uploadingImage ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Saving...
+                      {uploadingImage ? 'Uploading Image...' : 'Saving...'}
                     </>
                   ) : (
                     editingId ? 'Update Doctor' : 'Add Doctor'
@@ -534,15 +507,6 @@ export default function AfilasDrugDoctorsPage() {
                     {doc.email}
                   </p>
                 )}
-                
-                <div className="mt-3">
-                  {doc.department && (
-                    <p className="text-xs text-gray-500 flex items-center gap-2">
-                      <Building2 className="w-3.5 h-3.5" />
-                      {doc.department.name}
-                    </p>
-                  )}
-                </div>
                 
                 {doc.bio && (
                   <p className="text-xs text-gray-500 mt-3 line-clamp-2">{doc.bio}</p>
