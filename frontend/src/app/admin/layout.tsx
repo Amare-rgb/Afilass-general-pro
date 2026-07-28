@@ -240,7 +240,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       return;
     }
     const adminData = getStoredAdmin();
-    console.log('📋 Admin data from storage:', adminData);
+    console.log(' Admin data from storage:', adminData);
     setAdmin(adminData);
     setChecked(true);
   }, [isLoginPage, router]);
@@ -270,7 +270,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       
       if (response.ok) {
         const data = await response.json();
-        console.log('📡 Notifications response:', data);
+        console.log(' Notifications response:', data);
         
         if (data && data.notifications) {
           setNotifications(data.notifications);
@@ -656,13 +656,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 )}
               </div>
 
-              <Link
-                href="/admin/settings"
-                className="p-2 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors hidden sm:block"
-                aria-label="Settings"
-              >
-                <Settings size={20} className="text-gray-600 dark:text-gray-300" />
-              </Link>
+             
 
               {/* Profile Dropdown */}
               <div className="relative" ref={profileRef}>
@@ -716,6 +710,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       </div>
                     </div>
 
+                    {/* ✅ PROFILE DROPDOWN LINKS - CORRECTED */}
                     <div className="py-1">
                       <Link
                         href="/admin/profile"
@@ -726,22 +721,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         My Profile
                       </Link>
                       <Link
-                        href="/admin/settings"
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
-                        onClick={() => setProfileOpen(false)}
-                      >
-                        <Settings size={18} className="text-gray-400 dark:text-gray-500" />
-                        Account Settings
-                      </Link>
-                      <Link
-                        href="/admin/email-preferences"
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
-                        onClick={() => setProfileOpen(false)}
-                      >
-                        <Mail size={18} className="text-gray-400 dark:text-gray-500" />
-                        Email Preferences
-                      </Link>
-                      <Link
                         href="/admin/security"
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
                         onClick={() => setProfileOpen(false)}
@@ -750,14 +729,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         Security
                       </Link>
                       <div className="border-t border-gray-200 dark:border-gray-700 my-1"></div>
-                      <Link
-                        href="/admin/help"
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
-                        onClick={() => setProfileOpen(false)}
-                      >
-                        <HelpCircle size={18} className="text-gray-400 dark:text-gray-500" />
-                        Help & Support
-                      </Link>
+                     
                     </div>
 
                     <div className="border-t border-gray-200 dark:border-gray-700 py-1">
