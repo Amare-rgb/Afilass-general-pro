@@ -26,14 +26,6 @@ function getToken(): string | null {
   return null;
 }
 
-// Define the response wrapper type
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string;
-  count?: number;
-}
-
 interface RequestOptions extends RequestInit {
   auth?: boolean;
 }
@@ -94,7 +86,6 @@ async function request<T>(
       throw new ApiError(errorMessage, res.status, data);
     }
 
-    // Return the data directly if it's an array or the full response
     return data as T;
   } catch (error) {
     if (error instanceof ApiError) {

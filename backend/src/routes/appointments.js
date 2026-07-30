@@ -1,4 +1,3 @@
-// backend/src/routes/appointments.js
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const prisma = require('../lib/prisma');
@@ -16,13 +15,13 @@ function mapAppointment(appointment) {
     patientPhone: appointment.patientPhone,
     patientAge: appointment.patientAge,
     patientGender: appointment.patientGender,
-    departmentId: appointment.doctor?.departmentId || null,
-    department: appointment.doctor?.department || null,
+    departmentId: null,
+    department: null,
     doctorId: appointment.doctorId,
     doctor: appointment.doctor ? {
       id: appointment.doctor.id,
       name: appointment.doctor.name,
-      title: appointment.doctor.specialization || appointment.doctor.title,
+      title: appointment.doctor.specialization || null,
       specialization: appointment.doctor.specialization,
     } : null,
     serviceId: appointment.serviceId,
@@ -40,21 +39,25 @@ function mapAppointment(appointment) {
     symptoms: appointment.symptoms,
     isEmergency: appointment.isEmergency,
     status: appointment.status,
+    location: appointment.location || null,
     reminderSentAt: appointment.reminderSentAt,
     createdAt: appointment.createdAt,
     updatedAt: appointment.updatedAt,
   };
 }
 
-// Get all appointments
+// Get all appointments with location filter
 router.get('/', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req, res) => {
   try {
-    const { status, startDate, endDate, doctorId } = req.query;
+    const { status, startDate, endDate, doctorId, location } = req.query;
     
     const where = {};
     
     if (status) where.status = status;
     if (doctorId) where.doctorId = doctorId;
+    if (location && location !== 'all' && location !== 'undefined') {
+      where.location = location;
+    }
     
     if (startDate || endDate) {
       where.date = {};
@@ -73,15 +76,26 @@ router.get('/', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req, r
       }
     }
 
+    // FIXED: Removed 'title' field from Doctor select
     const appointments = await prisma.appointment.findMany({
       where,
       include: {
         doctor: {
-          include: {
-            department: true,
+          select: {
+            id: true,
+            name: true,
+            specialization: true,
+            // title: true, // REMOVED - this field doesn't exist in the Doctor model
           },
         },
-        service: true,
+        service: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            duration: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -106,7 +120,7 @@ router.get('/', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req, r
     console.error('Get appointments error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch appointments',
+      error: 'Failed to fetch appointments: ' + error.message,
     });
   }
 });
@@ -120,11 +134,21 @@ router.get('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req
       where: { id },
       include: {
         doctor: {
-          include: {
-            department: true,
+          select: {
+            id: true,
+            name: true,
+            specialization: true,
+            // title: true, // REMOVED
           },
         },
-        service: true,
+        service: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            duration: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -179,6 +203,7 @@ router.post('/', [
   body('time').matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Valid time is required (HH:MM)'),
   body('doctorId').notEmpty().withMessage('Doctor is required'),
   body('serviceId').notEmpty().withMessage('Service is required'),
+  body('location').optional().isString(),
   body('notes').optional().isString(),
   body('symptoms').optional().isString(),
   body('isEmergency').optional().isBoolean(),
@@ -197,7 +222,7 @@ router.post('/', [
     const { 
       patientName, patientEmail, patientPhone, patientAge,
       patientGender, date, time, doctorId, serviceId,
-      notes, symptoms, isEmergency 
+      notes, symptoms, isEmergency, location 
     } = req.body;
 
     // Check if doctor exists and is available
@@ -205,7 +230,6 @@ router.post('/', [
       where: { id: doctorId },
       include: {
         workingHours: true,
-        department: true,
       },
     });
 
@@ -291,15 +315,26 @@ router.post('/', [
         doctorId,
         serviceId,
         userId: userId,
+        location: location || 'Afilas General Hospital',
         status: 'PENDING',
       },
       include: {
         doctor: {
-          include: {
-            department: true,
+          select: {
+            id: true,
+            name: true,
+            specialization: true,
+            // title: true, // REMOVED
           },
         },
-        service: true,
+        service: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            duration: true,
+          },
+        },
       },
     });
 
@@ -341,11 +376,21 @@ router.patch('/:id/status', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), [
       where: { id },
       include: {
         doctor: {
-          include: {
-            department: true,
+          select: {
+            id: true,
+            name: true,
+            specialization: true,
+            // title: true, // REMOVED
           },
         },
-        service: true,
+        service: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            duration: true,
+          },
+        },
       },
     });
 
@@ -375,11 +420,21 @@ router.patch('/:id/status', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), [
       data: { status },
       include: {
         doctor: {
-          include: {
-            department: true,
+          select: {
+            id: true,
+            name: true,
+            specialization: true,
+            // title: true, // REMOVED
           },
         },
-        service: true,
+        service: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            duration: true,
+          },
+        },
       },
     });
 
@@ -413,7 +468,8 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
     const { 
       patientName, patientEmail, patientPhone, 
       patientAge, patientGender, date, time, 
-      doctorId, serviceId, notes, symptoms, isEmergency 
+      doctorId, serviceId, notes, symptoms, isEmergency,
+      location
     } = req.body;
 
     const appointment = await prisma.appointment.findUnique({
@@ -442,14 +498,25 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
         notes: notes !== undefined ? notes : appointment.notes,
         symptoms: symptoms !== undefined ? symptoms : appointment.symptoms,
         isEmergency: isEmergency !== undefined ? isEmergency : appointment.isEmergency,
+        location: location || appointment.location || 'Afilas General Hospital',
       },
       include: {
         doctor: {
-          include: {
-            department: true,
+          select: {
+            id: true,
+            name: true,
+            specialization: true,
+            // title: true, // REMOVED
           },
         },
-        service: true,
+        service: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            duration: true,
+          },
+        },
       },
     });
 

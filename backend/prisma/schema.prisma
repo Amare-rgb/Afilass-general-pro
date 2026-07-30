@@ -1,4 +1,3 @@
-// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -18,6 +17,7 @@ model User {
   avatar        String?
   isActive      Boolean   @default(true)
   lastLogin     DateTime?
+  location      String?   @default("Afilas General Hospital")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
@@ -35,10 +35,10 @@ model Department {
   image       String?
   isActive    Boolean   @default(true)
   order       Int       @default(0)
+  location    String?   @default("Afilas General Hospital")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   
-  doctors     Doctor[]
   services    Service[]
   
   @@map("departments")
@@ -52,12 +52,14 @@ model Service {
   duration    Int?
   image       String?
   isActive    Boolean   @default(true)
+  location    String?   @default("Afilas General Hospital")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   
-  departmentId String
-  department   Department @relation(fields: [departmentId], references: [id])
-  appointments Appointment[]
+  // MAKE DEPARTMENT OPTIONAL
+  departmentId  String?
+  department    Department? @relation(fields: [departmentId], references: [id])
+  appointments  Appointment[]
   
   @@map("services")
 }
@@ -75,11 +77,10 @@ model Doctor {
   rating        Float     @default(0)
   isAvailable   Boolean   @default(true)
   consultationFee Float?
+  location      String?   @default("Afilas General Hospital")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
-  departmentId  String
-  department    Department @relation(fields: [departmentId], references: [id])
   appointments  Appointment[]
   workingHours  WorkingHour[]
   
@@ -115,6 +116,7 @@ model Appointment {
   notes         String?
   symptoms      String?
   isEmergency   Boolean   @default(false)
+  location      String?   @default("Afilas General Hospital")
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
@@ -137,6 +139,7 @@ model Gallery {
   thumbnail   String?
   isActive    Boolean     @default(true)
   order       Int         @default(0)
+  location    String?     @default("Afilas General Hospital")
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   
@@ -150,11 +153,17 @@ model News {
   content     String
   excerpt     String?
   image       String?
+  videoUrl    String?
   author      String
+  authorId    String?
+  category    String?
   isPublished Boolean   @default(false)
   publishedAt DateTime?
   views       Int       @default(0)
-  tags        String[]
+  likes       Int       @default(0)
+  comments    Int       @default(0)
+  tags        Json?     @default("[]")
+  location    String?   @default("Afilas General Hospital")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   
@@ -169,6 +178,7 @@ model Contact {
   subject     String
   message     String
   status      ContactStatus @default(UNREAD)
+  location    String?       @default("Afilas General Hospital")
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
   
@@ -182,6 +192,7 @@ model Notification {
   type        NotificationType @default(INFO)
   isRead      Boolean         @default(false)
   link        String?
+  location    String?         @default("Afilas General Hospital")
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
   

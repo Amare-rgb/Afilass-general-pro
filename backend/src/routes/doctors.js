@@ -1,3 +1,4 @@
+// backend/src/routes/doctors.js
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const prisma = require('../lib/prisma');
@@ -8,13 +9,15 @@ const router = express.Router();
 // Get all doctors with filters
 router.get('/', async (req, res) => {
   try {
-    const { departmentId, specialization, isAvailable, search } = req.query;
+    const { specialization, isAvailable, search, location } = req.query;
     
     const where = {};
     
-    if (departmentId) where.departmentId = departmentId;
     if (specialization) where.specialization = { contains: specialization, mode: 'insensitive' };
     if (isAvailable !== undefined) where.isAvailable = isAvailable === 'true';
+    if (location && location !== 'all' && location !== 'undefined' && location !== 'null') {
+      where.location = location;
+    }
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
@@ -23,17 +26,14 @@ router.get('/', async (req, res) => {
       ];
     }
 
+    console.log('📡 Doctor query with location:', location);
+
     const doctors = await prisma.doctor.findMany({
       where,
       include: {
-        department: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-          },
+        workingHours: {
+          orderBy: { dayOfWeek: 'asc' },
         },
-        workingHours: true,
       },
       orderBy: { name: 'asc' },
     });
@@ -44,8 +44,6 @@ router.get('/', async (req, res) => {
       title: doc.specialization,
       bio: doc.bio || '',
       photoUrl: doc.image || '',
-      departmentId: doc.departmentId,
-      department: doc.department,
       active: doc.isAvailable,
       email: doc.email,
       phone: doc.phone,
@@ -54,7 +52,8 @@ router.get('/', async (req, res) => {
       education: doc.education,
       rating: doc.rating,
       consultationFee: doc.consultationFee,
-      scheduleSlots: doc.workingHours,
+      scheduleSlots: doc.workingHours || [], // Ensure empty array if no working hours
+      location: doc.location || null,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
     }));
@@ -80,7 +79,6 @@ router.get('/:id', async (req, res) => {
     const doctor = await prisma.doctor.findUnique({
       where: { id },
       include: {
-        department: true,
         workingHours: {
           orderBy: { dayOfWeek: 'asc' },
         },
@@ -100,8 +98,6 @@ router.get('/:id', async (req, res) => {
       title: doctor.specialization,
       bio: doctor.bio || '',
       photoUrl: doctor.image || '',
-      departmentId: doctor.departmentId,
-      department: doctor.department,
       active: doctor.isAvailable,
       email: doctor.email,
       phone: doctor.phone,
@@ -110,7 +106,8 @@ router.get('/:id', async (req, res) => {
       education: doctor.education,
       rating: doctor.rating,
       consultationFee: doctor.consultationFee,
-      scheduleSlots: doctor.workingHours,
+      scheduleSlots: doctor.workingHours || [],
+      location: doctor.location || null,
       createdAt: doctor.createdAt,
       updatedAt: doctor.updatedAt,
     };
@@ -131,7 +128,7 @@ router.get('/:id', async (req, res) => {
 // Get available doctors for appointment
 router.get('/available', async (req, res) => {
   try {
-    const { date, serviceId } = req.query;
+    const { date, location } = req.query;
     
     if (!date) {
       return res.status(400).json({
@@ -147,35 +144,22 @@ router.get('/available', async (req, res) => {
       isAvailable: true,
       workingHours: {
         some: {
-          dayOfWeek,
+          dayOfWeek: dayOfWeek,
           isAvailable: true,
         },
       },
     };
 
-    if (serviceId) {
-      const service = await prisma.service.findUnique({
-        where: { id: serviceId },
-        select: { departmentId: true },
-      });
-      
-      if (service) {
-        where.departmentId = service.departmentId;
-      }
+    if (location && location !== 'all' && location !== 'undefined' && location !== 'null') {
+      where.location = location;
     }
 
     const doctors = await prisma.doctor.findMany({
       where,
       include: {
-        department: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
         workingHours: {
           where: {
-            dayOfWeek,
+            dayOfWeek: dayOfWeek,
             isAvailable: true,
           },
         },
@@ -197,7 +181,7 @@ router.get('/available', async (req, res) => {
       const bookedTimes = doctor.appointments.map(apt => apt.time);
       return {
         ...doctor,
-        bookedTimes,
+        bookedTimes: bookedTimes,
         appointments: undefined,
       };
     });
@@ -219,7 +203,7 @@ router.get('/available', async (req, res) => {
 router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
   body('name').trim().notEmpty().withMessage('Name is required'),
   body('title').trim().notEmpty().withMessage('Title is required'),
-  body('departmentId').notEmpty().withMessage('Department ID is required'),
+  body('email').isEmail().withMessage('Valid email is required'),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -231,37 +215,57 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
     }
 
     const { 
-      name, title, bio, photoUrl, departmentId,
+      name, title, bio, photoUrl,
       email, phone, specialization, experience, education,
-      consultationFee
+      consultationFee, location, workingHours
     } = req.body;
 
-    const department = await prisma.department.findUnique({
-      where: { id: departmentId },
-    });
-
-    if (!department) {
-      return res.status(400).json({
-        success: false,
-        error: 'Department not found',
-      });
-    }
-
+    // Check if email already exists
     if (email) {
       const existing = await prisma.doctor.findUnique({
-        where: { email },
+        where: { email: email },
       });
       if (existing) {
+        console.log(`❌ Email already exists: ${email}`);
         return res.status(400).json({
           success: false,
-          error: 'Doctor with this email already exists',
+          error: `Doctor with email "${email}" already exists. Please use a different email.`,
         });
       }
     }
 
+    // Prepare working hours data
+    let workingHoursData = undefined;
+    if (workingHours && Array.isArray(workingHours) && workingHours.length > 0) {
+      // Filter out invalid slots
+      const validSlots = workingHours.filter(function(slot) {
+        return slot.dayOfWeek !== undefined && 
+               slot.dayOfWeek >= 0 && 
+               slot.dayOfWeek <= 6 &&
+               slot.startTime && 
+               slot.endTime && 
+               slot.startTime.trim() !== '' && 
+               slot.endTime.trim() !== '';
+      });
+
+      if (validSlots.length > 0) {
+        workingHoursData = {
+          create: validSlots.map(function(slot) {
+            return {
+              dayOfWeek: slot.dayOfWeek,
+              startTime: slot.startTime,
+              endTime: slot.endTime,
+              isAvailable: slot.isAvailable !== undefined ? slot.isAvailable : true
+            };
+          })
+        };
+      }
+    }
+
+    // Create doctor with working hours
     const doctor = await prisma.doctor.create({
       data: {
-        name,
+        name: name,
         email: email || '',
         phone: phone || '',
         specialization: specialization || title,
@@ -271,11 +275,13 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
         image: photoUrl || '',
         isAvailable: true,
         consultationFee: consultationFee ? parseFloat(consultationFee) : 0,
-        departmentId,
+        location: location || 'Afilas General Hospital',
+        workingHours: workingHoursData
       },
       include: {
-        department: true,
-        workingHours: true,
+        workingHours: {
+          orderBy: { dayOfWeek: 'asc' },
+        },
       },
     });
 
@@ -285,8 +291,6 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
       title: doctor.specialization,
       bio: doctor.bio || '',
       photoUrl: doctor.image || '',
-      departmentId: doctor.departmentId,
-      department: doctor.department,
       active: doctor.isAvailable,
       email: doctor.email,
       phone: doctor.phone,
@@ -295,17 +299,31 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
       education: doctor.education,
       rating: doctor.rating,
       consultationFee: doctor.consultationFee,
-      scheduleSlots: doctor.workingHours,
+      scheduleSlots: doctor.workingHours || [],
+      location: doctor.location,
       createdAt: doctor.createdAt,
       updatedAt: doctor.updatedAt,
     };
 
+    console.log(`✅ Doctor created successfully: ${doctor.name} (${doctor.email})`);
+    console.log(`📅 Working hours created: ${doctor.workingHours.length} slots`);
+    
     res.status(201).json({
       success: true,
       data: mappedDoctor,
+      message: 'Doctor created successfully',
     });
   } catch (error) {
     console.error('Create doctor error:', error);
+    
+    // Check for Prisma unique constraint error
+    if (error.code === 'P2002') {
+      return res.status(400).json({
+        success: false,
+        error: 'A doctor with this email already exists. Please use a different email.',
+      });
+    }
+    
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to create doctor',
@@ -318,13 +336,16 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
   try {
     const { id } = req.params;
     const { 
-      name, title, bio, photoUrl, departmentId,
+      name, title, bio, photoUrl,
       email, phone, specialization, experience, education,
-      consultationFee, active
+      consultationFee, active, location, workingHours
     } = req.body;
 
     const doctor = await prisma.doctor.findUnique({
-      where: { id },
+      where: { id: id },
+      include: {
+        workingHours: true,
+      },
     });
 
     if (!doctor) {
@@ -334,9 +355,10 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
       });
     }
 
+    // Check email if changed
     if (email && email !== doctor.email) {
       const existing = await prisma.doctor.findUnique({
-        where: { email },
+        where: { email: email },
       });
       if (existing) {
         return res.status(400).json({
@@ -346,8 +368,9 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
       }
     }
 
-    const updated = await prisma.doctor.update({
-      where: { id },
+    // First update the doctor
+    const updatedDoctor = await prisma.doctor.update({
+      where: { id: id },
       data: {
         name: name || doctor.name,
         email: email || doctor.email,
@@ -359,38 +382,83 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
         image: photoUrl !== undefined ? photoUrl : doctor.image,
         isAvailable: active !== undefined ? active : doctor.isAvailable,
         consultationFee: consultationFee !== undefined ? parseFloat(consultationFee) : doctor.consultationFee,
-        departmentId: departmentId || doctor.departmentId,
+        location: location || doctor.location || 'Afilas General Hospital',
       },
+    });
+
+    // Handle working hours update
+    if (workingHours !== undefined) {
+      // Delete all existing working hours
+      await prisma.workingHour.deleteMany({
+        where: { doctorId: id },
+      });
+
+      // Create new working hours if provided
+      if (Array.isArray(workingHours) && workingHours.length > 0) {
+        // Filter out invalid slots
+        const validSlots = workingHours.filter(function(slot) {
+          return slot.dayOfWeek !== undefined && 
+                 slot.dayOfWeek >= 0 && 
+                 slot.dayOfWeek <= 6 &&
+                 slot.startTime && 
+                 slot.endTime && 
+                 slot.startTime.trim() !== '' && 
+                 slot.endTime.trim() !== '';
+        });
+
+        if (validSlots.length > 0) {
+          await prisma.workingHour.createMany({
+            data: validSlots.map(function(slot) {
+              return {
+                doctorId: id,
+                dayOfWeek: slot.dayOfWeek,
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+                isAvailable: slot.isAvailable !== undefined ? slot.isAvailable : true
+              };
+            })
+          });
+        }
+      }
+    }
+
+    // Fetch the complete updated doctor with working hours
+    const finalDoctor = await prisma.doctor.findUnique({
+      where: { id: id },
       include: {
-        department: true,
-        workingHours: true,
+        workingHours: {
+          orderBy: { dayOfWeek: 'asc' },
+        },
       },
     });
 
     const mappedDoctor = {
-      id: updated.id,
-      name: updated.name,
-      title: updated.specialization,
-      bio: updated.bio || '',
-      photoUrl: updated.image || '',
-      departmentId: updated.departmentId,
-      department: updated.department,
-      active: updated.isAvailable,
-      email: updated.email,
-      phone: updated.phone,
-      specialization: updated.specialization,
-      experience: updated.experience,
-      education: updated.education,
-      rating: updated.rating,
-      consultationFee: updated.consultationFee,
-      scheduleSlots: updated.workingHours,
-      createdAt: updated.createdAt,
-      updatedAt: updated.updatedAt,
+      id: finalDoctor.id,
+      name: finalDoctor.name,
+      title: finalDoctor.specialization,
+      bio: finalDoctor.bio || '',
+      photoUrl: finalDoctor.image || '',
+      active: finalDoctor.isAvailable,
+      email: finalDoctor.email,
+      phone: finalDoctor.phone,
+      specialization: finalDoctor.specialization,
+      experience: finalDoctor.experience,
+      education: finalDoctor.education,
+      rating: finalDoctor.rating,
+      consultationFee: finalDoctor.consultationFee,
+      scheduleSlots: finalDoctor.workingHours || [],
+      location: finalDoctor.location,
+      createdAt: finalDoctor.createdAt,
+      updatedAt: finalDoctor.updatedAt,
     };
+
+    console.log(`✅ Doctor updated successfully: ${finalDoctor.name}`);
+    console.log(`📅 Working hours: ${finalDoctor.workingHours.length} slots`);
 
     res.json({
       success: true,
       data: mappedDoctor,
+      message: 'Doctor updated successfully',
     });
   } catch (error) {
     console.error('Update doctor error:', error);
@@ -401,13 +469,96 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
   }
 });
 
+// Bulk update working hours (Admin only)
+router.put('/:id/working-hours', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { workingHours } = req.body;
+
+    const doctor = await prisma.doctor.findUnique({
+      where: { id: id },
+    });
+
+    if (!doctor) {
+      return res.status(404).json({
+        success: false,
+        error: 'Doctor not found',
+      });
+    }
+
+    if (!workingHours || !Array.isArray(workingHours)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Working hours must be an array',
+      });
+    }
+
+    // Delete all existing working hours
+    await prisma.workingHour.deleteMany({
+      where: { doctorId: id },
+    });
+
+    // Filter valid slots
+    const validSlots = workingHours.filter(function(slot) {
+      return slot.dayOfWeek !== undefined && 
+             slot.dayOfWeek >= 0 && 
+             slot.dayOfWeek <= 6 &&
+             slot.startTime && 
+             slot.endTime && 
+             slot.startTime.trim() !== '' && 
+             slot.endTime.trim() !== '';
+    });
+
+    // Create new working hours if any valid slots
+    if (validSlots.length > 0) {
+      await prisma.workingHour.createMany({
+        data: validSlots.map(function(slot) {
+          return {
+            doctorId: id,
+            dayOfWeek: slot.dayOfWeek,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            isAvailable: slot.isAvailable !== undefined ? slot.isAvailable : true
+          };
+        })
+      });
+    }
+
+    // Fetch updated doctor with working hours
+    const updatedDoctor = await prisma.doctor.findUnique({
+      where: { id: id },
+      include: {
+        workingHours: {
+          orderBy: { dayOfWeek: 'asc' },
+        },
+      },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        doctorId: updatedDoctor.id,
+        workingHours: updatedDoctor.workingHours,
+        count: updatedDoctor.workingHours.length
+      },
+      message: `Working hours updated successfully (${updatedDoctor.workingHours.length} slots)`,
+    });
+  } catch (error) {
+    console.error('Update working hours error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to update working hours',
+    });
+  }
+});
+
 // Toggle doctor availability (Admin only)
 router.patch('/:id/toggle-status', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
 
     const doctor = await prisma.doctor.findUnique({
-      where: { id },
+      where: { id: id },
     });
 
     if (!doctor) {
@@ -418,13 +569,14 @@ router.patch('/:id/toggle-status', auth, authorize('SUPER_ADMIN', 'ADMIN'), asyn
     }
 
     const updated = await prisma.doctor.update({
-      where: { id },
+      where: { id: id },
       data: {
         isAvailable: !doctor.isAvailable,
       },
       include: {
-        department: true,
-        workingHours: true,
+        workingHours: {
+          orderBy: { dayOfWeek: 'asc' },
+        },
       },
     });
 
@@ -434,8 +586,6 @@ router.patch('/:id/toggle-status', auth, authorize('SUPER_ADMIN', 'ADMIN'), asyn
       title: updated.specialization,
       bio: updated.bio || '',
       photoUrl: updated.image || '',
-      departmentId: updated.departmentId,
-      department: updated.department,
       active: updated.isAvailable,
       email: updated.email,
       phone: updated.phone,
@@ -444,7 +594,8 @@ router.patch('/:id/toggle-status', auth, authorize('SUPER_ADMIN', 'ADMIN'), asyn
       education: updated.education,
       rating: updated.rating,
       consultationFee: updated.consultationFee,
-      scheduleSlots: updated.workingHours,
+      scheduleSlots: updated.workingHours || [],
+      location: updated.location,
       createdAt: updated.createdAt,
       updatedAt: updated.updatedAt,
     };
@@ -463,14 +614,14 @@ router.patch('/:id/toggle-status', auth, authorize('SUPER_ADMIN', 'ADMIN'), asyn
   }
 });
 
-// ===== DELETE DOCTOR (FIXED) =====
+// Delete doctor (Admin only)
 router.delete('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
 
     // Check if doctor exists
     const doctor = await prisma.doctor.findUnique({
-      where: { id },
+      where: { id: id },
       include: {
         appointments: {
           where: {
@@ -503,7 +654,7 @@ router.delete('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) 
         where: { doctorId: id },
       }),
       prisma.doctor.delete({
-        where: { id },
+        where: { id: id },
       }),
     ]);
 
@@ -516,33 +667,6 @@ router.delete('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) 
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to delete doctor',
-    });
-  }
-});
-
-// ===== CLEAR ALL DOCTORS (Admin only) =====
-router.delete('/clear-all', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
-  try {
-    const result = await prisma.$transaction([
-      prisma.appointment.deleteMany({}),
-      prisma.workingHour.deleteMany({}),
-      prisma.doctor.deleteMany({}),
-    ]);
-
-    res.json({
-      success: true,
-      message: 'All doctors cleared successfully',
-      data: {
-        appointments: result[0].count,
-        workingHours: result[1].count,
-        doctors: result[2].count,
-      },
-    });
-  } catch (error) {
-    console.error('Clear all doctors error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to clear doctors',
     });
   }
 });
