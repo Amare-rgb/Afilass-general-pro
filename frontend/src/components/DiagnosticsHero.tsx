@@ -95,7 +95,7 @@ export function DiagnosticsHero() {
               </p>
 
               {/* Social proof */}
-              <div
+              {/* <div
                 className={`mt-8 flex flex-col sm:flex-row items-center gap-4 lg:justify-start ${
                   isInView ? "hero-text-enter-d2" : hasExited ? "hero-text-exit" : "opacity-0"
                 }`}
@@ -114,7 +114,7 @@ export function DiagnosticsHero() {
                 <p className="text-sm text-white/80">
                   {t("diagnostics.hero.social_proof")}
                 </p>
-              </div>
+              </div> */}
 
               {/* Buttons */}
               <div

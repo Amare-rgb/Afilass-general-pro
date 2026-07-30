@@ -1,7 +1,7 @@
 // components/RegisterForm.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { 
@@ -10,419 +10,443 @@ import {
   Phone, 
   Lock, 
   Eye, 
-  EyeOff,
-  CheckCircle,
-  ArrowRight,
-  Home,
-  ArrowLeft
+  EyeOff, 
+  CheckCircle2, 
+  ArrowLeft, 
+  Sun, 
+  Moon, 
+  Globe,
+  ArrowRight
 } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useLanguage } from '@/contexts/LanguageProvider';
+import { useTheme } from '@/contexts/ThemeProvider';
 
 export function RegisterForm() {
-  const { language, t } = useLanguage();
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
+  const { language, setLanguage } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
+
+  // Animation mode — starts empty so the initial animation triggers on mount
+  const [activeMode, setActiveMode] = useState('');
+
+  // Trigger the initial sign-in animation after 200ms (replicating template JS)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setActiveMode('sign-in');
+    }, 200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Toggle between sign-in and sign-up
+  const toggle = () => {
+    setActiveMode(prev => prev === 'sign-in' ? 'sign-up' : 'sign-in');
+  };
+
+  // Sign In State
+  const [signInData, setSignInData] = useState({ identifier: '', password: '' });
+  const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [signInErrors, setSignInErrors] = useState<Record<string, string>>({});
+  const [isSignInLoading, setIsSignInLoading] = useState(false);
+
+  // Sign Up State
+  const [signUpData, setSignUpData] = useState({
+    fullName: '', phone: '', email: '', password: '', confirmPassword: '',
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [focusedField, setFocusedField] = useState<string | null>(null);
+  const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+  const [showSignUpConfirmPassword, setShowSignUpConfirmPassword] = useState(false);
+  const [signUpErrors, setSignUpErrors] = useState<Record<string, string>>({});
+  const [isSignUpLoading, setIsSignUpLoading] = useState(false);
 
-  // Translation function for form labels
-  const translate = (key: string) => {
-    const translations: Record<string, { en: string; am: string }> = {
-      'register.title': { en: 'Create Account', am: 'መለያ ይፍጠሩ' },
-      'register.subtitle': { en: 'Join Afilas Hospital', am: 'አፊላስ ሆስፒታል ይቀላቀሉ' },
-      'register.success': { en: 'Registration Successful! 🎉', am: 'ምዝገባ ተሳክቷል! 🎉' },
-      'register.welcome': { en: 'Welcome to Afilas Hospital', am: 'እንኳን ወደ አፊላስ ሆስፒታል በደህና መጡ' },
-      'register.continue': { en: 'Continue', am: 'ቀጥል' },
-      'register.backHome': { en: 'Back to Home', am: 'ወደ መነሻ ተመለስ' },
-      
-      'field.fullName': { en: 'Full Name', am: 'ሙሉ ስም' },
-      'field.fullName.placeholder': { en: 'Enter your full name', am: 'ሙሉ ስምዎን ያስገቡ' },
-      'field.email': { en: 'Email Address', am: 'ኢሜል አድራሻ' },
-      'field.email.placeholder': { en: 'you@example.com', am: 'እርስዎ@ምሳሌ.ኮም' },
-      'field.phone': { en: 'Phone Number', am: 'ስልክ ቁጥር' },
-      'field.phone.placeholder': { en: '+1 234 567 8900', am: '+1 234 567 8900' },
-      'field.password': { en: 'Password', am: 'የይለፍ ቃል' },
-      'field.password.placeholder': { en: 'Min 8 characters', am: 'ቢያንስ 8 ቁምፊዎች' },
-      'field.confirmPassword': { en: 'Confirm Password', am: 'የይለፍ ቃል ያረጋግጡ' },
-      'field.confirmPassword.placeholder': { en: 'Confirm your password', am: 'የይለፍ ቃልዎን ያረጋግጡ' },
-      
-      'error.fullName.required': { en: 'Full name is required', am: 'ሙሉ ስም ያስፈልጋል' },
-      'error.fullName.min': { en: 'Name must be at least 2 characters', am: 'ስም ቢያንስ 2 ቁምፊዎች መሆን አለበት' },
-      'error.email.required': { en: 'Email is required', am: 'ኢሜል ያስፈልጋል' },
-      'error.email.invalid': { en: 'Please enter a valid email address', am: 'እባክዎ ትክክለኛ የኢሜል አድራሻ ያስገቡ' },
-      'error.phone.required': { en: 'Phone number is required', am: 'ስልክ ቁጥር ያስፈልጋል' },
-      'error.phone.invalid': { en: 'Please enter a valid phone number', am: 'እባክዎ ትክክለኛ የስልክ ቁጥር ያስገቡ' },
-      'error.password.required': { en: 'Password is required', am: 'የይለፍ ቃል ያስፈልጋል' },
-      'error.password.min': { en: 'Password must be at least 8 characters', am: 'የይለፍ ቃል ቢያንስ 8 ቁምፊዎች መሆን አለበት' },
-      'error.password.match': { en: 'Passwords do not match', am: 'የይለፍ ቃሎች አይዛመዱም' },
-      
-      'button.create': { en: 'Create Account', am: 'መለያ ይፍጠሩ' },
-      'button.creating': { en: 'Creating...', am: 'በመፍጠር ላይ...' },
-      'button.signin': { en: 'Sign in', am: 'ግባ' },
-      'button.already': { en: 'Already have an account?', am: 'መለያ አለዎት?' },
-    };
-    
-    return translations[key]?.[language as keyof typeof translations[typeof key]] || key;
-  };
+  // Success toast
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Update validation to use translations
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = translate('error.fullName.required');
-    } else if (formData.fullName.trim().length < 2) {
-      newErrors.fullName = translate('error.fullName.min');
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = translate('error.email.required');
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = translate('error.email.invalid');
-    }
-
-    if (!formData.phone.trim()) {
-      newErrors.phone = translate('error.phone.required');
-    } else if (!/^\+?[\d\s-]{10,}$/.test(formData.phone.trim())) {
-      newErrors.phone = translate('error.phone.invalid');
-    }
-
-    if (!formData.password) {
-      newErrors.password = translate('error.password.required');
-    } else if (formData.password.length < 8) {
-      newErrors.password = translate('error.password.min');
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = translate('error.password.match');
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) return;
-
-    setIsLoading(true);
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setIsSuccess(true);
-      setTimeout(() => {
-        setFormData({
-          fullName: '',
-          email: '',
-          phone: '',
-          password: '',
-          confirmPassword: '',
-        });
-        setIsSuccess(false);
-      }, 2500);
-    } catch (error) {
-      console.error('Registration failed:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
-
-  const inputClasses = (fieldName: string) => {
-    const base = "w-full pl-9 pr-3 py-2 rounded-lg border-2 transition-all duration-200 outline-none bg-white/80 text-sm";
-    const error = errors[fieldName] ? 'border-red-300 bg-red-50/50' : '';
-    const focus = focusedField === fieldName 
-      ? 'border-[#C5A059] shadow-sm shadow-[#C5A059]/20' 
-      : 'border-gray-200 hover:border-[#C5A059]/50';
-    return `${base} ${error || focus}`;
-  };
-
-  // Check if current language is Amharic
   const isAmharic = language === 'am';
 
-  if (isSuccess) {
-    return (
-      <div className="w-full max-w-sm">
-        <div className="bg-white rounded-2xl shadow-lg p-5 border border-gray-100">
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-5 text-center">
-            <CheckCircle className="w-14 h-14 text-green-500 mx-auto mb-2" strokeWidth={1.5} />
-            <h3 className={`text-lg font-bold text-green-700 ${isAmharic ? 'font-medium' : ''}`}>
-              {translate('register.success')}
-            </h3>
-            <p className={`text-green-600 mt-1 text-xs ${isAmharic ? 'font-medium' : ''}`}>
-              {translate('register.welcome')}
-            </p>
-            <div className="flex flex-col gap-2 mt-3">
-              <button 
-                onClick={() => setIsSuccess(false)}
-                className="px-5 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs"
-              >
-                {translate('register.continue')}
-              </button>
-              <Link
-                href="/"
-                className="px-5 py-1.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs flex items-center justify-center gap-1.5"
-              >
-                <Home className="w-3.5 h-3.5" />
-                {translate('register.backHome')}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Translations
+  const t = (key: string) => {
+    const dict: Record<string, { en: string; am: string }> = {
+      'nav.backHome': { en: 'Back to Home', am: 'ወደ መነሻ ተመለስ' },
+      'signin.title': { en: 'Welcome Back', am: 'እንኳን ደህና መጡ' },
+      'signin.subtitle': { en: 'Sign in to your Afilas account', am: 'ወደ አፊላስ መለያዎ ይግቡ' },
+      'signin.field.identifier': { en: 'Email or Phone Number', am: 'ኢሜይል ወይም ስልክ ቁጥር' },
+      'signin.field.identifier.placeholder': { en: 'Enter your email or phone', am: 'ኢሜይል ወይም ስልክ ቁጥር ያስገቡ' },
+      'signin.field.password': { en: 'Password', am: 'የይለፍ ቃል' },
+      'signin.field.password.placeholder': { en: 'Enter your password', am: 'የይለፍ ቃልዎን ያስገቡ' },
+      'signin.forgot': { en: 'Forgot password?', am: 'የይለፍ ቃል ረስተዋል?' },
+      'signin.btn': { en: 'Sign In', am: 'ግባ' },
+      'signin.submitting': { en: 'Signing in...', am: 'በመግባት ላይ...' },
+      'signin.noAccount': { en: "Don't have an account?", am: 'መለያ የለዎትም?' },
+      'signin.toggleSignUp': { en: 'Sign up here', am: 'እዚህ ይመዝገቡ' },
+      'signup.title': { en: 'Create Account', am: 'መለያ ይፍጠሩ' },
+      'signup.subtitle': { en: 'Join Afilas Healthcare today', am: 'ዛሬ አፊላስ ጤና አጠባበቅን ይቀላቀሉ' },
+      'signup.field.fullName': { en: 'Full Name', am: 'ሙሉ ስም' },
+      'signup.field.fullName.placeholder': { en: 'Enter your full name', am: 'ሙሉ ስምዎን ያስገቡ' },
+      'signup.field.phone': { en: 'Phone Number', am: 'ስልክ ቁጥር' },
+      'signup.field.phone.placeholder': { en: '+251 911 234 567', am: '+251 911 234 567' },
+      'signup.field.email': { en: 'Email (Optional)', am: 'ኢሜል (አማራጭ)' },
+      'signup.field.email.placeholder': { en: 'you@example.com', am: 'እርስዎ@ምሳሌ.ኮም' },
+      'signup.field.password': { en: 'Password', am: 'የይለፍ ቃል' },
+      'signup.field.password.placeholder': { en: 'Min 8 characters', am: 'ቢያንስ 8 ቁምፊዎች' },
+      'signup.field.confirmPassword': { en: 'Confirm Password', am: 'የይለፍ ቃል ያረጋግጡ' },
+      'signup.field.confirmPassword.placeholder': { en: 'Re-enter your password', am: 'የይለፍ ቃልዎን ድጋሚ ያስገቡ' },
+      'signup.btn': { en: 'Sign Up', am: 'ተመዝገብ' },
+      'signup.submitting': { en: 'Creating account...', am: 'በመፍጠር ላይ...' },
+      'signup.hasAccount': { en: 'Already have an account?', am: 'መለያ አለዎት?' },
+      'signup.toggleSignIn': { en: 'Sign in here', am: 'እዚህ ይግቡ' },
+      'err.identifier.required': { en: 'Email or phone number is required', am: 'ኢሜይል ወይም ስልክ ቁጥር ያስፈልጋል' },
+      'err.password.required': { en: 'Password is required', am: 'የይለፍ ቃል ያስፈልጋል' },
+      'err.fullName.required': { en: 'Full name is required', am: 'ሙሉ ስም ያስፈልጋል' },
+      'err.fullName.min': { en: 'Name must be at least 2 characters', am: 'ስም ቢያንስ 2 ቁምፊዎች መሆን አለበት' },
+      'err.phone.required': { en: 'Phone number is required', am: 'ስልክ ቁጥር ያስፈልጋል' },
+      'err.phone.invalid': { en: 'Please enter a valid phone number', am: 'እባክዎ ትክክለኛ የስልክ ቁጥር ያስገቡ' },
+      'err.email.invalid': { en: 'Please enter a valid email address', am: 'እባክዎ ትክክለኛ የኢሜይል አድራሻ ያስገቡ' },
+      'err.password.min': { en: 'Password must be at least 8 characters', am: 'የይለፍ ቃል ቢያንስ 8 ቁምፊዎች መሆን አለበት' },
+      'err.confirmPassword.required': { en: 'Please confirm your password', am: 'እባክዎ የይለፍ ቃልዎን ያረጋግጡ' },
+      'err.confirmPassword.match': { en: 'Passwords do not match', am: 'የይለፍ ቃሎች አይዛመዱም' },
+      'panel.welcome.title': { en: 'Welcome to Afilas', am: 'እንኳን ወደ አፊላስ በደህና መጡ' },
+      'panel.welcome.desc': { en: 'Excellence in Healthcare, Precision Diagnostics & Quality Pharmaceuticals.', am: 'በጤና እንክብካቤ፣ ትክክለኛ ምርመራ እና ጥራት ያላቸው መድኃኒቶች ምርጥነት።' },
+      'panel.join.title': { en: 'Join with Afilas', am: 'ከአፊላስ ጋር ይቀላቀሉ' },
+      'panel.join.desc': { en: 'Create your account to access compassionate, specialized medical care.', am: 'ርህራሄ የተሞላበት ልዩ የህክምና አገልግሎቶችን ለማግኘት መለያዎን ይፍጠሩ።' },
+      'success.signin': { en: 'Signed in successfully!', am: 'በተሳካ ሁኔታ ገብተዋል!' },
+      'success.signup': { en: 'Account created successfully!', am: 'መለያዎ በተሳካ ሁኔታ ተፈጥሯል!' },
+    };
+    return dict[key]?.[language as 'en' | 'am'] || key;
+  };
+
+  // --- Sign In Validation ---
+  const handleSignInSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+    if (!signInData.identifier.trim()) errors.identifier = t('err.identifier.required');
+    if (!signInData.password) errors.password = t('err.password.required');
+    setSignInErrors(errors);
+    if (Object.keys(errors).length === 0) {
+      setIsSignInLoading(true);
+      setTimeout(() => {
+        setIsSignInLoading(false);
+        setSuccessMessage(t('success.signin'));
+        setTimeout(() => setSuccessMessage(null), 3000);
+      }, 1200);
+    }
+  };
+
+  // --- Sign Up Validation ---
+  const handleSignUpSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errors: Record<string, string> = {};
+    if (!signUpData.fullName.trim()) errors.fullName = t('err.fullName.required');
+    else if (signUpData.fullName.trim().length < 2) errors.fullName = t('err.fullName.min');
+    if (!signUpData.phone.trim()) errors.phone = t('err.phone.required');
+    else if (!/^\+?[\d\s-]{9,}$/.test(signUpData.phone.trim())) errors.phone = t('err.phone.invalid');
+    if (signUpData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(signUpData.email.trim())) errors.email = t('err.email.invalid');
+    if (!signUpData.password) errors.password = t('err.password.required');
+    else if (signUpData.password.length < 8) errors.password = t('err.password.min');
+    if (!signUpData.confirmPassword) errors.confirmPassword = t('err.confirmPassword.required');
+    else if (signUpData.password !== signUpData.confirmPassword) errors.confirmPassword = t('err.confirmPassword.match');
+    setSignUpErrors(errors);
+    if (Object.keys(errors).length === 0) {
+      setIsSignUpLoading(true);
+      setTimeout(() => {
+        setIsSignUpLoading(false);
+        setSuccessMessage(t('success.signup'));
+        setTimeout(() => setSuccessMessage(null), 3000);
+      }, 1200);
+    }
+  };
 
   return (
-    <div className="w-full max-w-sm">
-      <div className="bg-white rounded-2xl shadow-lg p-5 border border-gray-100">
-        {/* Back to Home Button */}
-        <div className="flex justify-start mb-3">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-1.5 text-gray-500 hover:text-[#C5A059] transition-colors text-xs font-medium"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            {translate('register.backHome')}
-          </Link>
-        </div>
+    <div className={`auth-container ${activeMode}`}
+      style={{ backgroundColor: theme === 'dark' ? '#0f172a' : '#ffffff' }}
+    >
+      {/* ==================== TOP HEADER CONTROLS ==================== */}
+      <header style={{ position: 'absolute', top: 0, left: 0, width: '100%', zIndex: 30, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 2rem' }}>
+        <Link
+          href="/"
+          className="group"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+            padding: '0.4rem 1rem', borderRadius: '9999px',
+            backgroundColor: theme === 'dark' ? 'rgba(30,41,59,0.85)' : 'rgba(255,255,255,0.85)',
+            backdropFilter: 'blur(8px)',
+            border: `1px solid ${theme === 'dark' ? '#334155' : '#e2e8f0'}`,
+            color: theme === 'dark' ? '#e2e8f0' : '#475569',
+            fontSize: '0.8rem', fontWeight: 600, textDecoration: 'none',
+            transition: 'all 0.2s',
+          }}
+        >
+          <ArrowLeft style={{ width: 16, height: 16 }} />
+          <span>{t('nav.backHome')}</span>
+        </Link>
 
-        {/* Logo & Header - Minimized */}
-        <div className="text-center mb-4">
-          <div className="flex justify-center mb-2">
-            <Image
-              src="/logo-header-190x49-1.png"
-              alt="Afilas General Hospital"
-              width={140}
-              height={36}
-              className="h-auto w-auto"
-              priority
-              style={{ width: '140px', height: 'auto' }}
-            />
-          </div>
-          <h2 className={`text-lg font-bold text-gray-800 ${isAmharic ? 'font-medium' : ''}`}>
-            {translate('register.title')}
-          </h2>
-          <p className={`text-[11px] text-gray-500 ${isAmharic ? 'font-medium' : ''}`}>
-            {translate('register.subtitle')}
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-3">
-          {/* Full Name */}
-          <div>
-            <label className={`block text-[11px] font-semibold text-gray-700 mb-0.5 ${isAmharic ? 'font-medium' : ''}`}>
-              {translate('field.fullName')}
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                <User className="h-3.5 w-3.5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                name="fullName"
-                value={formData.fullName}
-                onChange={handleChange}
-                onFocus={() => setFocusedField('fullName')}
-                onBlur={() => setFocusedField(null)}
-                className={inputClasses('fullName')}
-                placeholder={translate('field.fullName.placeholder')}
-                dir={isAmharic ? 'rtl' : 'ltr'}
-              />
-            </div>
-            {errors.fullName && (
-              <p className={`mt-0.5 text-[10px] text-red-500 ${isAmharic ? 'font-medium' : ''}`}>
-                {errors.fullName}
-              </p>
-            )}
-          </div>
-
-          {/* Email */}
-          <div>
-            <label className={`block text-[11px] font-semibold text-gray-700 mb-0.5 ${isAmharic ? 'font-medium' : ''}`}>
-              {translate('field.email')}
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                <Mail className="h-3.5 w-3.5 text-gray-400" />
-              </div>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                onFocus={() => setFocusedField('email')}
-                onBlur={() => setFocusedField(null)}
-                className={inputClasses('email')}
-                placeholder={translate('field.email.placeholder')}
-                dir={isAmharic ? 'rtl' : 'ltr'}
-              />
-            </div>
-            {errors.email && (
-              <p className={`mt-0.5 text-[10px] text-red-500 ${isAmharic ? 'font-medium' : ''}`}>
-                {errors.email}
-              </p>
-            )}
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className={`block text-[11px] font-semibold text-gray-700 mb-0.5 ${isAmharic ? 'font-medium' : ''}`}>
-              {translate('field.phone')}
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                <Phone className="h-3.5 w-3.5 text-gray-400" />
-              </div>
-              <input
-                type="tel"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                onFocus={() => setFocusedField('phone')}
-                onBlur={() => setFocusedField(null)}
-                className={inputClasses('phone')}
-                placeholder={translate('field.phone.placeholder')}
-                dir={isAmharic ? 'rtl' : 'ltr'}
-              />
-            </div>
-            {errors.phone && (
-              <p className={`mt-0.5 text-[10px] text-red-500 ${isAmharic ? 'font-medium' : ''}`}>
-                {errors.phone}
-              </p>
-            )}
-          </div>
-
-          {/* Password */}
-          <div>
-            <label className={`block text-[11px] font-semibold text-gray-700 mb-0.5 ${isAmharic ? 'font-medium' : ''}`}>
-              {translate('field.password')}
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                <Lock className="h-3.5 w-3.5 text-gray-400" />
-              </div>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                onFocus={() => setFocusedField('password')}
-                onBlur={() => setFocusedField(null)}
-                className={`${inputClasses('password')} pr-8`}
-                placeholder={translate('field.password.placeholder')}
-                dir={isAmharic ? 'rtl' : 'ltr'}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-2.5 flex items-center"
-              >
-                {showPassword ? (
-                  <EyeOff className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600" />
-                ) : (
-                  <Eye className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600" />
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <p className={`mt-0.5 text-[10px] text-red-500 ${isAmharic ? 'font-medium' : ''}`}>
-                {errors.password}
-              </p>
-            )}
-          </div>
-
-          {/* Confirm Password */}
-          <div>
-            <label className={`block text-[11px] font-semibold text-gray-700 mb-0.5 ${isAmharic ? 'font-medium' : ''}`}>
-              {translate('field.confirmPassword')}
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
-                <Lock className="h-3.5 w-3.5 text-gray-400" />
-              </div>
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                onFocus={() => setFocusedField('confirmPassword')}
-                onBlur={() => setFocusedField(null)}
-                className={`${inputClasses('confirmPassword')} pr-8`}
-                placeholder={translate('field.confirmPassword.placeholder')}
-                dir={isAmharic ? 'rtl' : 'ltr'}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute inset-y-0 right-0 pr-2.5 flex items-center"
-              >
-                {showConfirmPassword ? (
-                  <EyeOff className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600" />
-                ) : (
-                  <Eye className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600" />
-                )}
-              </button>
-            </div>
-            {errors.confirmPassword && (
-              <p className={`mt-0.5 text-[10px] text-red-500 ${isAmharic ? 'font-medium' : ''}`}>
-                {errors.confirmPassword}
-              </p>
-            )}
-          </div>
-
-          {/* Submit Button - Minimized */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          {/* Language Toggle */}
           <button
-            type="submit"
-            disabled={isLoading}
-            className={`w-full py-2 rounded-lg bg-gradient-to-r from-[#C5A059] to-[#B8963A] text-white font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-1.5 ${
-              isLoading 
-                ? 'opacity-70 cursor-not-allowed' 
-                : 'hover:shadow-md hover:scale-[1.01] active:scale-[0.98]'
-            } ${isAmharic ? 'font-medium' : ''}`}
+            onClick={() => setLanguage(language === 'en' ? 'am' : 'en')}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '0.4rem',
+              padding: '0.4rem 0.8rem', borderRadius: '9999px',
+              backgroundColor: theme === 'dark' ? 'rgba(30,41,59,0.85)' : 'rgba(255,255,255,0.85)',
+              backdropFilter: 'blur(8px)',
+              border: `1px solid ${theme === 'dark' ? '#334155' : '#e2e8f0'}`,
+              color: theme === 'dark' ? '#e2e8f0' : '#475569',
+              fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer',
+            }}
           >
-            {isLoading ? (
-              <>
-                <svg className="animate-spin h-3.5 w-3.5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                {translate('button.creating')}
-              </>
-            ) : (
-              <>
-                {translate('button.create')}
-                <ArrowRight className="w-3.5 h-3.5" />
-              </>
-            )}
+            <Globe style={{ width: 14, height: 14, color: theme === 'dark' ? '#14b8a6' : '#0f6e5f' }} />
+            <span>{language === 'en' ? 'አማርኛ' : 'English'}</span>
           </button>
 
-          {/* Login Link - Minimized */}
-          <p className={`text-center text-[11px] text-gray-600 mt-2 ${isAmharic ? 'font-medium' : ''}`}>
-            {translate('button.already')}{' '}
-            <Link href="/login" className="text-[#C5A059] hover:text-[#B8963A] font-semibold hover:underline transition-colors">
-              {translate('button.signin')}
-            </Link>
-          </p>
-        </form>
+          {/* Theme Toggle */}
+          <button
+            onClick={toggleTheme}
+            style={{
+              padding: '0.5rem', borderRadius: '9999px',
+              backgroundColor: theme === 'dark' ? 'rgba(30,41,59,0.85)' : 'rgba(255,255,255,0.85)',
+              backdropFilter: 'blur(8px)',
+              border: `1px solid ${theme === 'dark' ? '#334155' : '#e2e8f0'}`,
+              color: theme === 'dark' ? '#fbbf24' : '#4f46e5',
+              cursor: 'pointer', display: 'flex', alignItems: 'center',
+            }}
+          >
+            {theme === 'dark' ? <Sun style={{ width: 16, height: 16 }} /> : <Moon style={{ width: 16, height: 16 }} />}
+          </button>
+        </div>
+      </header>
+
+      {/* ==================== SUCCESS TOAST ==================== */}
+      {successMessage && (
+        <div style={{
+          position: 'fixed', top: '4rem', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 50, display: 'flex', alignItems: 'center', gap: '0.5rem',
+          padding: '0.75rem 1.5rem', borderRadius: '0.75rem',
+          backgroundColor: '#059669', color: '#fff', fontSize: '0.875rem', fontWeight: 600,
+          boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+        }}>
+          <CheckCircle2 style={{ width: 20, height: 20 }} />
+          <span>{successMessage}</span>
+        </div>
+      )}
+
+      {/* ==================== FORM SECTION ==================== */}
+      <div className="auth-row">
+        
+        {/* ---- SIGN UP COLUMN (Left Side) ---- */}
+        <div className="auth-col sign-up">
+          <div className="auth-form-wrapper">
+            <div className="auth-form sign-up"
+              style={{
+                backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff',
+                color: theme === 'dark' ? '#f1f5f9' : '#1e293b',
+              }}
+            >
+              {/* Logo + Header */}
+              <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+                <Image
+                  src="/Afilas-icon.png"
+                  alt="Afilas"
+                  width={48}
+                  height={48}
+                  style={{ margin: '0 auto 0.5rem', display: 'block', objectFit: 'contain' }}
+                  priority
+                />
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 700, margin: '0.25rem 0' }}>
+                  {t('signup.title')}
+                </h3>
+                <p style={{ fontSize: '0.75rem', color: theme === 'dark' ? '#94a3b8' : '#64748b', margin: 0, fontWeight: 400 }}>
+                  {t('signup.subtitle')}
+                </p>
+              </div>
+
+              <form onSubmit={handleSignUpSubmit} noValidate>
+                {/* Full Name */}
+                <div className="auth-input-group">
+                  <span className="auth-input-icon"><User style={{ width: 16, height: 16 }} /></span>
+                  <input
+                    type="text"
+                    placeholder={t('signup.field.fullName.placeholder')}
+                    value={signUpData.fullName}
+                    onChange={(e) => { setSignUpData({ ...signUpData, fullName: e.target.value }); if(signUpErrors.fullName) setSignUpErrors(p => ({...p, fullName: ''})); }}
+                    style={{ backgroundColor: theme === 'dark' ? '#0f172a' : '#f3f4f6', color: theme === 'dark' ? '#f1f5f9' : '#1e293b' }}
+                  />
+                  {signUpErrors.fullName && <div className="auth-error">{signUpErrors.fullName}</div>}
+                </div>
+
+                {/* Phone */}
+                <div className="auth-input-group">
+                  <span className="auth-input-icon"><Phone style={{ width: 16, height: 16 }} /></span>
+                  <input
+                    type="tel"
+                    placeholder={t('signup.field.phone.placeholder')}
+                    value={signUpData.phone}
+                    onChange={(e) => { setSignUpData({ ...signUpData, phone: e.target.value }); if(signUpErrors.phone) setSignUpErrors(p => ({...p, phone: ''})); }}
+                    style={{ backgroundColor: theme === 'dark' ? '#0f172a' : '#f3f4f6', color: theme === 'dark' ? '#f1f5f9' : '#1e293b' }}
+                  />
+                  {signUpErrors.phone && <div className="auth-error">{signUpErrors.phone}</div>}
+                </div>
+
+                {/* Email (Optional) */}
+                <div className="auth-input-group">
+                  <span className="auth-input-icon"><Mail style={{ width: 16, height: 16 }} /></span>
+                  <input
+                    type="email"
+                    placeholder={t('signup.field.email.placeholder')}
+                    value={signUpData.email}
+                    onChange={(e) => { setSignUpData({ ...signUpData, email: e.target.value }); if(signUpErrors.email) setSignUpErrors(p => ({...p, email: ''})); }}
+                    style={{ backgroundColor: theme === 'dark' ? '#0f172a' : '#f3f4f6', color: theme === 'dark' ? '#f1f5f9' : '#1e293b' }}
+                  />
+                  {signUpErrors.email && <div className="auth-error">{signUpErrors.email}</div>}
+                </div>
+
+                {/* Password */}
+                <div className="auth-input-group">
+                  <span className="auth-input-icon"><Lock style={{ width: 16, height: 16 }} /></span>
+                  <input
+                    type={showSignUpPassword ? 'text' : 'password'}
+                    placeholder={t('signup.field.password.placeholder')}
+                    value={signUpData.password}
+                    onChange={(e) => { setSignUpData({ ...signUpData, password: e.target.value }); if(signUpErrors.password) setSignUpErrors(p => ({...p, password: ''})); }}
+                    style={{ backgroundColor: theme === 'dark' ? '#0f172a' : '#f3f4f6', color: theme === 'dark' ? '#f1f5f9' : '#1e293b', paddingRight: '2.75rem' }}
+                  />
+                  <button type="button" className="auth-input-toggle" onClick={() => setShowSignUpPassword(!showSignUpPassword)}>
+                    {showSignUpPassword ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
+                  </button>
+                  {signUpErrors.password && <div className="auth-error">{signUpErrors.password}</div>}
+                </div>
+
+                {/* Confirm Password */}
+                <div className="auth-input-group">
+                  <span className="auth-input-icon"><Lock style={{ width: 16, height: 16 }} /></span>
+                  <input
+                    type={showSignUpConfirmPassword ? 'text' : 'password'}
+                    placeholder={t('signup.field.confirmPassword.placeholder')}
+                    value={signUpData.confirmPassword}
+                    onChange={(e) => { setSignUpData({ ...signUpData, confirmPassword: e.target.value }); if(signUpErrors.confirmPassword) setSignUpErrors(p => ({...p, confirmPassword: ''})); }}
+                    style={{ backgroundColor: theme === 'dark' ? '#0f172a' : '#f3f4f6', color: theme === 'dark' ? '#f1f5f9' : '#1e293b', paddingRight: '2.75rem' }}
+                  />
+                  <button type="button" className="auth-input-toggle" onClick={() => setShowSignUpConfirmPassword(!showSignUpConfirmPassword)}>
+                    {showSignUpConfirmPassword ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
+                  </button>
+                  {signUpErrors.confirmPassword && <div className="auth-error">{signUpErrors.confirmPassword}</div>}
+                </div>
+
+                {/* Submit */}
+                <button type="submit" className="auth-submit-btn" disabled={isSignUpLoading} style={{ marginTop: '0.5rem' }}>
+                  {isSignUpLoading ? t('signup.submitting') : (<>{t('signup.btn')} <ArrowRight style={{ width: 16, height: 16 }} /></>)}
+                </button>
+
+                <p style={{ textAlign: 'center', color: theme === 'dark' ? '#94a3b8' : '#64748b' }}>
+                  <span>{t('signup.hasAccount')} </span>
+                  <button type="button" className="auth-pointer" onClick={toggle}>
+                    {t('signup.toggleSignIn')}
+                  </button>
+                </p>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        {/* ---- SIGN IN COLUMN (Right Side) ---- */}
+        <div className="auth-col sign-in">
+          <div className="auth-form-wrapper">
+            <div className="auth-form sign-in"
+              style={{
+                backgroundColor: theme === 'dark' ? '#1e293b' : '#ffffff',
+                color: theme === 'dark' ? '#f1f5f9' : '#1e293b',
+              }}
+            >
+              {/* Logo + Header */}
+              <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                <Image
+                  src="/Afilas-icon.png"
+                  alt="Afilas"
+                  width={48}
+                  height={48}
+                  style={{ margin: '0 auto 0.5rem', display: 'block', objectFit: 'contain' }}
+                  priority
+                />
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 700, margin: '0.25rem 0' }}>
+                  {t('signin.title')}
+                </h3>
+                <p style={{ fontSize: '0.75rem', color: theme === 'dark' ? '#94a3b8' : '#64748b', margin: 0, fontWeight: 400 }}>
+                  {t('signin.subtitle')}
+                </p>
+              </div>
+
+              <form onSubmit={handleSignInSubmit} noValidate>
+                {/* Email/Phone */}
+                <div className="auth-input-group">
+                  <span className="auth-input-icon"><User style={{ width: 16, height: 16 }} /></span>
+                  <input
+                    type="text"
+                    placeholder={t('signin.field.identifier.placeholder')}
+                    value={signInData.identifier}
+                    onChange={(e) => { setSignInData({ ...signInData, identifier: e.target.value }); if(signInErrors.identifier) setSignInErrors(p => ({...p, identifier: ''})); }}
+                    style={{ backgroundColor: theme === 'dark' ? '#0f172a' : '#f3f4f6', color: theme === 'dark' ? '#f1f5f9' : '#1e293b' }}
+                  />
+                  {signInErrors.identifier && <div className="auth-error">{signInErrors.identifier}</div>}
+                </div>
+
+                {/* Password */}
+                <div className="auth-input-group">
+                  <span className="auth-input-icon"><Lock style={{ width: 16, height: 16 }} /></span>
+                  <input
+                    type={showSignInPassword ? 'text' : 'password'}
+                    placeholder={t('signin.field.password.placeholder')}
+                    value={signInData.password}
+                    onChange={(e) => { setSignInData({ ...signInData, password: e.target.value }); if(signInErrors.password) setSignInErrors(p => ({...p, password: ''})); }}
+                    style={{ backgroundColor: theme === 'dark' ? '#0f172a' : '#f3f4f6', color: theme === 'dark' ? '#f1f5f9' : '#1e293b', paddingRight: '2.75rem' }}
+                  />
+                  <button type="button" className="auth-input-toggle" onClick={() => setShowSignInPassword(!showSignInPassword)}>
+                    {showSignInPassword ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
+                  </button>
+                  {signInErrors.password && <div className="auth-error">{signInErrors.password}</div>}
+                </div>
+
+                {/* Forgot Password */}
+                <p style={{ textAlign: 'right', margin: '0.5rem 0' }}>
+                  <button type="button" className="auth-pointer">{t('signin.forgot')}</button>
+                </p>
+
+                {/* Submit */}
+                <button type="submit" className="auth-submit-btn" disabled={isSignInLoading}>
+                  {isSignInLoading ? t('signin.submitting') : (<>{t('signin.btn')} <ArrowRight style={{ width: 16, height: 16 }} /></>)}
+                </button>
+
+                <p style={{ textAlign: 'center', color: theme === 'dark' ? '#94a3b8' : '#64748b' }}>
+                  <span>{t('signin.noAccount')} </span>
+                  <button type="button" className="auth-pointer" onClick={toggle}>
+                    {t('signin.toggleSignUp')}
+                  </button>
+                </p>
+              </form>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* ==================== CONTENT OVERLAY SECTION ==================== */}
+      <div className="auth-row auth-content-row">
+        {/* Sign In content (Left side — visible when background covers left) */}
+        <div className="auth-col">
+          <div className="auth-text sign-in" style={{ textAlign: 'center' }}>
+            <div className="auth-logo-circle">
+              <Image src="/Afilas-icon.png" alt="Afilas" width={150} height={150} style={{ objectFit: 'contain' }} />
+            </div>
+            <h2>{t('panel.welcome.title')}</h2>
+            <p>{t('panel.welcome.desc')}</p>
+          </div>
+        </div>
+        {/* Sign Up content (Right side — visible when background covers right) */}
+        <div className="auth-col">
+          <div className="auth-text sign-up" style={{ textAlign: 'center' }}>
+            <div className="auth-logo-circle">
+              <Image src="/Afilas-icon.png" alt="Afilas" width={150} height={150} style={{ objectFit: 'contain' }} />
+            </div>
+            <h2>{t('panel.join.title')}</h2>
+            <p>{t('panel.join.desc')}</p>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }

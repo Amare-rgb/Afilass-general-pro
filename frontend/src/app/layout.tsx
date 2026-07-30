@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/icon.svg",
+        url: "/Afilas-icon.png",
         type: "image/svg+xml",
       },
     ],

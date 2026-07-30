@@ -65,7 +65,7 @@ export function Header() {
   const { isScrolled, isVisible: scrollVisible } = useScroll();
   const isVisible = scrollVisible || mobileOpen;
   const pathname = usePathname();
-  const isHome = pathname === "/"; // Determine if it's the root page
+  const isHome = pathname === "/" || pathname === "/blogs" || pathname === "/aboutUs"; // Determine if it's the root page
 
   useEffect(() => {
     setMounted(true);
@@ -114,8 +114,83 @@ export function Header() {
     [t],
   );
 
+  // ============================================================
+  // STYLES FOR NEON PULSE BUTTON
+  // ============================================================
+  const styles = `
+    .btn {
+  position: relative;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  overflow: visible;
+  transition: all 0.4s ease;
+  z-index: 1;
+}
+
+.btn span {
+  position: relative;
+  z-index: 10;
+}
+
+.neon-pulse {
+  overflow: visible;
+}
+
+/* Pulse animation rings - Subtle & Slow */
+.neon-pulse::before,
+.neon-pulse::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  animation: pulseOut 4s ease-out infinite;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.neon-pulse::after {
+  animation-delay: 2s;
+}
+
+/* When scrolled - use primary color */
+.neon-pulse::before,
+.neon-pulse::after {
+  border: 2px solid var(--primary, #0f6e5f);
+  box-shadow: 0 0 15px rgba(15, 110, 95, 0.3);
+}
+
+/* When not scrolled - use white (on dark bg) */
+.header-transparent .neon-pulse::before,
+.header-transparent .neon-pulse::after {
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+}
+
+@keyframes pulseOut {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* Dark mode override */
+.dark .neon-pulse::before,
+.dark .neon-pulse::after {
+  border: 2px solid var(--primary, #14b8a6);
+  box-shadow: 0 0 15px rgba(20, 184, 166, 0.3);
+}
+  `;
+
+
   return (
     <>
+    {/* Inject styles */}
+      <style dangerouslySetInnerHTML={{ __html: styles }} />
       {/* ============================================================
           TOP BAR – Emergency info (solid background when scrolled)
           ============================================================ */}
@@ -461,17 +536,19 @@ export function Header() {
                   </button>
                 )}
 
-                {/* Primary CTA */}
-                <Link
-                  href="/register"
-                  className={`inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg ${
-                    isScrolled
-                      ? "bg-gradient-to-r from-teal-600 to-teal-700 hover:shadow-teal-600/30 dark:from-teal-500 dark:to-teal-600"
-                      : "bg-gradient-to-r from-white/30 to-white/20 backdrop-blur-sm hover:bg-white/40 hover:shadow-white/20"
-                  }`}
-                >
-                  {t("cta.book_appointment")} / {t("cta.get_lab_results")}
-                </Link>
+    {/* Primary CTA - Animated Neon Pulse Button */}
+<Link
+  href="/appointment"
+  className={`btn neon-pulse inline-flex items-center rounded-lg px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg ${
+    isScrolled
+      ? "bg-gradient-to-r from-teal-600 to-teal-700 hover:shadow-teal-600/30 dark:from-teal-500 dark:to-teal-600"
+      : "bg-gradient-to-r from-white/30 to-white/20 backdrop-blur-sm hover:bg-white/40 hover:shadow-white/20"
+  }`}
+>
+  <span className="relative z-10">
+    {t("cta.book_appointment")} / {t("cta.get_lab_results")}
+  </span>
+</Link>
               </div>
             </div>
           </div>
@@ -483,5 +560,6 @@ export function Header() {
         <div className="h-[calc(52px+80px+16px)] w-full" aria-hidden="true" />
       )} */}
     </>
+    
   );
 }
