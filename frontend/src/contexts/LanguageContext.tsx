@@ -565,6 +565,1173 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.notifications.empty': 'No notifications',
     'admin.notifications.mark_all_read': 'Mark all as read',
     'admin.notifications.view_all': 'View all notifications',
+
+    // Admin Blog - Afilas Diagnosis
+    'admin.blog.afilas_diagnosis.title': 'Blog - Afilas Diagnosis Center',
+    'admin.blog.afilas_diagnosis.subtitle': 'Manage diagnostic and medical research blog posts for Afilas Diagnosis Center',
+    'admin.blog.afilas_diagnosis.refresh': 'Refresh',
+    'admin.blog.afilas_diagnosis.new_post': 'New Blog Post',
+    'admin.blog.afilas_diagnosis.search_placeholder': 'Search blog posts...',
+    'admin.blog.afilas_diagnosis.all_categories': 'All Categories',
+    'admin.blog.afilas_diagnosis.all_status': 'All Status',
+    'admin.blog.afilas_diagnosis.published': 'Published',
+    'admin.blog.afilas_diagnosis.draft': 'Draft',
+    'admin.blog.afilas_diagnosis.posts_found': 'post(s) found',
+    'admin.blog.afilas_diagnosis.posts_found_zero': 'No blog posts found',
+    'admin.blog.afilas_diagnosis.no_posts_help': 'Try adjusting your filters',
+    'admin.blog.afilas_diagnosis.no_posts_help_create': 'Click "New Blog Post" to create your first post',
+    'admin.blog.afilas_diagnosis.loading_posts': 'Loading blog posts...',
+    'admin.blog.afilas_diagnosis.unpublish': 'Unpublish',
+    'admin.blog.afilas_diagnosis.publish': 'Publish',
+    'admin.blog.afilas_diagnosis.edit': 'Edit',
+    'admin.blog.afilas_diagnosis.delete': 'Delete',
+    'admin.blog.afilas_diagnosis.showing_posts': 'Showing {count} blog post(s) from {location}',
+    'admin.blog.afilas_diagnosis.edit_post': 'Edit Blog Post',
+    'admin.blog.afilas_diagnosis.create_post': 'Create New Blog Post',
+    'admin.blog.afilas_diagnosis.title_label': 'Title',
+    'admin.blog.afilas_diagnosis.title_required': 'Title is required',
+    'admin.blog.afilas_diagnosis.content_label': 'Content',
+    'admin.blog.afilas_diagnosis.content_required': 'Content is required',
+    'admin.blog.afilas_diagnosis.content_placeholder': 'Write your blog post content here... (supports HTML)',
+    'admin.blog.afilas_diagnosis.excerpt_label': 'Excerpt',
+    'admin.blog.afilas_diagnosis.excerpt_required': 'Excerpt is required',
+    'admin.blog.afilas_diagnosis.excerpt_placeholder': 'Brief summary of the blog post',
+    'admin.blog.afilas_diagnosis.category_label': 'Category',
+    'admin.blog.afilas_diagnosis.category_required': 'Category is required',
+    'admin.blog.afilas_diagnosis.select_category': 'Select category',
+    'admin.blog.afilas_diagnosis.location_label': 'Location',
+    'admin.blog.afilas_diagnosis.media_type_label': 'Media Type',
+    'admin.blog.afilas_diagnosis.media_type_required': 'Please select either Image or Video',
+    'admin.blog.afilas_diagnosis.image_required': 'Please upload an image',
+    'admin.blog.afilas_diagnosis.video_required': 'Please enter a video URL',
+    'admin.blog.afilas_diagnosis.image': 'Image',
+    'admin.blog.afilas_diagnosis.video': 'Video',
+    'admin.blog.afilas_diagnosis.upload_image': 'Click to upload an image',
+    'admin.blog.afilas_diagnosis.upload_hint': 'JPG, PNG, GIF, WEBP (max 10MB)',
+    'admin.blog.afilas_diagnosis.change_image': 'Click to change image',
+    'admin.blog.afilas_diagnosis.video_url_label': 'Video URL (YouTube, Vimeo, or direct link)',
+    'admin.blog.afilas_diagnosis.video_url_placeholder': 'https://www.youtube.com/watch?v=...',
+    'admin.blog.afilas_diagnosis.video_preview': 'Video Preview',
+    'admin.blog.afilas_diagnosis.remove_video': 'Remove video',
+    'admin.blog.afilas_diagnosis.tags_label': 'Tags',
+    'admin.blog.afilas_diagnosis.tags_placeholder': 'Add tag and press Enter',
+    'admin.blog.afilas_diagnosis.add_tag': 'Add',
+    'admin.blog.afilas_diagnosis.publish_immediately': 'Publish immediately',
+    'admin.blog.afilas_diagnosis.cancel': 'Cancel',
+    'admin.blog.afilas_diagnosis.uploading': 'Uploading...',
+    'admin.blog.afilas_diagnosis.update_post': 'Update Post',
+    'admin.blog.afilas_diagnosis.create_post_btn': 'Create Post',
+    'admin.blog.afilas_diagnosis.success_updated': 'Blog post updated successfully!',
+    'admin.blog.afilas_diagnosis.success_created': 'Blog post created successfully!',
+    'admin.blog.afilas_diagnosis.success_deleted': 'Blog post deleted successfully!',
+    'admin.blog.afilas_diagnosis.success_published': 'Blog post published successfully!',
+    'admin.blog.afilas_diagnosis.success_unpublished': 'Blog post unpublished successfully!',
+    'admin.blog.afilas_diagnosis.error_save': 'Failed to save blog post',
+    'admin.blog.afilas_diagnosis.error_delete': 'Failed to delete blog post',
+    'admin.blog.afilas_diagnosis.error_upload': 'Failed to upload image. Please try again.',
+    'admin.blog.afilas_diagnosis.error_load': 'Failed to load blog posts',
+    'admin.blog.afilas_diagnosis.confirm_delete': 'Are you sure you want to delete this blog post?',
+
+      // ============================================
+  // ADMIN BLOG - AFILAS DRUG MANUFACTURING
+  // ============================================
+  
+  // Page Header
+  'admin.blog.afilas_drug.title': 'Blog - Afilas Drug Manufacturing',
+  'admin.blog.afilas_drug.subtitle': 'Manage pharmaceutical blog posts and updates for Afilas Drug Manufacturing',
+  
+  // Buttons
+  'admin.blog.afilas_drug.refresh': 'Refresh',
+  'admin.blog.afilas_drug.new_post': 'New Blog Post',
+  'admin.blog.afilas_drug.edit': 'Edit',
+  'admin.blog.afilas_drug.delete': 'Delete',
+  'admin.blog.afilas_drug.publish': 'Publish',
+  'admin.blog.afilas_drug.unpublish': 'Unpublish',
+  'admin.blog.afilas_drug.cancel': 'Cancel',
+  'admin.blog.afilas_drug.create': 'Create Post',
+  'admin.blog.afilas_drug.update': 'Update Post',
+  'admin.blog.afilas_drug.save': 'Save',
+  'admin.blog.afilas_drug.add': 'Add',
+  
+  // Filters
+  'admin.blog.afilas_drug.search_placeholder': 'Search blog posts...',
+  'admin.blog.afilas_drug.all_categories': 'All Categories',
+  'admin.blog.afilas_drug.all_status': 'All Status',
+  'admin.blog.afilas_drug.posts_found': 'post(s) found',
+  'admin.blog.afilas_drug.showing': 'Showing {count} blog post(s) from {location}',
+  
+  // Status Labels
+  'admin.blog.afilas_drug.published': 'Published',
+  'admin.blog.afilas_drug.draft': 'Draft',
+  'admin.blog.afilas_drug.image': 'Image',
+  'admin.blog.afilas_drug.video': 'Video',
+  
+  // Empty States
+  'admin.blog.afilas_drug.no_posts': 'No blog posts found',
+  'admin.blog.afilas_drug.no_posts_help': 'Try adjusting your filters',
+  'admin.blog.afilas_drug.no_posts_create': 'Click "New Blog Post" to create your first post',
+  'admin.blog.afilas_drug.loading': 'Loading blog posts...',
+  
+  // Modal
+  'admin.blog.afilas_drug.edit_post': 'Edit Blog Post',
+  'admin.blog.afilas_drug.create_post': 'Create New Blog Post',
+  
+  // Form Labels
+  'admin.blog.afilas_drug.title_label': 'Title',
+  'admin.blog.afilas_drug.title_placeholder': 'Enter blog post title',
+  'admin.blog.afilas_drug.content_label': 'Content',
+  'admin.blog.afilas_drug.content_placeholder': 'Write your blog post content here... (supports HTML)',
+  'admin.blog.afilas_drug.excerpt_label': 'Excerpt',
+  'admin.blog.afilas_drug.excerpt_placeholder': 'Brief summary of the blog post',
+  'admin.blog.afilas_drug.category_label': 'Category',
+  'admin.blog.afilas_drug.category_placeholder': 'Select category',
+  'admin.blog.afilas_drug.location_label': 'Location',
+  'admin.blog.afilas_drug.location_disabled': 'Location is fixed for this page',
+  'admin.blog.afilas_drug.author_label': 'Author',
+  'admin.blog.afilas_drug.author_placeholder': 'Enter author name',
+  'admin.blog.afilas_drug.author_default': 'Admin',
+  'admin.blog.afilas_drug.media_type_label': 'Media Type',
+  'admin.blog.afilas_drug.media_type_required': 'Please select either Image or Video',
+  'admin.blog.afilas_drug.image_upload': 'Click to upload an image',
+  'admin.blog.afilas_drug.image_hint': 'JPG, PNG, GIF, WEBP (max 10MB)',
+  'admin.blog.afilas_drug.change_image': 'Click to change image',
+  'admin.blog.afilas_drug.video_url_label': 'Video URL (YouTube, Vimeo, or direct link)',
+  'admin.blog.afilas_drug.video_url_placeholder': 'https://www.youtube.com/watch?v=...',
+  'admin.blog.afilas_drug.video_preview': 'Video Preview',
+  'admin.blog.afilas_drug.remove_video': 'Remove video',
+  'admin.blog.afilas_drug.tags_label': 'Tags',
+  'admin.blog.afilas_drug.tags_placeholder': 'Add tag and press Enter',
+  'admin.blog.afilas_drug.add_tag': 'Add',
+  'admin.blog.afilas_drug.publish_immediately': 'Publish immediately',
+  'admin.blog.afilas_drug.uploading': 'Uploading...',
+  'admin.blog.afilas_drug.required': 'Required',
+  'admin.blog.afilas_drug.optional': 'Optional',
+  
+  // Category Labels (for the filter)
+  'admin.blog.afilas_drug.category.pharmaceutical_news': 'Pharmaceutical News',
+  'admin.blog.afilas_drug.category.drug_research': 'Drug Research',
+  'admin.blog.afilas_drug.category.manufacturing_updates': 'Manufacturing Updates',
+  'admin.blog.afilas_drug.category.quality_control': 'Quality Control',
+  'admin.blog.afilas_drug.category.regulatory': 'Regulatory',
+  'admin.blog.afilas_drug.category.patient_safety': 'Patient Safety',
+  'admin.blog.afilas_drug.category.innovation': 'Innovation',
+  'admin.blog.afilas_drug.category.supply_chain': 'Supply Chain',
+  'admin.blog.afilas_drug.category.clinical_trials': 'Clinical Trials',
+  'admin.blog.afilas_drug.category.fda_updates': 'FDA Updates',
+  
+  // Stats Labels
+  'admin.blog.afilas_drug.views': 'views',
+  'admin.blog.afilas_drug.likes': 'likes',
+  'admin.blog.afilas_drug.comments': 'comments',
+  
+  // Validation Errors
+  'admin.blog.afilas_drug.error.title_required': 'Title is required',
+  'admin.blog.afilas_drug.error.content_required': 'Content is required',
+  'admin.blog.afilas_drug.error.excerpt_required': 'Excerpt is required',
+  'admin.blog.afilas_drug.error.category_required': 'Category is required',
+  'admin.blog.afilas_drug.error.author_required': 'Author is required',
+  'admin.blog.afilas_drug.error.media_type_required': 'Please select either Image or Video',
+  'admin.blog.afilas_drug.error.image_required': 'Please upload an image',
+  'admin.blog.afilas_drug.error.video_required': 'Please enter a video URL',
+  'admin.blog.afilas_drug.error.save': 'Failed to save blog post',
+  'admin.blog.afilas_drug.error.delete': 'Failed to delete blog post',
+  'admin.blog.afilas_drug.error.upload': 'Failed to upload image. Please try again.',
+  'admin.blog.afilas_drug.error.load': 'Failed to load blog posts',
+  'admin.blog.afilas_drug.error.general': 'Something went wrong. Please try again.',
+  
+  // Success Messages
+  'admin.blog.afilas_drug.success.updated': 'Blog post updated successfully!',
+  'admin.blog.afilas_drug.success.created': 'Blog post created successfully!',
+  'admin.blog.afilas_drug.success.deleted': 'Blog post deleted successfully!',
+  'admin.blog.afilas_drug.success.published': 'Blog post published successfully!',
+  'admin.blog.afilas_drug.success.unpublished': 'Blog post unpublished successfully!',
+  
+  // Confirmations
+  'admin.blog.afilas_drug.confirm.delete': 'Are you sure you want to delete this blog post?',
+  'admin.blog.afilas_drug.confirm.unpublish': 'Are you sure you want to unpublish this blog post?',
+  
+  // Actions
+  'admin.blog.afilas_drug.actions.edit': 'Edit',
+  'admin.blog.afilas_drug.actions.delete': 'Delete',
+  'admin.blog.afilas_drug.actions.view': 'View',
+  'admin.blog.afilas_drug.actions.publish': 'Publish',
+  'admin.blog.afilas_drug.actions.unpublish': 'Unpublish',
+
+
+// ============================================
+// ADMIN BLOG - AFILAS GENERAL HOSPITAL
+// ============================================
+
+// Page Header
+'admin.blog.afilas_general.title': 'Blog - Afilas General Hospital',
+'admin.blog.afilas_general.subtitle': 'Manage all blog posts and articles for Afilas General Hospital',
+
+// Buttons
+'admin.blog.afilas_general.refresh': 'Refresh',
+'admin.blog.afilas_general.new_post': 'New Blog Post',
+'admin.blog.afilas_general.edit': 'Edit',
+'admin.blog.afilas_general.delete': 'Delete',
+'admin.blog.afilas_general.publish': 'Publish',
+'admin.blog.afilas_general.unpublish': 'Unpublish',
+'admin.blog.afilas_general.cancel': 'Cancel',
+'admin.blog.afilas_general.create': 'Create Post',
+'admin.blog.afilas_general.update': 'Update Post',
+'admin.blog.afilas_general.save': 'Save',
+'admin.blog.afilas_general.add': 'Add',
+
+// Filters
+'admin.blog.afilas_general.search_placeholder': 'Search blog posts...',
+'admin.blog.afilas_general.all_categories': 'All Categories',
+'admin.blog.afilas_general.all_status': 'All Status',
+'admin.blog.afilas_general.posts_found': 'post(s) found',
+'admin.blog.afilas_general.showing': 'Showing {count} blog post(s) from {location}',
+
+// Status Labels
+'admin.blog.afilas_general.published': 'Published',
+'admin.blog.afilas_general.draft': 'Draft',
+'admin.blog.afilas_general.image': 'Image',
+'admin.blog.afilas_general.video': 'Video',
+
+// Empty States
+'admin.blog.afilas_general.no_posts': 'No blog posts found',
+'admin.blog.afilas_general.no_posts_help': 'Try adjusting your filters',
+'admin.blog.afilas_general.no_posts_create': 'Click "New Blog Post" to create your first post',
+'admin.blog.afilas_general.loading': 'Loading blog posts...',
+
+// Modal
+'admin.blog.afilas_general.edit_post': 'Edit Blog Post',
+'admin.blog.afilas_general.create_post': 'Create New Blog Post',
+
+// Form Labels
+'admin.blog.afilas_general.title_label': 'Title',
+'admin.blog.afilas_general.title_placeholder': 'Enter blog post title',
+'admin.blog.afilas_general.content_label': 'Content',
+'admin.blog.afilas_general.content_placeholder': 'Write your blog post content here... (supports HTML)',
+'admin.blog.afilas_general.excerpt_label': 'Excerpt',
+'admin.blog.afilas_general.excerpt_placeholder': 'Brief summary of the blog post',
+'admin.blog.afilas_general.category_label': 'Category',
+'admin.blog.afilas_general.category_placeholder': 'Select category',
+'admin.blog.afilas_general.location_label': 'Location',
+'admin.blog.afilas_general.location_disabled': 'Location is fixed for this page',
+'admin.blog.afilas_general.author_label': 'Author',
+'admin.blog.afilas_general.author_placeholder': 'Enter author name',
+'admin.blog.afilas_general.author_default': 'Admin',
+'admin.blog.afilas_general.media_type_label': 'Media Type',
+'admin.blog.afilas_general.media_type_required': 'Please select either Image or Video',
+'admin.blog.afilas_general.image_upload': 'Click to upload an image',
+'admin.blog.afilas_general.image_hint': 'JPG, PNG, GIF, WEBP (max 10MB)',
+'admin.blog.afilas_general.change_image': 'Click to change image',
+'admin.blog.afilas_general.video_url_label': 'Video URL (YouTube, Vimeo, or direct link)',
+'admin.blog.afilas_general.video_url_placeholder': 'https://www.youtube.com/watch?v=...',
+'admin.blog.afilas_general.video_preview': 'Video Preview',
+'admin.blog.afilas_general.remove_video': 'Remove video',
+'admin.blog.afilas_general.tags_label': 'Tags',
+'admin.blog.afilas_general.tags_placeholder': 'Add tag and press Enter',
+'admin.blog.afilas_general.add_tag': 'Add',
+'admin.blog.afilas_general.publish_immediately': 'Publish immediately',
+'admin.blog.afilas_general.uploading': 'Uploading...',
+'admin.blog.afilas_general.required': 'Required',
+'admin.blog.afilas_general.optional': 'Optional',
+
+// Category Labels
+'admin.blog.afilas_general.category.medical_news': 'Medical News',
+'admin.blog.afilas_general.category.health_tips': 'Health Tips',
+'admin.blog.afilas_general.category.research': 'Research',
+'admin.blog.afilas_general.category.patient_stories': 'Patient Stories',
+'admin.blog.afilas_general.category.events': 'Events',
+'admin.blog.afilas_general.category.announcements': 'Announcements',
+'admin.blog.afilas_general.category.wellness': 'Wellness',
+'admin.blog.afilas_general.category.technology': 'Technology',
+'admin.blog.afilas_general.category.education': 'Education',
+'admin.blog.afilas_general.category.community': 'Community',
+
+// Stats Labels
+'admin.blog.afilas_general.views': 'views',
+'admin.blog.afilas_general.likes': 'likes',
+'admin.blog.afilas_general.comments': 'comments',
+
+// Validation Errors
+'admin.blog.afilas_general.error.title_required': 'Title is required',
+'admin.blog.afilas_general.error.content_required': 'Content is required',
+'admin.blog.afilas_general.error.excerpt_required': 'Excerpt is required',
+'admin.blog.afilas_general.error.category_required': 'Category is required',
+'admin.blog.afilas_general.error.author_required': 'Author is required',
+'admin.blog.afilas_general.error.media_type_required': 'Please select either Image or Video',
+'admin.blog.afilas_general.error.image_required': 'Please upload an image',
+'admin.blog.afilas_general.error.video_required': 'Please enter a video URL',
+'admin.blog.afilas_general.error.save': 'Failed to save blog post',
+'admin.blog.afilas_general.error.delete': 'Failed to delete blog post',
+'admin.blog.afilas_general.error.upload': 'Failed to upload image. Please try again.',
+'admin.blog.afilas_general.error.load': 'Failed to load blog posts',
+'admin.blog.afilas_general.error.general': 'Something went wrong. Please try again.',
+
+// Success Messages
+'admin.blog.afilas_general.success.updated': 'Blog post updated successfully!',
+'admin.blog.afilas_general.success.created': 'Blog post created successfully!',
+'admin.blog.afilas_general.success.deleted': 'Blog post deleted successfully!',
+'admin.blog.afilas_general.success.published': 'Blog post published successfully!',
+'admin.blog.afilas_general.success.unpublished': 'Blog post unpublished successfully!',
+
+// Confirmations
+'admin.blog.afilas_general.confirm.delete': 'Are you sure you want to delete this blog post?',
+'admin.blog.afilas_general.confirm.unpublish': 'Are you sure you want to unpublish this blog post?',
+
+// Actions
+'admin.blog.afilas_general.actions.edit': 'Edit',
+'admin.blog.afilas_general.actions.delete': 'Delete',
+'admin.blog.afilas_general.actions.view': 'View',
+'admin.blog.afilas_general.actions.publish': 'Publish',
+'admin.blog.afilas_general.actions.unpublish': 'Unpublish',
+
+// ============================================
+// ADMIN DOCTORS - AFILAS DIAGNOSIS CENTER
+// ============================================
+
+// Page Header
+'admin.doctors.afilas_diagnosis.title': 'Afilas Diagnosis Center',
+'admin.doctors.afilas_diagnosis.subtitle': 'Manage doctors for Afilas Diagnosis Center',
+'admin.doctors.afilas_diagnosis.back': 'Back',
+
+// Buttons
+'admin.doctors.afilas_diagnosis.add_doctor': 'Add Doctor',
+'admin.doctors.afilas_diagnosis.edit': 'Edit',
+'admin.doctors.afilas_diagnosis.delete': 'Delete',
+'admin.doctors.afilas_diagnosis.cancel': 'Cancel',
+'admin.doctors.afilas_diagnosis.save': 'Save',
+'admin.doctors.afilas_diagnosis.update': 'Update',
+'admin.doctors.afilas_diagnosis.refresh': 'Refresh',
+'admin.doctors.afilas_diagnosis.upload': 'Upload',
+
+// Form Labels
+'admin.doctors.afilas_diagnosis.form.title': 'Doctor Details',
+'admin.doctors.afilas_diagnosis.form.add_title': 'Add New Doctor',
+'admin.doctors.afilas_diagnosis.form.edit_title': 'Edit Doctor',
+'admin.doctors.afilas_diagnosis.form.name': 'Full Name',
+'admin.doctors.afilas_diagnosis.form.name_placeholder': 'Dr. John Doe',
+'admin.doctors.afilas_diagnosis.form.title_label': 'Title',
+'admin.doctors.afilas_diagnosis.form.title_placeholder': 'Radiologist',
+'admin.doctors.afilas_diagnosis.form.email': 'Email',
+'admin.doctors.afilas_diagnosis.form.email_placeholder': 'doctor@example.com',
+'admin.doctors.afilas_diagnosis.form.phone': 'Phone',
+'admin.doctors.afilas_diagnosis.form.phone_placeholder': '+251-911-123456',
+'admin.doctors.afilas_diagnosis.form.bio': 'Bio',
+'admin.doctors.afilas_diagnosis.form.bio_placeholder': "Doctor's biography...",
+'admin.doctors.afilas_diagnosis.form.photo': 'Photo',
+'admin.doctors.afilas_diagnosis.form.upload_photo': 'Upload doctor photo (JPG, PNG)',
+'admin.doctors.afilas_diagnosis.form.photo_preview': 'Doctor preview',
+'admin.doctors.afilas_diagnosis.form.required': 'Required',
+'admin.doctors.afilas_diagnosis.form.optional': 'Optional',
+
+// Status
+'admin.doctors.afilas_diagnosis.status.active': 'Active',
+'admin.doctors.afilas_diagnosis.status.inactive': 'Inactive',
+
+// Empty States
+'admin.doctors.afilas_diagnosis.empty.title': 'No Doctors Found',
+'admin.doctors.afilas_diagnosis.empty.description': 'No doctors available for Afilas Diagnosis Center',
+'admin.doctors.afilas_diagnosis.empty.add_first': '+ Add Doctor',
+
+// Loading
+'admin.doctors.afilas_diagnosis.loading': 'Loading doctors...',
+'admin.doctors.afilas_diagnosis.saving': 'Saving...',
+'admin.doctors.afilas_diagnosis.uploading': 'Uploading Image...',
+
+// Showing count
+'admin.doctors.afilas_diagnosis.showing': 'Showing {count} doctor(s) for Afilas Diagnosis Center',
+
+// Success Messages
+'admin.doctors.afilas_diagnosis.success.created': 'Doctor created successfully!',
+'admin.doctors.afilas_diagnosis.success.updated': 'Doctor updated successfully!',
+'admin.doctors.afilas_diagnosis.success.deleted': 'Doctor deleted successfully!',
+
+// Validation Errors
+'admin.doctors.afilas_diagnosis.error.name_required': 'Name is required',
+'admin.doctors.afilas_diagnosis.error.title_required': 'Title is required',
+'admin.doctors.afilas_diagnosis.error.email_required': 'Email is required',
+'admin.doctors.afilas_diagnosis.error.email_invalid': 'Please enter a valid email address',
+'admin.doctors.afilas_diagnosis.error.phone_invalid': 'Please enter a valid phone number',
+'admin.doctors.afilas_diagnosis.error.save': 'Failed to save doctor',
+'admin.doctors.afilas_diagnosis.error.delete': 'Failed to delete doctor',
+'admin.doctors.afilas_diagnosis.error.load': 'Failed to load doctors',
+'admin.doctors.afilas_diagnosis.error.upload': 'Failed to upload image',
+'admin.doctors.afilas_diagnosis.error.session_expired': 'Session expired. Please login again.',
+'admin.doctors.afilas_diagnosis.error.general': 'Something went wrong. Please try again.',
+'admin.doctors.afilas_diagnosis.error.no_token': 'No authentication token found',
+
+// Confirmations
+'admin.doctors.afilas_diagnosis.confirm.delete': 'Are you sure you want to delete this doctor?',
+
+// Actions
+'admin.doctors.afilas_diagnosis.actions.edit': 'Edit',
+'admin.doctors.afilas_diagnosis.actions.delete': 'Delete',
+'admin.doctors.afilas_diagnosis.actions.refresh': 'Refresh',
+
+// ============================================
+// ADMIN DOCTORS - AFILAS DRUG MANUFACTURING
+// ============================================
+
+// Page Header
+'admin.doctors.afilas_drug.title': 'Afilas Drug Manufacturing',
+'admin.doctors.afilas_drug.subtitle': 'Manage doctors and specialists for Afilas Drug Manufacturing',
+'admin.doctors.afilas_drug.back': 'Back',
+
+// Buttons
+'admin.doctors.afilas_drug.add_doctor': 'Add Doctor',
+'admin.doctors.afilas_drug.edit': 'Edit',
+'admin.doctors.afilas_drug.delete': 'Delete',
+'admin.doctors.afilas_drug.cancel': 'Cancel',
+'admin.doctors.afilas_drug.save': 'Save',
+'admin.doctors.afilas_drug.update': 'Update',
+'admin.doctors.afilas_drug.refresh': 'Refresh',
+'admin.doctors.afilas_drug.upload': 'Upload',
+
+// Form Labels
+'admin.doctors.afilas_drug.form.title': 'Doctor Details',
+'admin.doctors.afilas_drug.form.add_title': 'Add New Doctor',
+'admin.doctors.afilas_drug.form.edit_title': 'Edit Doctor',
+'admin.doctors.afilas_drug.form.name': 'Full Name',
+'admin.doctors.afilas_drug.form.name_placeholder': 'Dr. John Doe',
+'admin.doctors.afilas_drug.form.title_label': 'Title',
+'admin.doctors.afilas_drug.form.title_placeholder': 'Pharmacologist',
+'admin.doctors.afilas_drug.form.email': 'Email',
+'admin.doctors.afilas_drug.form.email_placeholder': 'doctor@example.com',
+'admin.doctors.afilas_drug.form.phone': 'Phone',
+'admin.doctors.afilas_drug.form.phone_placeholder': '+251-911-123456',
+'admin.doctors.afilas_drug.form.bio': 'Bio',
+'admin.doctors.afilas_drug.form.bio_placeholder': "Doctor's biography...",
+'admin.doctors.afilas_drug.form.photo': 'Photo',
+'admin.doctors.afilas_drug.form.upload_photo': 'Upload doctor photo (JPG, PNG)',
+'admin.doctors.afilas_drug.form.photo_preview': 'Doctor preview',
+'admin.doctors.afilas_drug.form.required': 'Required',
+'admin.doctors.afilas_drug.form.optional': 'Optional',
+
+// Status
+'admin.doctors.afilas_drug.status.active': 'Active',
+'admin.doctors.afilas_drug.status.inactive': 'Inactive',
+
+// Empty States
+'admin.doctors.afilas_drug.empty.title': 'No Doctors Found',
+'admin.doctors.afilas_drug.empty.description': 'No doctors available for Afilas Drug Manufacturing',
+'admin.doctors.afilas_drug.empty.add_first': '+ Add Doctor',
+
+// Loading
+'admin.doctors.afilas_drug.loading': 'Loading doctors...',
+'admin.doctors.afilas_drug.saving': 'Saving...',
+'admin.doctors.afilas_drug.uploading': 'Uploading Image...',
+
+// Showing count
+'admin.doctors.afilas_drug.showing': 'Showing {count} doctor(s) for Afilas Drug Manufacturing',
+
+// Success Messages
+'admin.doctors.afilas_drug.success.created': 'Doctor created successfully!',
+'admin.doctors.afilas_drug.success.updated': 'Doctor updated successfully!',
+'admin.doctors.afilas_drug.success.deleted': 'Doctor deleted successfully!',
+
+// Validation Errors
+'admin.doctors.afilas_drug.error.name_required': 'Name is required',
+'admin.doctors.afilas_drug.error.title_required': 'Title is required',
+'admin.doctors.afilas_drug.error.email_required': 'Email is required',
+'admin.doctors.afilas_drug.error.email_invalid': 'Please enter a valid email address',
+'admin.doctors.afilas_drug.error.phone_invalid': 'Please enter a valid phone number',
+'admin.doctors.afilas_drug.error.save': 'Failed to save doctor',
+'admin.doctors.afilas_drug.error.delete': 'Failed to delete doctor',
+'admin.doctors.afilas_drug.error.load': 'Failed to load doctors',
+'admin.doctors.afilas_drug.error.upload': 'Failed to upload image',
+'admin.doctors.afilas_drug.error.session_expired': 'Session expired. Please login again.',
+'admin.doctors.afilas_drug.error.general': 'Something went wrong. Please try again.',
+'admin.doctors.afilas_drug.error.no_token': 'No authentication token found',
+
+// Confirmations
+'admin.doctors.afilas_drug.confirm.delete': 'Are you sure you want to delete this doctor?',
+
+// Actions
+'admin.doctors.afilas_drug.actions.edit': 'Edit',
+'admin.doctors.afilas_drug.actions.delete': 'Delete',
+'admin.doctors.afilas_drug.actions.refresh': 'Refresh',
+
+// ADMIN DOCTORS - AFILAS GENERAL HOSPITAL
+'admin.doctors.afilas_general.title': 'Afilas General Hospital',
+'admin.doctors.afilas_general.subtitle': 'Manage doctors for Afilas General Hospital',
+'admin.doctors.afilas_general.back': 'Back',
+'admin.doctors.afilas_general.add_doctor': 'Add Doctor',
+'admin.doctors.afilas_general.edit': 'Edit',
+'admin.doctors.afilas_general.delete': 'Delete',
+'admin.doctors.afilas_general.cancel': 'Cancel',
+'admin.doctors.afilas_general.save': 'Save',
+'admin.doctors.afilas_general.update': 'Update',
+'admin.doctors.afilas_general.refresh': 'Refresh',
+'admin.doctors.afilas_general.upload': 'Upload',
+'admin.doctors.afilas_general.form.title': 'Doctor Details',
+'admin.doctors.afilas_general.form.add_title': 'Add New Doctor',
+'admin.doctors.afilas_general.form.edit_title': 'Edit Doctor',
+'admin.doctors.afilas_general.form.name': 'Full Name',
+'admin.doctors.afilas_general.form.name_placeholder': 'Dr. John Doe',
+'admin.doctors.afilas_general.form.title_label': 'Title',
+'admin.doctors.afilas_general.form.title_placeholder': 'Cardiologist',
+'admin.doctors.afilas_general.form.email': 'Email',
+'admin.doctors.afilas_general.form.email_placeholder': 'doctor@example.com',
+'admin.doctors.afilas_general.form.phone': 'Phone',
+'admin.doctors.afilas_general.form.phone_placeholder': '+251-911-123456',
+'admin.doctors.afilas_general.form.bio': 'Bio',
+'admin.doctors.afilas_general.form.bio_placeholder': "Doctor's biography...",
+'admin.doctors.afilas_general.form.photo': 'Photo',
+'admin.doctors.afilas_general.form.upload_photo': 'Upload doctor photo (JPG, PNG)',
+'admin.doctors.afilas_general.form.photo_preview': 'Doctor preview',
+'admin.doctors.afilas_general.form.required': 'Required',
+'admin.doctors.afilas_general.form.optional': 'Optional',
+'admin.doctors.afilas_general.status.active': 'Active',
+'admin.doctors.afilas_general.status.inactive': 'Inactive',
+'admin.doctors.afilas_general.empty.title': 'No Doctors Found',
+'admin.doctors.afilas_general.empty.description': 'No doctors available for Afilas General Hospital',
+'admin.doctors.afilas_general.empty.add_first': '+ Add Doctor',
+'admin.doctors.afilas_general.loading': 'Loading doctors...',
+'admin.doctors.afilas_general.saving': 'Saving...',
+'admin.doctors.afilas_general.uploading': 'Uploading Image...',
+'admin.doctors.afilas_general.showing': 'Showing {count} doctor(s) for Afilas General Hospital',
+'admin.doctors.afilas_general.success.created': 'Doctor created successfully!',
+'admin.doctors.afilas_general.success.updated': 'Doctor updated successfully!',
+'admin.doctors.afilas_general.success.deleted': 'Doctor deleted successfully!',
+'admin.doctors.afilas_general.error.name_required': 'Name is required',
+'admin.doctors.afilas_general.error.title_required': 'Title is required',
+'admin.doctors.afilas_general.error.email_required': 'Email is required',
+'admin.doctors.afilas_general.error.email_invalid': 'Please enter a valid email address',
+'admin.doctors.afilas_general.error.phone_invalid': 'Please enter a valid phone number',
+'admin.doctors.afilas_general.error.save': 'Failed to save doctor',
+'admin.doctors.afilas_general.error.delete': 'Failed to delete doctor',
+'admin.doctors.afilas_general.error.load': 'Failed to load doctors',
+'admin.doctors.afilas_general.error.upload': 'Failed to upload image',
+'admin.doctors.afilas_general.error.session_expired': 'Session expired. Please login again.',
+'admin.doctors.afilas_general.error.general': 'Something went wrong. Please try again.',
+'admin.doctors.afilas_general.error.no_token': 'No authentication token found',
+'admin.doctors.afilas_general.confirm.delete': 'Are you sure you want to delete this doctor?',
+'admin.doctors.afilas_general.actions.edit': 'Edit',
+'admin.doctors.afilas_general.actions.delete': 'Delete',
+'admin.doctors.afilas_general.actions.refresh': 'Refresh',
+
+// ============================================
+// MY PROFILE PAGE
+// ============================================
+
+// Page Header
+'profile.title': 'My Profile',
+'profile.subtitle': 'Your personal information',
+
+// Profile Fields
+'profile.name': 'Name',
+'profile.name_placeholder': 'Enter your full name',
+'profile.email': 'Email',
+'profile.email_placeholder': 'Enter your email address',
+'profile.phone': 'Phone',
+'profile.phone_placeholder': 'Enter your phone number',
+'profile.location': 'Location',
+'profile.location_placeholder': 'Enter your location',
+'profile.role': 'Role',
+
+// Buttons
+'profile.edit': 'Edit',
+'profile.save': 'Save',
+'profile.cancel': 'Cancel',
+'profile.update': 'Update Profile',
+
+// Messages
+'profile.success.updated': 'Profile updated successfully!',
+'profile.error.update_failed': 'Failed to update profile',
+'profile.error.name_required': 'Name is required',
+'profile.error.email_required': 'Email is required',
+'profile.error.email_invalid': 'Please enter a valid email address',
+'profile.error.phone_invalid': 'Please enter a valid phone number',
+
+// Confirmations
+'profile.confirm.discard': 'Are you sure you want to discard changes?',
+
+// Avatar
+'profile.avatar.label': 'Profile Picture',
+'profile.avatar.upload': 'Upload Photo',
+'profile.avatar.remove': 'Remove Photo',
+'profile.avatar.hint': 'JPG, PNG, GIF (max 5MB)',
+
+// ============================================
+// SECURITY PAGE
+// ============================================
+
+// Page Header
+'security.title': 'Security',
+'security.subtitle': 'Manage your security settings',
+
+// Change Password Section
+'security.change_password.title': 'Change Password',
+'security.change_password.subtitle': 'Update your password to keep your account secure',
+
+// Form Labels
+'security.current_password': 'Current Password',
+'security.current_password_placeholder': 'Enter current password',
+'security.new_password': 'New Password',
+'security.new_password_placeholder': 'Enter new password',
+'security.confirm_password': 'Confirm Password',
+'security.confirm_password_placeholder': 'Confirm new password',
+
+// Buttons
+'security.update_password': 'Update Password',
+'security.show_passwords': 'Show passwords',
+'security.hide_passwords': 'Hide passwords',
+
+// Messages
+'security.success.updated': 'Password updated successfully!',
+'security.error.mismatch': 'Passwords do not match!',
+'security.error.current_required': 'Current password is required',
+'security.error.new_required': 'New password is required',
+'security.error.confirm_required': 'Please confirm your password',
+'security.error.password_length': 'Password must be at least 8 characters',
+'security.error.update_failed': 'Failed to update password. Please try again.',
+
+// Validation
+'security.password_strength.weak': 'Weak',
+'security.password_strength.medium': 'Medium',
+'security.password_strength.strong': 'Strong',
+'security.password_requirements': 'Password must contain at least 8 characters with a mix of letters, numbers, and symbols',
+
+// ============================================
+// ADMIN SERVICES - AFILAS DIAGNOSIS CENTER
+// ============================================
+
+// Page Header
+'admin.services.afilas_diagnosis.title': 'Diagnostic Services - {location}',
+'admin.services.afilas_diagnosis.subtitle': 'Manage all diagnostic and laboratory services at {location}',
+'admin.services.afilas_diagnosis.page_title': 'Diagnostic Services',
+'admin.services.afilas_diagnosis.page_subtitle': 'Manage all diagnostic and laboratory services',
+
+// Buttons
+'admin.services.afilas_diagnosis.refresh': 'Refresh',
+'admin.services.afilas_diagnosis.add_service': 'Add Diagnostic Service',
+'admin.services.afilas_diagnosis.edit': 'Edit',
+'admin.services.afilas_diagnosis.delete': 'Delete',
+'admin.services.afilas_diagnosis.cancel': 'Cancel',
+'admin.services.afilas_diagnosis.save': 'Save',
+'admin.services.afilas_diagnosis.create': 'Create Service',
+'admin.services.afilas_diagnosis.update': 'Update Service',
+
+// Filters
+'admin.services.afilas_diagnosis.search_placeholder': 'Search diagnostic services...',
+'admin.services.afilas_diagnosis.all_categories': 'All Categories',
+'admin.services.afilas_diagnosis.services_found': 'service(s) found',
+'admin.services.afilas_diagnosis.showing': 'Showing {count} diagnostic service(s) from {location}',
+
+// Table Headers
+'admin.services.afilas_diagnosis.table.name': 'Service Name',
+'admin.services.afilas_diagnosis.table.category': 'Category',
+'admin.services.afilas_diagnosis.table.description': 'Description',
+'admin.services.afilas_diagnosis.table.price': 'Price',
+'admin.services.afilas_diagnosis.table.duration': 'Duration',
+'admin.services.afilas_diagnosis.table.status': 'Status',
+'admin.services.afilas_diagnosis.table.actions': 'Actions',
+
+// Status
+'admin.services.afilas_diagnosis.status.active': 'Active',
+'admin.services.afilas_diagnosis.status.inactive': 'Inactive',
+'admin.services.afilas_diagnosis.status.activated': 'activated',
+'admin.services.afilas_diagnosis.status.deactivated': 'deactivated',
+
+// Empty States
+'admin.services.afilas_diagnosis.empty.title': 'No diagnostic services found',
+'admin.services.afilas_diagnosis.empty.help': 'Try adjusting your filters',
+'admin.services.afilas_diagnosis.empty.create': 'Click "Add Diagnostic Service" to create one',
+'admin.services.afilas_diagnosis.loading': 'Loading diagnostic services...',
+
+// Modal
+'admin.services.afilas_diagnosis.modal.edit_title': 'Edit Diagnostic Service',
+'admin.services.afilas_diagnosis.modal.add_title': 'Add New Diagnostic Service',
+
+// Form Labels
+'admin.services.afilas_diagnosis.form.name': 'Service Name',
+'admin.services.afilas_diagnosis.form.name_placeholder': 'Enter diagnostic service name',
+'admin.services.afilas_diagnosis.form.description': 'Description',
+'admin.services.afilas_diagnosis.form.description_placeholder': 'Enter service description',
+'admin.services.afilas_diagnosis.form.category': 'Category',
+'admin.services.afilas_diagnosis.form.category_placeholder': 'Select category',
+'admin.services.afilas_diagnosis.form.location': 'Location',
+'admin.services.afilas_diagnosis.form.location_disabled': 'Location is fixed for this page',
+'admin.services.afilas_diagnosis.form.price': 'Price (USD)',
+'admin.services.afilas_diagnosis.form.price_placeholder': 'Enter price',
+'admin.services.afilas_diagnosis.form.duration': 'Duration (minutes)',
+'admin.services.afilas_diagnosis.form.duration_placeholder': 'Enter duration in minutes',
+'admin.services.afilas_diagnosis.form.active': 'Active',
+'admin.services.afilas_diagnosis.form.required': 'Required',
+
+// Category Names
+'admin.services.afilas_diagnosis.category.blood_tests': 'Blood Tests',
+'admin.services.afilas_diagnosis.category.imaging': 'Imaging',
+'admin.services.afilas_diagnosis.category.xray': 'X-Ray',
+'admin.services.afilas_diagnosis.category.mri': 'MRI',
+'admin.services.afilas_diagnosis.category.ct_scan': 'CT Scan',
+'admin.services.afilas_diagnosis.category.ultrasound': 'Ultrasound',
+'admin.services.afilas_diagnosis.category.ecg': 'ECG',
+'admin.services.afilas_diagnosis.category.endoscopy': 'Endoscopy',
+'admin.services.afilas_diagnosis.category.biopsy': 'Biopsy',
+'admin.services.afilas_diagnosis.category.genetic_testing': 'Genetic Testing',
+'admin.services.afilas_diagnosis.category.pathology': 'Pathology',
+'admin.services.afilas_diagnosis.category.microbiology': 'Microbiology',
+
+// Duration
+'admin.services.afilas_diagnosis.duration.min': 'min',
+
+// Validation Errors
+'admin.services.afilas_diagnosis.error.name_required': 'Service name is required',
+'admin.services.afilas_diagnosis.error.description_required': 'Description is required',
+'admin.services.afilas_diagnosis.error.price_required': 'Price must be greater than 0',
+'admin.services.afilas_diagnosis.error.duration_required': 'Duration must be greater than 0',
+'admin.services.afilas_diagnosis.error.category_required': 'Category is required',
+'admin.services.afilas_diagnosis.error.save': 'Failed to save service',
+'admin.services.afilas_diagnosis.error.delete': 'Failed to delete service',
+'admin.services.afilas_diagnosis.error.load': 'Failed to load services',
+'admin.services.afilas_diagnosis.error.general': 'Something went wrong. Please try again.',
+
+// Success Messages
+'admin.services.afilas_diagnosis.success.created': 'Service created successfully!',
+'admin.services.afilas_diagnosis.success.updated': 'Service updated successfully!',
+'admin.services.afilas_diagnosis.success.deleted': 'Service deleted successfully!',
+'admin.services.afilas_diagnosis.success.activated': 'Service activated successfully!',
+'admin.services.afilas_diagnosis.success.deactivated': 'Service deactivated successfully!',
+
+// Confirmations
+'admin.services.afilas_diagnosis.confirm.delete': 'Are you sure you want to delete this service?',
+
+// Actions
+'admin.services.afilas_diagnosis.actions.edit': 'Edit',
+'admin.services.afilas_diagnosis.actions.delete': 'Delete',
+'admin.services.afilas_diagnosis.actions.refresh': 'Refresh',
+
+// ============================================
+// ADMIN SERVICES - AFILAS DRUG MANUFACTURING
+// ============================================
+
+// Page Header
+'admin.services.afilas_drug.title': 'Pharmaceutical Products - {location}',
+'admin.services.afilas_drug.subtitle': 'Manage all pharmaceutical products and drugs manufactured at {location}',
+'admin.services.afilas_drug.page_title': 'Pharmaceutical Products',
+'admin.services.afilas_drug.page_subtitle': 'Manage all pharmaceutical products and drugs',
+
+// Buttons
+'admin.services.afilas_drug.refresh': 'Refresh',
+'admin.services.afilas_drug.add_product': 'Add Product',
+'admin.services.afilas_drug.edit': 'Edit',
+'admin.services.afilas_drug.delete': 'Delete',
+'admin.services.afilas_drug.cancel': 'Cancel',
+'admin.services.afilas_drug.save': 'Save',
+'admin.services.afilas_drug.create': 'Create Product',
+'admin.services.afilas_drug.update': 'Update Product',
+
+// Filters
+'admin.services.afilas_drug.search_placeholder': 'Search products...',
+'admin.services.afilas_drug.all_categories': 'All Categories',
+'admin.services.afilas_drug.products_found': 'product(s) found',
+'admin.services.afilas_drug.showing': 'Showing {count} product(s) from {location}',
+
+// Table Headers
+'admin.services.afilas_drug.table.name': 'Product Name',
+'admin.services.afilas_drug.table.category': 'Category',
+'admin.services.afilas_drug.table.description': 'Description',
+'admin.services.afilas_drug.table.price': 'Price',
+'admin.services.afilas_drug.table.duration': 'Duration',
+'admin.services.afilas_drug.table.status': 'Status',
+'admin.services.afilas_drug.table.actions': 'Actions',
+
+// Status
+'admin.services.afilas_drug.status.active': 'Active',
+'admin.services.afilas_drug.status.inactive': 'Inactive',
+'admin.services.afilas_drug.status.activated': 'activated',
+'admin.services.afilas_drug.status.deactivated': 'deactivated',
+
+// Empty States
+'admin.services.afilas_drug.empty.title': 'No products found',
+'admin.services.afilas_drug.empty.help': 'Try adjusting your filters',
+'admin.services.afilas_drug.empty.create': 'Click "Add Product" to create one',
+'admin.services.afilas_drug.loading': 'Loading products...',
+
+// Modal
+'admin.services.afilas_drug.modal.edit_title': 'Edit Product',
+'admin.services.afilas_drug.modal.add_title': 'Add New Product',
+
+// Form Labels
+'admin.services.afilas_drug.form.name': 'Product Name',
+'admin.services.afilas_drug.form.name_placeholder': 'Enter product name',
+'admin.services.afilas_drug.form.description': 'Description',
+'admin.services.afilas_drug.form.description_placeholder': 'Enter product description',
+'admin.services.afilas_drug.form.category': 'Category',
+'admin.services.afilas_drug.form.category_placeholder': 'Select category',
+'admin.services.afilas_drug.form.location': 'Location',
+'admin.services.afilas_drug.form.location_disabled': 'Location is fixed for this page',
+'admin.services.afilas_drug.form.price': 'Price (USD)',
+'admin.services.afilas_drug.form.price_placeholder': 'Enter price',
+'admin.services.afilas_drug.form.duration': 'Duration (minutes)',
+'admin.services.afilas_drug.form.duration_placeholder': 'Enter duration in minutes',
+'admin.services.afilas_drug.form.active': 'Active',
+'admin.services.afilas_drug.form.required': 'Required',
+
+// Category Names
+'admin.services.afilas_drug.category.prescription_drugs': 'Prescription Drugs',
+'admin.services.afilas_drug.category.over_the_counter': 'Over-The-Counter',
+'admin.services.afilas_drug.category.antibiotics': 'Antibiotics',
+'admin.services.afilas_drug.category.pain_relievers': 'Pain Relievers',
+'admin.services.afilas_drug.category.antivirals': 'Antivirals',
+'admin.services.afilas_drug.category.vaccines': 'Vaccines',
+'admin.services.afilas_drug.category.insulin_diabetes': 'Insulin & Diabetes',
+'admin.services.afilas_drug.category.cardiovascular': 'Cardiovascular',
+'admin.services.afilas_drug.category.respiratory': 'Respiratory',
+'admin.services.afilas_drug.category.dermatological': 'Dermatological',
+'admin.services.afilas_drug.category.gastrointestinal': 'Gastrointestinal',
+'admin.services.afilas_drug.category.neurological': 'Neurological',
+'admin.services.afilas_drug.category.oncology': 'Oncology',
+'admin.services.afilas_drug.category.immunology': 'Immunology',
+'admin.services.afilas_drug.category.nutraceuticals': 'Nutraceuticals',
+
+// Duration
+'admin.services.afilas_drug.duration.min': 'min',
+
+// Validation Errors
+'admin.services.afilas_drug.error.name_required': 'Product name is required',
+'admin.services.afilas_drug.error.description_required': 'Description is required',
+'admin.services.afilas_drug.error.price_required': 'Price must be greater than 0',
+'admin.services.afilas_drug.error.duration_required': 'Duration must be greater than 0',
+'admin.services.afilas_drug.error.category_required': 'Category is required',
+'admin.services.afilas_drug.error.save': 'Failed to save product',
+'admin.services.afilas_drug.error.delete': 'Failed to delete product',
+'admin.services.afilas_drug.error.load': 'Failed to load products',
+'admin.services.afilas_drug.error.general': 'Something went wrong. Please try again.',
+
+// Success Messages
+'admin.services.afilas_drug.success.created': 'Product created successfully!',
+'admin.services.afilas_drug.success.updated': 'Product updated successfully!',
+'admin.services.afilas_drug.success.deleted': 'Product deleted successfully!',
+'admin.services.afilas_drug.success.activated': 'Product activated successfully!',
+'admin.services.afilas_drug.success.deactivated': 'Product deactivated successfully!',
+
+// Confirmations
+'admin.services.afilas_drug.confirm.delete': 'Are you sure you want to delete this product?',
+
+// Actions
+'admin.services.afilas_drug.actions.edit': 'Edit',
+'admin.services.afilas_drug.actions.delete': 'Delete',
+'admin.services.afilas_drug.actions.refresh': 'Refresh',
+
+// ADMIN SERVICES - AFILAS GENERAL HOSPITAL
+'admin.services.afilas_general.title': 'Services - {location}',
+'admin.services.afilas_general.subtitle': 'Manage all medical services offered at {location}',
+'admin.services.afilas_general.page_title': 'Hospital Services',
+'admin.services.afilas_general.page_subtitle': 'Manage all medical services offered',
+'admin.services.afilas_general.refresh': 'Refresh',
+'admin.services.afilas_general.add_service': 'Add New Service',
+'admin.services.afilas_general.edit': 'Edit',
+'admin.services.afilas_general.delete': 'Delete',
+'admin.services.afilas_general.cancel': 'Cancel',
+'admin.services.afilas_general.save': 'Save',
+'admin.services.afilas_general.create': 'Create Service',
+'admin.services.afilas_general.update': 'Update Service',
+'admin.services.afilas_general.search_placeholder': 'Search services...',
+'admin.services.afilas_general.all_categories': 'All Categories',
+'admin.services.afilas_general.services_found': 'service(s) found',
+'admin.services.afilas_general.showing': 'Showing {count} service(s) from {location}',
+'admin.services.afilas_general.table.name': 'Name',
+'admin.services.afilas_general.table.category': 'Category',
+'admin.services.afilas_general.table.description': 'Description',
+'admin.services.afilas_general.table.price': 'Price',
+'admin.services.afilas_general.table.duration': 'Duration',
+'admin.services.afilas_general.table.status': 'Status',
+'admin.services.afilas_general.table.actions': 'Actions',
+'admin.services.afilas_general.status.active': 'Active',
+'admin.services.afilas_general.status.inactive': 'Inactive',
+'admin.services.afilas_general.status.activated': 'activated',
+'admin.services.afilas_general.status.deactivated': 'deactivated',
+'admin.services.afilas_general.empty.title': 'No services found',
+'admin.services.afilas_general.empty.help': 'Try adjusting your filters',
+'admin.services.afilas_general.empty.create': 'Click "Add New Service" to create one',
+'admin.services.afilas_general.loading': 'Loading services...',
+'admin.services.afilas_general.modal.edit_title': 'Edit Service',
+'admin.services.afilas_general.modal.add_title': 'Add New Service',
+'admin.services.afilas_general.form.name': 'Service Name',
+'admin.services.afilas_general.form.name_placeholder': 'Enter service name',
+'admin.services.afilas_general.form.description': 'Description',
+'admin.services.afilas_general.form.description_placeholder': 'Enter service description',
+'admin.services.afilas_general.form.category': 'Category',
+'admin.services.afilas_general.form.category_placeholder': 'Select category',
+'admin.services.afilas_general.form.location': 'Location',
+'admin.services.afilas_general.form.location_disabled': 'Location is fixed for this page',
+'admin.services.afilas_general.form.price': 'Price (USD)',
+'admin.services.afilas_general.form.price_placeholder': 'Enter price',
+'admin.services.afilas_general.form.duration': 'Duration (minutes)',
+'admin.services.afilas_general.form.duration_placeholder': 'Enter duration in minutes',
+'admin.services.afilas_general.form.active': 'Active',
+'admin.services.afilas_general.form.required': 'Required',
+'admin.services.afilas_general.category.consultation': 'Consultation',
+'admin.services.afilas_general.category.diagnostic': 'Diagnostic',
+'admin.services.afilas_general.category.surgery': 'Surgery',
+'admin.services.afilas_general.category.emergency': 'Emergency',
+'admin.services.afilas_general.category.pharmacy': 'Pharmacy',
+'admin.services.afilas_general.category.laboratory': 'Laboratory',
+'admin.services.afilas_general.category.radiology': 'Radiology',
+'admin.services.afilas_general.category.therapy': 'Therapy',
+'admin.services.afilas_general.category.preventive_care': 'Preventive Care',
+'admin.services.afilas_general.category.specialist': 'Specialist',
+'admin.services.afilas_general.duration.min': 'min',
+'admin.services.afilas_general.error.name_required': 'Service name is required',
+'admin.services.afilas_general.error.description_required': 'Description is required',
+'admin.services.afilas_general.error.price_required': 'Price must be greater than 0',
+'admin.services.afilas_general.error.duration_required': 'Duration must be greater than 0',
+'admin.services.afilas_general.error.category_required': 'Category is required',
+'admin.services.afilas_general.error.save': 'Failed to save service',
+'admin.services.afilas_general.error.delete': 'Failed to delete service',
+'admin.services.afilas_general.error.load': 'Failed to load services',
+'admin.services.afilas_general.error.general': 'Something went wrong. Please try again.',
+'admin.services.afilas_general.success.created': 'Service created successfully!',
+'admin.services.afilas_general.success.updated': 'Service updated successfully!',
+'admin.services.afilas_general.success.deleted': 'Service deleted successfully!',
+'admin.services.afilas_general.success.activated': 'Service activated successfully!',
+'admin.services.afilas_general.success.deactivated': 'Service deactivated successfully!',
+'admin.services.afilas_general.confirm.delete': 'Are you sure you want to delete this service?',
+'admin.services.afilas_general.actions.edit': 'Edit',
+'admin.services.afilas_general.actions.delete': 'Delete',
+'admin.services.afilas_general.actions.refresh': 'Refresh',
+
+// ============================================
+// ADMIN USERS - AFILAS DIAGNOSIS CENTER
+// ============================================
+
+// Page Header
+'admin.users.afilas_diagnosis.title': '{location} - Users',
+'admin.users.afilas_diagnosis.subtitle': 'View all users for {location}',
+'admin.users.afilas_diagnosis.page_title': 'Users',
+'admin.users.afilas_diagnosis.page_subtitle': 'View all users for this location',
+
+// Buttons
+'admin.users.afilas_diagnosis.refresh': 'Refresh',
+'admin.users.afilas_diagnosis.back': 'Back',
+
+// Filters
+'admin.users.afilas_diagnosis.search_placeholder': 'Search users by name or email...',
+'admin.users.afilas_diagnosis.all_roles': 'All Roles',
+'admin.users.afilas_diagnosis.role_super_admin': 'SUPER_ADMIN',
+'admin.users.afilas_diagnosis.role_admin': 'ADMIN',
+'admin.users.afilas_diagnosis.role_doctor': 'DOCTOR',
+'admin.users.afilas_diagnosis.role_user': 'USER',
+
+// Table Headers
+'admin.users.afilas_diagnosis.table.user': 'User',
+'admin.users.afilas_diagnosis.table.email': 'Email',
+'admin.users.afilas_diagnosis.table.role': 'Role',
+'admin.users.afilas_diagnosis.table.status': 'Status',
+'admin.users.afilas_diagnosis.table.last_login': 'Last Login',
+
+// Status
+'admin.users.afilas_diagnosis.status.active': 'Active',
+'admin.users.afilas_diagnosis.status.inactive': 'Inactive',
+'admin.users.afilas_diagnosis.status.never': 'Never',
+
+// Empty States
+'admin.users.afilas_diagnosis.empty.title': 'No users found for {location}',
+'admin.users.afilas_diagnosis.empty.help': 'Try changing your filters',
+'admin.users.afilas_diagnosis.empty.no_users': 'No users registered for this location',
+'admin.users.afilas_diagnosis.loading': 'Loading users...',
+
+// Showing count
+'admin.users.afilas_diagnosis.showing': 'Showing {count} user(s) for {location}',
+
+// Validation Errors
+'admin.users.afilas_diagnosis.error.load': 'Failed to load users',
+
+// Actions
+'admin.users.afilas_diagnosis.actions.refresh': 'Refresh',
+
+// ============================================
+// ADMIN USERS - AFILAS DRUG MANUFACTURING
+// ============================================
+
+// Page Header
+'admin.users.afilas_drug.title': '{location} - Users',
+'admin.users.afilas_drug.subtitle': 'View all users for {location}',
+'admin.users.afilas_drug.page_title': 'Users',
+'admin.users.afilas_drug.page_subtitle': 'View all users for this location',
+
+// Buttons
+'admin.users.afilas_drug.refresh': 'Refresh',
+'admin.users.afilas_drug.back': 'Back',
+
+// Filters
+'admin.users.afilas_drug.search_placeholder': 'Search users by name or email...',
+'admin.users.afilas_drug.all_roles': 'All Roles',
+'admin.users.afilas_drug.role_super_admin': 'SUPER_ADMIN',
+'admin.users.afilas_drug.role_admin': 'ADMIN',
+'admin.users.afilas_drug.role_doctor': 'DOCTOR',
+'admin.users.afilas_drug.role_user': 'USER',
+
+// Table Headers
+'admin.users.afilas_drug.table.user': 'User',
+'admin.users.afilas_drug.table.email': 'Email',
+'admin.users.afilas_drug.table.role': 'Role',
+'admin.users.afilas_drug.table.status': 'Status',
+'admin.users.afilas_drug.table.last_login': 'Last Login',
+
+// Status
+'admin.users.afilas_drug.status.active': 'Active',
+'admin.users.afilas_drug.status.inactive': 'Inactive',
+'admin.users.afilas_drug.status.never': 'Never',
+
+// Empty States
+'admin.users.afilas_drug.empty.title': 'No users found for {location}',
+'admin.users.afilas_drug.empty.help': 'Try changing your filters',
+'admin.users.afilas_drug.empty.no_users': 'No users registered for this location',
+'admin.users.afilas_drug.loading': 'Loading users...',
+
+// Showing count
+'admin.users.afilas_drug.showing': 'Showing {count} user(s) for {location}',
+
+// Validation Errors
+'admin.users.afilas_drug.error.load': 'Failed to load users',
+
+// Actions
+'admin.users.afilas_drug.actions.refresh': 'Refresh',
+// ADMIN USERS - AFILAS GENERAL HOSPITAL
+'admin.users.afilas_general.title': '{location} - Users',
+'admin.users.afilas_general.subtitle': 'View all users for {location}',
+'admin.users.afilas_general.page_title': 'Users',
+'admin.users.afilas_general.page_subtitle': 'View all users for this location',
+'admin.users.afilas_general.refresh': 'Refresh',
+'admin.users.afilas_general.back': 'Back',
+'admin.users.afilas_general.search_placeholder': 'Search users by name or email...',
+'admin.users.afilas_general.all_roles': 'All Roles',
+'admin.users.afilas_general.role_super_admin': 'SUPER_ADMIN',
+'admin.users.afilas_general.role_admin': 'ADMIN',
+'admin.users.afilas_general.role_doctor': 'DOCTOR',
+'admin.users.afilas_general.role_user': 'USER',
+'admin.users.afilas_general.table.user': 'User',
+'admin.users.afilas_general.table.email': 'Email',
+'admin.users.afilas_general.table.role': 'Role',
+'admin.users.afilas_general.table.status': 'Status',
+'admin.users.afilas_general.table.last_login': 'Last Login',
+'admin.users.afilas_general.status.active': 'Active',
+'admin.users.afilas_general.status.inactive': 'Inactive',
+'admin.users.afilas_general.status.never': 'Never',
+'admin.users.afilas_general.empty.title': 'No users found for {location}',
+'admin.users.afilas_general.empty.help': 'Try changing your filters',
+'admin.users.afilas_general.empty.no_users': 'No users registered for this location',
+'admin.users.afilas_general.loading': 'Loading users...',
+'admin.users.afilas_general.showing': 'Showing {count} user(s) for {location}',
+'admin.users.afilas_general.error.load': 'Failed to load users',
+'admin.users.afilas_general.actions.refresh': 'Refresh',
+// ============================================
+// ADMIN USER MANAGEMENT
+// ============================================
+
+// Page Header
+'admin.users.management.title': 'User Management',
+'admin.users.management.subtitle': 'Manage all users in the system',
+
+// Buttons
+'admin.users.management.refresh': 'Refresh',
+'admin.users.management.add_user': 'Add User',
+'admin.users.management.edit': 'Edit',
+'admin.users.management.delete': 'Delete',
+'admin.users.management.cancel': 'Cancel',
+'admin.users.management.save': 'Save',
+'admin.users.management.create': 'Create User',
+'admin.users.management.update': 'Update User',
+
+// Stats Labels
+'admin.users.management.stats.total': 'Total',
+'admin.users.management.stats.super_admin': 'Super Admin',
+'admin.users.management.stats.admin': 'Admin',
+'admin.users.management.stats.doctor': 'Doctor',
+'admin.users.management.stats.user': 'User',
+'admin.users.management.stats.active': 'Active',
+'admin.users.management.stats.inactive': 'Inactive',
+
+// Location Cards
+'admin.users.management.locations.all': 'All Users',
+'admin.users.management.locations.general': 'Afilas General Hospital',
+'admin.users.management.locations.diagnosis': 'Afilas Diagnosis Center',
+'admin.users.management.locations.drug': 'Afilas Drug Manufacturing',
+'admin.users.management.locations.view': 'View Users',
+
+// Filters
+'admin.users.management.search_placeholder': 'Search users by name or email...',
+'admin.users.management.all_roles': 'All Roles',
+'admin.users.management.role_super_admin': 'SUPER_ADMIN',
+'admin.users.management.role_admin': 'ADMIN',
+'admin.users.management.role_doctor': 'DOCTOR',
+'admin.users.management.role_user': 'USER',
+
+// Table Headers
+'admin.users.management.table.user': 'User',
+'admin.users.management.table.email': 'Email',
+'admin.users.management.table.role': 'Role',
+'admin.users.management.table.location': 'Location',
+'admin.users.management.table.status': 'Status',
+'admin.users.management.table.last_login': 'Last Login',
+'admin.users.management.table.actions': 'Actions',
+
+// Status
+'admin.users.management.status.active': 'Active',
+'admin.users.management.status.inactive': 'Inactive',
+'admin.users.management.status.never': 'Never',
+'admin.users.management.status.activated': 'activated',
+'admin.users.management.status.deactivated': 'deactivated',
+
+// Form Labels
+'admin.users.management.form.title': 'User Details',
+'admin.users.management.form.add_title': 'Add New User',
+'admin.users.management.form.edit_title': 'Edit User',
+'admin.users.management.form.name': 'Full Name',
+'admin.users.management.form.name_placeholder': 'John Doe',
+'admin.users.management.form.email': 'Email',
+'admin.users.management.form.email_placeholder': 'john@example.com',
+'admin.users.management.form.phone': 'Phone',
+'admin.users.management.form.phone_placeholder': '+251-911-123456',
+'admin.users.management.form.password': 'Password',
+'admin.users.management.form.password_placeholder': 'Enter password',
+'admin.users.management.form.password_edit_placeholder': 'Leave blank to keep current',
+'admin.users.management.form.password_required': 'Password is required for new users',
+'admin.users.management.form.role': 'Role',
+'admin.users.management.form.location': 'Location',
+'admin.users.management.form.active': 'Active',
+'admin.users.management.form.required': 'Required',
+
+// Validation Errors
+'admin.users.management.error.name_required': 'Name is required',
+'admin.users.management.error.email_required': 'Email is required',
+'admin.users.management.error.email_invalid': 'Please enter a valid email address',
+'admin.users.management.error.password_required': 'Password is required for new users',
+'admin.users.management.error.email_exists': 'A user with this email already exists',
+'admin.users.management.error.save': 'Failed to save user',
+'admin.users.management.error.delete': 'Failed to delete user',
+'admin.users.management.error.load': 'Failed to load users',
+'admin.users.management.error.status': 'Failed to update user status',
+'admin.users.management.error.general': 'Something went wrong. Please try again.',
+
+// Success Messages
+'admin.users.management.success.created': 'User created successfully!',
+'admin.users.management.success.updated': 'User updated successfully!',
+'admin.users.management.success.deleted': 'User deleted successfully!',
+'admin.users.management.success.activated': 'User activated successfully!',
+'admin.users.management.success.deactivated': 'User deactivated successfully!',
+
+// Confirmations
+'admin.users.management.confirm.delete': 'Are you sure you want to delete this user?',
+
+// Loading
+'admin.users.management.loading': 'Loading users...',
+'admin.users.management.saving': 'Saving...',
+
+// Empty States
+'admin.users.management.empty.title': 'No users found',
+'admin.users.management.empty.help': 'Try changing your filters',
+'admin.users.management.empty.create': 'Create your first user to get started',
+
+// Showing count
+'admin.users.management.showing': 'Showing {count} user(s)',
+
+// Actions
+'admin.users.management.actions.edit': 'Edit',
+'admin.users.management.actions.delete': 'Delete',
+'admin.users.management.actions.refresh': 'Refresh',
+
   },
   am: {
     // Navigation
@@ -1115,6 +2282,1118 @@ const translations: Record<Language, Record<string, string>> = {
     'admin.notifications.empty': 'ምንም ማሳሰቢያዎች የሉም',
     'admin.notifications.mark_all_read': 'ሁሉንም እንደተነበበ ምልክት አድርግ',
     'admin.notifications.view_all': 'ሁሉንም ማሳሰቢያዎች ይመልከቱ',
+
+    // Admin Blog - Afilas Diagnosis
+    'admin.blog.afilas_diagnosis.title': 'ብሎግ - አፊላስ ዲያግኖሲስ ማዕከል',
+    'admin.blog.afilas_diagnosis.subtitle': 'ለአፊላስ ዲያግኖሲስ ማዕከል የምርመራ እና የህክምና ምርምር ብሎግ ልጥፎችን ያስተዳድሩ',
+    'admin.blog.afilas_diagnosis.refresh': 'ያድሱ',
+    'admin.blog.afilas_diagnosis.new_post': 'አዲስ ብሎግ ልጥፍ',
+    'admin.blog.afilas_diagnosis.search_placeholder': 'የብሎግ ልጥፎችን ፈልግ...',
+    'admin.blog.afilas_diagnosis.all_categories': 'ሁሉም ምድቦች',
+    'admin.blog.afilas_diagnosis.all_status': 'ሁሉም ሁኔታዎች',
+    'admin.blog.afilas_diagnosis.published': 'ታትሟል',
+    'admin.blog.afilas_diagnosis.draft': 'ረቂቅ',
+    'admin.blog.afilas_diagnosis.posts_found': 'ልጥፍ(ዎች) ተገኝተዋል',
+    'admin.blog.afilas_diagnosis.posts_found_zero': 'ምንም የብሎግ ልጥፎች አልተገኙም',
+    'admin.blog.afilas_diagnosis.no_posts_help': 'እባክዎ ማጣሪያዎችዎን ያስተካክሉ',
+    'admin.blog.afilas_diagnosis.no_posts_help_create': 'የመጀመሪያ ልጥፍዎን ለመፍጠር "አዲስ ብሎግ ልጥፍ" ን ጠቅ ያድርጉ',
+    'admin.blog.afilas_diagnosis.loading_posts': 'የብሎግ ልጥፎችን በማጫን ላይ...',
+    'admin.blog.afilas_diagnosis.unpublish': 'አታትም',
+    'admin.blog.afilas_diagnosis.publish': 'አትም',
+    'admin.blog.afilas_diagnosis.edit': 'አስተካክል',
+    'admin.blog.afilas_diagnosis.delete': 'ሰርዝ',
+    'admin.blog.afilas_diagnosis.showing_posts': 'ከ {location} {count} የብሎግ ልጥፍ(ዎች) እያሳየ ነው',
+    'admin.blog.afilas_diagnosis.edit_post': 'ብሎግ ልጥፍ አስተካክል',
+    'admin.blog.afilas_diagnosis.create_post': 'አዲስ ብሎግ ልጥፍ ፍጠር',
+    'admin.blog.afilas_diagnosis.title_label': 'ርዕስ',
+    'admin.blog.afilas_diagnosis.title_required': 'ርዕስ ያስፈልጋል',
+    'admin.blog.afilas_diagnosis.content_label': 'ይዘት',
+    'admin.blog.afilas_diagnosis.content_required': 'ይዘት ያስፈልጋል',
+    'admin.blog.afilas_diagnosis.content_placeholder': 'የብሎግ ልጥፍ ይዘትዎን እዚህ ይጻፉ... (ኤችቲኤምኤል ይደግፋል)',
+    'admin.blog.afilas_diagnosis.excerpt_label': 'ማጠቃለያ',
+    'admin.blog.afilas_diagnosis.excerpt_required': 'ማጠቃለያ ያስፈልጋል',
+    'admin.blog.afilas_diagnosis.excerpt_placeholder': 'የብሎግ ልጥፉ አጭር ማጠቃለያ',
+    'admin.blog.afilas_diagnosis.category_label': 'ምድብ',
+    'admin.blog.afilas_diagnosis.category_required': 'ምድብ ያስፈልጋል',
+    'admin.blog.afilas_diagnosis.select_category': 'ምድብ ይምረጡ',
+    'admin.blog.afilas_diagnosis.location_label': 'ቦታ',
+    'admin.blog.afilas_diagnosis.media_type_label': 'የሚዲያ አይነት',
+    'admin.blog.afilas_diagnosis.media_type_required': 'እባክዎ ምስል ወይም ቪዲዮ ይምረጡ',
+    'admin.blog.afilas_diagnosis.image_required': 'እባክዎ ምስል ይስቀሉ',
+    'admin.blog.afilas_diagnosis.video_required': 'እባክዎ የቪዲዮ ዩአርኤል ያስገቡ',
+    'admin.blog.afilas_diagnosis.image': 'ምስል',
+    'admin.blog.afilas_diagnosis.video': 'ቪዲዮ',
+    'admin.blog.afilas_diagnosis.upload_image': 'ምስል ለመስቀል ጠቅ ያድርጉ',
+    'admin.blog.afilas_diagnosis.upload_hint': 'JPG፣ PNG፣ GIF፣ WEBP (ከፍተኛ 10MB)',
+    'admin.blog.afilas_diagnosis.change_image': 'ምስል ለመቀየር ጠቅ ያድርጉ',
+    'admin.blog.afilas_diagnosis.video_url_label': 'የቪዲዮ ዩአርኤል (YouTube፣ Vimeo፣ ወይም ቀጥተኛ አገናኝ)',
+    'admin.blog.afilas_diagnosis.video_url_placeholder': 'https://www.youtube.com/watch?v=...',
+    'admin.blog.afilas_diagnosis.video_preview': 'የቪዲዮ ቅድመ-እይታ',
+    'admin.blog.afilas_diagnosis.remove_video': 'ቪዲዮ አስወግድ',
+    'admin.blog.afilas_diagnosis.tags_label': 'መለያዎች',
+    'admin.blog.afilas_diagnosis.tags_placeholder': 'መለያ ያክሉ እና ኢንተር ይጫኑ',
+    'admin.blog.afilas_diagnosis.add_tag': 'አክል',
+    'admin.blog.afilas_diagnosis.publish_immediately': 'ወዲያው አትም',
+    'admin.blog.afilas_diagnosis.cancel': 'ይቅር',
+    'admin.blog.afilas_diagnosis.uploading': 'በመስቀል ላይ...',
+    'admin.blog.afilas_diagnosis.update_post': 'ልጥፍ አሻሽል',
+    'admin.blog.afilas_diagnosis.create_post_btn': 'ልጥፍ ፍጠር',
+    'admin.blog.afilas_diagnosis.success_updated': 'የብሎግ ልጥፍ በተሳካ ሁኔታ ተሻሽሏል!',
+    'admin.blog.afilas_diagnosis.success_created': 'የብሎግ ልጥፍ በተሳካ ሁኔታ ተፈጥሯል!',
+    'admin.blog.afilas_diagnosis.success_deleted': 'የብሎግ ልጥፍ በተሳካ ሁኔታ ተሰርዟል!',
+    'admin.blog.afilas_diagnosis.success_published': 'የብሎግ ልጥፍ በተሳካ ሁኔታ ታትሟል!',
+    'admin.blog.afilas_diagnosis.success_unpublished': 'የብሎግ ልጥፍ መታተም በተሳካ ሁኔታ ተቋርጧል!',
+    'admin.blog.afilas_diagnosis.error_save': 'የብሎግ ልጥፍ ማስቀመጥ አልተቻለም',
+    'admin.blog.afilas_diagnosis.error_delete': 'የብሎግ ልጥፍ መሰረዝ አልተቻለም',
+    'admin.blog.afilas_diagnosis.error_upload': 'ምስል መስቀል አልተቻለም። እባክዎ እንደገና ይሞክሩ።',
+    'admin.blog.afilas_diagnosis.error_load': 'የብሎግ ልጥፎችን መጫን አልተቻለም',
+    'admin.blog.afilas_diagnosis.confirm_delete': 'ይህን የብሎግ ልጥፍ መሰረዝ እንደሚፈልጉ እርግጠኛ ነዎት?',
+
+
+      // ============================================
+  // ADMIN BLOG - AFILAS DRUG MANUFACTURING (AMHARIC)
+  // ============================================
+  
+  // Page Header
+  'admin.blog.afilas_drug.title': 'ብሎግ - አፊላስ የመድኃኒት ማምረቻ',
+  'admin.blog.afilas_drug.subtitle': 'ለአፊላስ የመድኃኒት ማምረቻ የፋርማሲዩቲካል ብሎግ ልጥፎችን እና ዝማኔዎችን ያስተዳድሩ',
+  
+  // Buttons
+  'admin.blog.afilas_drug.refresh': 'ያድሱ',
+  'admin.blog.afilas_drug.new_post': 'አዲስ ብሎግ ልጥፍ',
+  'admin.blog.afilas_drug.edit': 'አስተካክል',
+  'admin.blog.afilas_drug.delete': 'ሰርዝ',
+  'admin.blog.afilas_drug.publish': 'አትም',
+  'admin.blog.afilas_drug.unpublish': 'አታትም',
+  'admin.blog.afilas_drug.cancel': 'ይቅር',
+  'admin.blog.afilas_drug.create': 'ልጥፍ ፍጠር',
+  'admin.blog.afilas_drug.update': 'ልጥፍ አሻሽል',
+  'admin.blog.afilas_drug.save': 'አስቀምጥ',
+  'admin.blog.afilas_drug.add': 'አክል',
+  
+  // Filters
+  'admin.blog.afilas_drug.search_placeholder': 'የብሎግ ልጥፎችን ፈልግ...',
+  'admin.blog.afilas_drug.all_categories': 'ሁሉም ምድቦች',
+  'admin.blog.afilas_drug.all_status': 'ሁሉም ሁኔታዎች',
+  'admin.blog.afilas_drug.posts_found': 'ልጥፍ(ዎች) ተገኝተዋል',
+  'admin.blog.afilas_drug.showing': 'ከ {location} {count} የብሎግ ልጥፍ(ዎች) እያሳየ ነው',
+  
+  // Status Labels
+  'admin.blog.afilas_drug.published': 'ታትሟል',
+  'admin.blog.afilas_drug.draft': 'ረቂቅ',
+  'admin.blog.afilas_drug.image': 'ምስል',
+  'admin.blog.afilas_drug.video': 'ቪዲዮ',
+  
+  // Empty States
+  'admin.blog.afilas_drug.no_posts': 'ምንም የብሎግ ልጥፎች አልተገኙም',
+  'admin.blog.afilas_drug.no_posts_help': 'እባክዎ ማጣሪያዎችዎን ያስተካክሉ',
+  'admin.blog.afilas_drug.no_posts_create': 'የመጀመሪያ ልጥፍዎን ለመፍጠር "አዲስ ብሎግ ልጥፍ" ን ጠቅ ያድርጉ',
+  'admin.blog.afilas_drug.loading': 'የብሎግ ልጥፎችን በማጫን ላይ...',
+  
+  // Modal
+  'admin.blog.afilas_drug.edit_post': 'ብሎግ ልጥፍ አስተካክል',
+  'admin.blog.afilas_drug.create_post': 'አዲስ ብሎግ ልጥፍ ፍጠር',
+  
+  // Form Labels
+  'admin.blog.afilas_drug.title_label': 'ርዕስ',
+  'admin.blog.afilas_drug.title_placeholder': 'የብሎግ ልጥፍ ርዕስ ያስገቡ',
+  'admin.blog.afilas_drug.content_label': 'ይዘት',
+  'admin.blog.afilas_drug.content_placeholder': 'የብሎግ ልጥፍ ይዘትዎን እዚህ ይጻፉ... (ኤችቲኤምኤል ይደግፋል)',
+  'admin.blog.afilas_drug.excerpt_label': 'ማጠቃለያ',
+  'admin.blog.afilas_drug.excerpt_placeholder': 'የብሎግ ልጥፉ አጭር ማጠቃለያ',
+  'admin.blog.afilas_drug.category_label': 'ምድብ',
+  'admin.blog.afilas_drug.category_placeholder': 'ምድብ ይምረጡ',
+  'admin.blog.afilas_drug.location_label': 'ቦታ',
+  'admin.blog.afilas_drug.location_disabled': 'ቦታ ለዚህ ገጽ ተስተካክሏል',
+  'admin.blog.afilas_drug.author_label': 'ደራሲ',
+  'admin.blog.afilas_drug.author_placeholder': 'የደራሲ ስም ያስገቡ',
+  'admin.blog.afilas_drug.author_default': 'አስተዳዳሪ',
+  'admin.blog.afilas_drug.media_type_label': 'የሚዲያ አይነት',
+  'admin.blog.afilas_drug.media_type_required': 'እባክዎ ምስል ወይም ቪዲዮ ይምረጡ',
+  'admin.blog.afilas_drug.image_upload': 'ምስል ለመስቀል ጠቅ ያድርጉ',
+  'admin.blog.afilas_drug.image_hint': 'JPG፣ PNG፣ GIF፣ WEBP (ከፍተኛ 10MB)',
+  'admin.blog.afilas_drug.change_image': 'ምስል ለመቀየር ጠቅ ያድርጉ',
+  'admin.blog.afilas_drug.video_url_label': 'የቪዲዮ ዩአርኤል (YouTube፣ Vimeo፣ ወይም ቀጥተኛ አገናኝ)',
+  'admin.blog.afilas_drug.video_url_placeholder': 'https://www.youtube.com/watch?v=...',
+  'admin.blog.afilas_drug.video_preview': 'የቪዲዮ ቅድመ-እይታ',
+  'admin.blog.afilas_drug.remove_video': 'ቪዲዮ አስወግድ',
+  'admin.blog.afilas_drug.tags_label': 'መለያዎች',
+  'admin.blog.afilas_drug.tags_placeholder': 'መለያ ያክሉ እና ኢንተር ይጫኑ',
+  'admin.blog.afilas_drug.add_tag': 'አክል',
+  'admin.blog.afilas_drug.publish_immediately': 'ወዲያው አትም',
+  'admin.blog.afilas_drug.uploading': 'በመስቀል ላይ...',
+  'admin.blog.afilas_drug.required': 'ያስፈልጋል',
+  'admin.blog.afilas_drug.optional': 'አማራጭ',
+  
+  // Category Labels (for the filter)
+  'admin.blog.afilas_drug.category.pharmaceutical_news': 'የፋርማሲዩቲካል ዜና',
+  'admin.blog.afilas_drug.category.drug_research': 'የመድኃኒት ምርምር',
+  'admin.blog.afilas_drug.category.manufacturing_updates': 'የማምረቻ ዝማኔዎች',
+  'admin.blog.afilas_drug.category.quality_control': 'የጥራት ቁጥጥር',
+  'admin.blog.afilas_drug.category.regulatory': 'የቁጥጥር ደንቦች',
+  'admin.blog.afilas_drug.category.patient_safety': 'የህመምተኛ ደህንነት',
+  'admin.blog.afilas_drug.category.innovation': 'ፈጠራ',
+  'admin.blog.afilas_drug.category.supply_chain': 'የአቅርቦት ሰንሰለት',
+  'admin.blog.afilas_drug.category.clinical_trials': 'ክሊኒካል ሙከራዎች',
+  'admin.blog.afilas_drug.category.fda_updates': 'ኤፍዲኤ ዝማኔዎች',
+  
+  // Stats Labels
+  'admin.blog.afilas_drug.views': 'እይታዎች',
+  'admin.blog.afilas_drug.likes': 'ልቦች',
+  'admin.blog.afilas_drug.comments': 'አስተያየቶች',
+  
+  // Validation Errors
+  'admin.blog.afilas_drug.error.title_required': 'ርዕስ ያስፈልጋል',
+  'admin.blog.afilas_drug.error.content_required': 'ይዘት ያስፈልጋል',
+  'admin.blog.afilas_drug.error.excerpt_required': 'ማጠቃለያ ያስፈልጋል',
+  'admin.blog.afilas_drug.error.category_required': 'ምድብ ያስፈልጋል',
+  'admin.blog.afilas_drug.error.author_required': 'ደራሲ ያስፈልጋል',
+  'admin.blog.afilas_drug.error.media_type_required': 'እባክዎ ምስል ወይም ቪዲዮ ይምረጡ',
+  'admin.blog.afilas_drug.error.image_required': 'እባክዎ ምስል ይስቀሉ',
+  'admin.blog.afilas_drug.error.video_required': 'እባክዎ የቪዲዮ ዩአርኤል ያስገቡ',
+  'admin.blog.afilas_drug.error.save': 'የብሎግ ልጥፍ ማስቀመጥ አልተቻለም',
+  'admin.blog.afilas_drug.error.delete': 'የብሎግ ልጥፍ መሰረዝ አልተቻለም',
+  'admin.blog.afilas_drug.error.upload': 'ምስል መስቀል አልተቻለም። እባክዎ እንደገና ይሞክሩ።',
+  'admin.blog.afilas_drug.error.load': 'የብሎግ ልጥፎችን መጫን አልተቻለም',
+  'admin.blog.afilas_drug.error.general': 'የሆነ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።',
+  
+  // Success Messages
+  'admin.blog.afilas_drug.success.updated': 'የብሎግ ልጥፍ በተሳካ ሁኔታ ተሻሽሏል!',
+  'admin.blog.afilas_drug.success.created': 'የብሎግ ልጥፍ በተሳካ ሁኔታ ተፈጥሯል!',
+  'admin.blog.afilas_drug.success.deleted': 'የብሎግ ልጥፍ በተሳካ ሁኔታ ተሰርዟል!',
+  'admin.blog.afilas_drug.success.published': 'የብሎግ ልጥፍ በተሳካ ሁኔታ ታትሟል!',
+  'admin.blog.afilas_drug.success.unpublished': 'የብሎግ ልጥፍ መታተም በተሳካ ሁኔታ ተቋርጧል!',
+  
+  // Confirmations
+  'admin.blog.afilas_drug.confirm.delete': 'ይህን የብሎግ ልጥፍ መሰረዝ እንደሚፈልጉ እርግጠኛ ነዎት?',
+  'admin.blog.afilas_drug.confirm.unpublish': 'ይህን የብሎግ ልጥፍ ከህትመት ማስወገድ እንደሚፈልጉ እርግጠኛ ነዎት?',
+  
+  // Actions
+  'admin.blog.afilas_drug.actions.edit': 'አስተካክል',
+  'admin.blog.afilas_drug.actions.delete': 'ሰርዝ',
+  'admin.blog.afilas_drug.actions.view': 'ተመልከት',
+  'admin.blog.afilas_drug.actions.publish': 'አትም',
+  'admin.blog.afilas_drug.actions.unpublish': 'አታትም',
+
+  // ============================================
+// ADMIN BLOG - AFILAS GENERAL HOSPITAL (AMHARIC)
+// ============================================
+
+// Page Header
+'admin.blog.afilas_general.title': 'ብሎግ - አፊላስ አጠቃላይ ሆስፒታል',
+'admin.blog.afilas_general.subtitle': 'ለአፊላስ አጠቃላይ ሆስፒታል ሁሉንም የብሎግ ልጥፎች እና መጣጥፎች ያስተዳድሩ',
+
+// Buttons
+'admin.blog.afilas_general.refresh': 'ያድሱ',
+'admin.blog.afilas_general.new_post': 'አዲስ ብሎግ ልጥፍ',
+'admin.blog.afilas_general.edit': 'አስተካክል',
+'admin.blog.afilas_general.delete': 'ሰርዝ',
+'admin.blog.afilas_general.publish': 'አትም',
+'admin.blog.afilas_general.unpublish': 'አታትም',
+'admin.blog.afilas_general.cancel': 'ይቅር',
+'admin.blog.afilas_general.create': 'ልጥፍ ፍጠር',
+'admin.blog.afilas_general.update': 'ልጥፍ አሻሽል',
+'admin.blog.afilas_general.save': 'አስቀምጥ',
+'admin.blog.afilas_general.add': 'አክል',
+
+// Filters
+'admin.blog.afilas_general.search_placeholder': 'የብሎግ ልጥፎችን ፈልግ...',
+'admin.blog.afilas_general.all_categories': 'ሁሉም ምድቦች',
+'admin.blog.afilas_general.all_status': 'ሁሉም ሁኔታዎች',
+'admin.blog.afilas_general.posts_found': 'ልጥፍ(ዎች) ተገኝተዋል',
+'admin.blog.afilas_general.showing': 'ከ {location} {count} የብሎግ ልጥፍ(ዎች) እያሳየ ነው',
+
+// Status Labels
+'admin.blog.afilas_general.published': 'ታትሟል',
+'admin.blog.afilas_general.draft': 'ረቂቅ',
+'admin.blog.afilas_general.image': 'ምስል',
+'admin.blog.afilas_general.video': 'ቪዲዮ',
+
+// Empty States
+'admin.blog.afilas_general.no_posts': 'ምንም የብሎግ ልጥፎች አልተገኙም',
+'admin.blog.afilas_general.no_posts_help': 'እባክዎ ማጣሪያዎችዎን ያስተካክሉ',
+'admin.blog.afilas_general.no_posts_create': 'የመጀመሪያ ልጥፍዎን ለመፍጠር "አዲስ ብሎግ ልጥፍ" ን ጠቅ ያድርጉ',
+'admin.blog.afilas_general.loading': 'የብሎግ ልጥፎችን በማጫን ላይ...',
+
+// Modal
+'admin.blog.afilas_general.edit_post': 'ብሎግ ልጥፍ አስተካክል',
+'admin.blog.afilas_general.create_post': 'አዲስ ብሎግ ልጥፍ ፍጠር',
+
+// Form Labels
+'admin.blog.afilas_general.title_label': 'ርዕስ',
+'admin.blog.afilas_general.title_placeholder': 'የብሎግ ልጥፍ ርዕስ ያስገቡ',
+'admin.blog.afilas_general.content_label': 'ይዘት',
+'admin.blog.afilas_general.content_placeholder': 'የብሎግ ልጥፍ ይዘትዎን እዚህ ይጻፉ... (ኤችቲኤምኤል ይደግፋል)',
+'admin.blog.afilas_general.excerpt_label': 'ማጠቃለያ',
+'admin.blog.afilas_general.excerpt_placeholder': 'የብሎግ ልጥፉ አጭር ማጠቃለያ',
+'admin.blog.afilas_general.category_label': 'ምድብ',
+'admin.blog.afilas_general.category_placeholder': 'ምድብ ይምረጡ',
+'admin.blog.afilas_general.location_label': 'ቦታ',
+'admin.blog.afilas_general.location_disabled': 'ቦታ ለዚህ ገጽ ተስተካክሏል',
+'admin.blog.afilas_general.author_label': 'ደራሲ',
+'admin.blog.afilas_general.author_placeholder': 'የደራሲ ስም ያስገቡ',
+'admin.blog.afilas_general.author_default': 'አስተዳዳሪ',
+'admin.blog.afilas_general.media_type_label': 'የሚዲያ አይነት',
+'admin.blog.afilas_general.media_type_required': 'እባክዎ ምስል ወይም ቪዲዮ ይምረጡ',
+'admin.blog.afilas_general.image_upload': 'ምስል ለመስቀል ጠቅ ያድርጉ',
+'admin.blog.afilas_general.image_hint': 'JPG፣ PNG፣ GIF፣ WEBP (ከፍተኛ 10MB)',
+'admin.blog.afilas_general.change_image': 'ምስል ለመቀየር ጠቅ ያድርጉ',
+'admin.blog.afilas_general.video_url_label': 'የቪዲዮ ዩአርኤል (YouTube፣ Vimeo፣ ወይም ቀጥተኛ አገናኝ)',
+'admin.blog.afilas_general.video_url_placeholder': 'https://www.youtube.com/watch?v=...',
+'admin.blog.afilas_general.video_preview': 'የቪዲዮ ቅድመ-እይታ',
+'admin.blog.afilas_general.remove_video': 'ቪዲዮ አስወግድ',
+'admin.blog.afilas_general.tags_label': 'መለያዎች',
+'admin.blog.afilas_general.tags_placeholder': 'መለያ ያክሉ እና ኢንተር ይጫኑ',
+'admin.blog.afilas_general.add_tag': 'አክል',
+'admin.blog.afilas_general.publish_immediately': 'ወዲያው አትም',
+'admin.blog.afilas_general.uploading': 'በመስቀል ላይ...',
+'admin.blog.afilas_general.required': 'ያስፈልጋል',
+'admin.blog.afilas_general.optional': 'አማራጭ',
+
+// Category Labels
+'admin.blog.afilas_general.category.medical_news': 'የህክምና ዜና',
+'admin.blog.afilas_general.category.health_tips': 'የጤና ምክሮች',
+'admin.blog.afilas_general.category.research': 'ምርምር',
+'admin.blog.afilas_general.category.patient_stories': 'የህመምተኞች ታሪኮች',
+'admin.blog.afilas_general.category.events': 'ዝግጅቶች',
+'admin.blog.afilas_general.category.announcements': 'ማስታወቂያዎች',
+'admin.blog.afilas_general.category.wellness': 'ጤና እና ደህንነት',
+'admin.blog.afilas_general.category.technology': 'ቴክኖሎጂ',
+'admin.blog.afilas_general.category.education': 'ትምህርት',
+'admin.blog.afilas_general.category.community': 'ማህበረሰብ',
+
+// Stats Labels
+'admin.blog.afilas_general.views': 'እይታዎች',
+'admin.blog.afilas_general.likes': 'ልቦች',
+'admin.blog.afilas_general.comments': 'አስተያየቶች',
+
+// Validation Errors
+'admin.blog.afilas_general.error.title_required': 'ርዕስ ያስፈልጋል',
+'admin.blog.afilas_general.error.content_required': 'ይዘት ያስፈልጋል',
+'admin.blog.afilas_general.error.excerpt_required': 'ማጠቃለያ ያስፈልጋል',
+'admin.blog.afilas_general.error.category_required': 'ምድብ ያስፈልጋል',
+'admin.blog.afilas_general.error.author_required': 'ደራሲ ያስፈልጋል',
+'admin.blog.afilas_general.error.media_type_required': 'እባክዎ ምስል ወይም ቪዲዮ ይምረጡ',
+'admin.blog.afilas_general.error.image_required': 'እባክዎ ምስል ይስቀሉ',
+'admin.blog.afilas_general.error.video_required': 'እባክዎ የቪዲዮ ዩአርኤል ያስገቡ',
+'admin.blog.afilas_general.error.save': 'የብሎግ ልጥፍ ማስቀመጥ አልተቻለም',
+'admin.blog.afilas_general.error.delete': 'የብሎግ ልጥፍ መሰረዝ አልተቻለም',
+'admin.blog.afilas_general.error.upload': 'ምስል መስቀል አልተቻለም። እባክዎ እንደገና ይሞክሩ።',
+'admin.blog.afilas_general.error.load': 'የብሎግ ልጥፎችን መጫን አልተቻለም',
+'admin.blog.afilas_general.error.general': 'የሆነ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።',
+
+// Success Messages
+'admin.blog.afilas_general.success.updated': 'የብሎግ ልጥፍ በተሳካ ሁኔታ ተሻሽሏል!',
+'admin.blog.afilas_general.success.created': 'የብሎግ ልጥፍ በተሳካ ሁኔታ ተፈጥሯል!',
+'admin.blog.afilas_general.success.deleted': 'የብሎግ ልጥፍ በተሳካ ሁኔታ ተሰርዟል!',
+'admin.blog.afilas_general.success.published': 'የብሎግ ልጥፍ በተሳካ ሁኔታ ታትሟል!',
+'admin.blog.afilas_general.success.unpublished': 'የብሎግ ልጥፍ መታተም በተሳካ ሁኔታ ተቋርጧል!',
+
+// Confirmations
+'admin.blog.afilas_general.confirm.delete': 'ይህን የብሎግ ልጥፍ መሰረዝ እንደሚፈልጉ እርግጠኛ ነዎት?',
+'admin.blog.afilas_general.confirm.unpublish': 'ይህን የብሎግ ልጥፍ ከህትመት ማስወገድ እንደሚፈልጉ እርግጠኛ ነዎት?',
+
+// Actions
+'admin.blog.afilas_general.actions.edit': 'አስተካክል',
+'admin.blog.afilas_general.actions.delete': 'ሰርዝ',
+'admin.blog.afilas_general.actions.view': 'ተመልከት',
+'admin.blog.afilas_general.actions.publish': 'አትም',
+'admin.blog.afilas_general.actions.unpublish': 'አታትም',
+
+// ============================================
+// ADMIN DOCTORS - AFILAS DIAGNOSIS CENTER (AMHARIC)
+// ============================================
+
+// Page Header
+'admin.doctors.afilas_diagnosis.title': 'አፊላስ ዲያግኖሲስ ማዕከል',
+'admin.doctors.afilas_diagnosis.subtitle': 'ለአፊላስ ዲያግኖሲስ ማዕከል ዶክተሮችን ያስተዳድሩ',
+'admin.doctors.afilas_diagnosis.back': 'ወደ ኋላ',
+
+// Buttons
+'admin.doctors.afilas_diagnosis.add_doctor': 'ዶክተር ያክሉ',
+'admin.doctors.afilas_diagnosis.edit': 'አስተካክል',
+'admin.doctors.afilas_diagnosis.delete': 'ሰርዝ',
+'admin.doctors.afilas_diagnosis.cancel': 'ይቅር',
+'admin.doctors.afilas_diagnosis.save': 'አስቀምጥ',
+'admin.doctors.afilas_diagnosis.update': 'አሻሽል',
+'admin.doctors.afilas_diagnosis.refresh': 'ያድሱ',
+'admin.doctors.afilas_diagnosis.upload': 'ስቀል',
+
+// Form Labels
+'admin.doctors.afilas_diagnosis.form.title': 'የዶክተር ዝርዝሮች',
+'admin.doctors.afilas_diagnosis.form.add_title': 'አዲስ ዶክተር ያክሉ',
+'admin.doctors.afilas_diagnosis.form.edit_title': 'ዶክተር አስተካክል',
+'admin.doctors.afilas_diagnosis.form.name': 'ሙሉ ስም',
+'admin.doctors.afilas_diagnosis.form.name_placeholder': 'ዶ/ር ጆን ዶ',
+'admin.doctors.afilas_diagnosis.form.title_label': 'ርዕስ',
+'admin.doctors.afilas_diagnosis.form.title_placeholder': 'ራዲዮሎጂስት',
+'admin.doctors.afilas_diagnosis.form.email': 'ኢሜይል',
+'admin.doctors.afilas_diagnosis.form.email_placeholder': 'doctor@example.com',
+'admin.doctors.afilas_diagnosis.form.phone': 'ስልክ',
+'admin.doctors.afilas_diagnosis.form.phone_placeholder': '+251-911-123456',
+'admin.doctors.afilas_diagnosis.form.bio': 'የህይወት ታሪክ',
+'admin.doctors.afilas_diagnosis.form.bio_placeholder': 'የዶክተሩ የህይወት ታሪክ...',
+'admin.doctors.afilas_diagnosis.form.photo': 'ፎቶ',
+'admin.doctors.afilas_diagnosis.form.upload_photo': 'የዶክተር ፎቶ ይስቀሉ (JPG፣ PNG)',
+'admin.doctors.afilas_diagnosis.form.photo_preview': 'የዶክተር ቅድመ-እይታ',
+'admin.doctors.afilas_diagnosis.form.required': 'ያስፈልጋል',
+'admin.doctors.afilas_diagnosis.form.optional': 'አማራጭ',
+
+// Status
+'admin.doctors.afilas_diagnosis.status.active': 'ንቁ',
+'admin.doctors.afilas_diagnosis.status.inactive': 'የማይንቀሳቀስ',
+
+// Empty States
+'admin.doctors.afilas_diagnosis.empty.title': 'ምንም ዶክተሮች አልተገኙም',
+'admin.doctors.afilas_diagnosis.empty.description': 'ለአፊላስ ዲያግኖሲስ ማዕከል ምንም ዶክተሮች የሉም',
+'admin.doctors.afilas_diagnosis.empty.add_first': '+ ዶክተር ያክሉ',
+
+// Loading
+'admin.doctors.afilas_diagnosis.loading': 'ዶክተሮችን በማጫን ላይ...',
+'admin.doctors.afilas_diagnosis.saving': 'በማስቀመጥ ላይ...',
+'admin.doctors.afilas_diagnosis.uploading': 'ምስል በመስቀል ላይ...',
+
+// Showing count
+'admin.doctors.afilas_diagnosis.showing': 'ከአፊላስ ዲያግኖሲስ ማዕከል {count} ዶክተር(ዎች) እያሳየ ነው',
+
+// Success Messages
+'admin.doctors.afilas_diagnosis.success.created': 'ዶክተር በተሳካ ሁኔታ ተፈጥሯል!',
+'admin.doctors.afilas_diagnosis.success.updated': 'ዶክተር በተሳካ ሁኔታ ተሻሽሏል!',
+'admin.doctors.afilas_diagnosis.success.deleted': 'ዶክተር በተሳካ ሁኔታ ተሰርዟል!',
+
+// Validation Errors
+'admin.doctors.afilas_diagnosis.error.name_required': 'ስም ያስፈልጋል',
+'admin.doctors.afilas_diagnosis.error.title_required': 'ርዕስ ያስፈልጋል',
+'admin.doctors.afilas_diagnosis.error.email_required': 'ኢሜይል ያስፈልጋል',
+'admin.doctors.afilas_diagnosis.error.email_invalid': 'እባክዎ ትክክለኛ ኢሜይል አድራሻ ያስገቡ',
+'admin.doctors.afilas_diagnosis.error.phone_invalid': 'እባክዎ ትክክለኛ ስልክ ቁጥር ያስገቡ',
+'admin.doctors.afilas_diagnosis.error.save': 'ዶክተር ማስቀመጥ አልተቻለም',
+'admin.doctors.afilas_diagnosis.error.delete': 'ዶክተር መሰረዝ አልተቻለም',
+'admin.doctors.afilas_diagnosis.error.load': 'ዶክተሮችን መጫን አልተቻለም',
+'admin.doctors.afilas_diagnosis.error.upload': 'ምስል መስቀል አልተቻለም',
+'admin.doctors.afilas_diagnosis.error.session_expired': 'ክፍለ-ጊዜዎ አልቋል። እባክዎ እንደገና ይግቡ።',
+'admin.doctors.afilas_diagnosis.error.general': 'የሆነ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።',
+'admin.doctors.afilas_diagnosis.error.no_token': 'ምንም የማረጋገጫ ቶከን አልተገኘም',
+
+// Confirmations
+'admin.doctors.afilas_diagnosis.confirm.delete': 'ይህን ዶክተር መሰረዝ እንደሚፈልጉ እርግጠኛ ነዎት?',
+
+// Actions
+'admin.doctors.afilas_diagnosis.actions.edit': 'አስተካክል',
+'admin.doctors.afilas_diagnosis.actions.delete': 'ሰርዝ',
+'admin.doctors.afilas_diagnosis.actions.refresh': 'ያድሱ',
+
+// ============================================
+// ADMIN DOCTORS - AFILAS DRUG MANUFACTURING (AMHARIC)
+// ============================================
+
+// Page Header
+'admin.doctors.afilas_drug.title': 'አፊላስ የመድኃኒት ማምረቻ',
+'admin.doctors.afilas_drug.subtitle': 'ለአፊላስ የመድኃኒት ማምረቻ ዶክተሮችን እና ስፔሻሊስቶችን ያስተዳድሩ',
+'admin.doctors.afilas_drug.back': 'ወደ ኋላ',
+
+// Buttons
+'admin.doctors.afilas_drug.add_doctor': 'ዶክተር ያክሉ',
+'admin.doctors.afilas_drug.edit': 'አስተካክል',
+'admin.doctors.afilas_drug.delete': 'ሰርዝ',
+'admin.doctors.afilas_drug.cancel': 'ይቅር',
+'admin.doctors.afilas_drug.save': 'አስቀምጥ',
+'admin.doctors.afilas_drug.update': 'አሻሽል',
+'admin.doctors.afilas_drug.refresh': 'ያድሱ',
+'admin.doctors.afilas_drug.upload': 'ስቀል',
+
+// Form Labels
+'admin.doctors.afilas_drug.form.title': 'የዶክተር ዝርዝሮች',
+'admin.doctors.afilas_drug.form.add_title': 'አዲስ ዶክተር ያክሉ',
+'admin.doctors.afilas_drug.form.edit_title': 'ዶክተር አስተካክል',
+'admin.doctors.afilas_drug.form.name': 'ሙሉ ስም',
+'admin.doctors.afilas_drug.form.name_placeholder': 'ዶ/ር ጆን ዶ',
+'admin.doctors.afilas_drug.form.title_label': 'ርዕስ',
+'admin.doctors.afilas_drug.form.title_placeholder': 'ፋርማኮሎጂስት',
+'admin.doctors.afilas_drug.form.email': 'ኢሜይል',
+'admin.doctors.afilas_drug.form.email_placeholder': 'doctor@example.com',
+'admin.doctors.afilas_drug.form.phone': 'ስልክ',
+'admin.doctors.afilas_drug.form.phone_placeholder': '+251-911-123456',
+'admin.doctors.afilas_drug.form.bio': 'የህይወት ታሪክ',
+'admin.doctors.afilas_drug.form.bio_placeholder': 'የዶክተሩ የህይወት ታሪክ...',
+'admin.doctors.afilas_drug.form.photo': 'ፎቶ',
+'admin.doctors.afilas_drug.form.upload_photo': 'የዶክተር ፎቶ ይስቀሉ (JPG፣ PNG)',
+'admin.doctors.afilas_drug.form.photo_preview': 'የዶክተር ቅድመ-እይታ',
+'admin.doctors.afilas_drug.form.required': 'ያስፈልጋል',
+'admin.doctors.afilas_drug.form.optional': 'አማራጭ',
+
+// Status
+'admin.doctors.afilas_drug.status.active': 'ንቁ',
+'admin.doctors.afilas_drug.status.inactive': 'የማይንቀሳቀስ',
+
+// Empty States
+'admin.doctors.afilas_drug.empty.title': 'ምንም ዶክተሮች አልተገኙም',
+'admin.doctors.afilas_drug.empty.description': 'ለአፊላስ የመድኃኒት ማምረቻ ምንም ዶክተሮች የሉም',
+'admin.doctors.afilas_drug.empty.add_first': '+ ዶክተር ያክሉ',
+
+// Loading
+'admin.doctors.afilas_drug.loading': 'ዶክተሮችን በማጫን ላይ...',
+'admin.doctors.afilas_drug.saving': 'በማስቀመጥ ላይ...',
+'admin.doctors.afilas_drug.uploading': 'ምስል በመስቀል ላይ...',
+
+// Showing count
+'admin.doctors.afilas_drug.showing': 'ከአፊላስ የመድኃኒት ማምረቻ {count} ዶክተር(ዎች) እያሳየ ነው',
+
+// Success Messages
+'admin.doctors.afilas_drug.success.created': 'ዶክተር በተሳካ ሁኔታ ተፈጥሯል!',
+'admin.doctors.afilas_drug.success.updated': 'ዶክተር በተሳካ ሁኔታ ተሻሽሏል!',
+'admin.doctors.afilas_drug.success.deleted': 'ዶክተር በተሳካ ሁኔታ ተሰርዟል!',
+
+// Validation Errors
+'admin.doctors.afilas_drug.error.name_required': 'ስም ያስፈልጋል',
+'admin.doctors.afilas_drug.error.title_required': 'ርዕስ ያስፈልጋል',
+'admin.doctors.afilas_drug.error.email_required': 'ኢሜይል ያስፈልጋል',
+'admin.doctors.afilas_drug.error.email_invalid': 'እባክዎ ትክክለኛ ኢሜይል አድራሻ ያስገቡ',
+'admin.doctors.afilas_drug.error.phone_invalid': 'እባክዎ ትክክለኛ ስልክ ቁጥር ያስገቡ',
+'admin.doctors.afilas_drug.error.save': 'ዶክተር ማስቀመጥ አልተቻለም',
+'admin.doctors.afilas_drug.error.delete': 'ዶክተር መሰረዝ አልተቻለም',
+'admin.doctors.afilas_drug.error.load': 'ዶክተሮችን መጫን አልተቻለም',
+'admin.doctors.afilas_drug.error.upload': 'ምስል መስቀል አልተቻለም',
+'admin.doctors.afilas_drug.error.session_expired': 'ክፍለ-ጊዜዎ አልቋል። እባክዎ እንደገና ይግቡ።',
+'admin.doctors.afilas_drug.error.general': 'የሆነ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።',
+'admin.doctors.afilas_drug.error.no_token': 'ምንም የማረጋገጫ ቶከን አልተገኘም',
+
+// Confirmations
+'admin.doctors.afilas_drug.confirm.delete': 'ይህን ዶክተር መሰረዝ እንደሚፈልጉ እርግጠኛ ነዎት?',
+
+// Actions
+'admin.doctors.afilas_drug.actions.edit': 'አስተካክል',
+'admin.doctors.afilas_drug.actions.delete': 'ሰርዝ',
+'admin.doctors.afilas_drug.actions.refresh': 'ያድሱ',
+
+// ADMIN DOCTORS - AFILAS GENERAL HOSPITAL (AMHARIC)
+'admin.doctors.afilas_general.title': 'አፊላስ አጠቃላይ ሆስፒታል',
+'admin.doctors.afilas_general.subtitle': 'ለአፊላስ አጠቃላይ ሆስፒታል ዶክተሮችን ያስተዳድሩ',
+'admin.doctors.afilas_general.back': 'ወደ ኋላ',
+'admin.doctors.afilas_general.add_doctor': 'ዶክተር ያክሉ',
+'admin.doctors.afilas_general.edit': 'አስተካክል',
+'admin.doctors.afilas_general.delete': 'ሰርዝ',
+'admin.doctors.afilas_general.cancel': 'ይቅር',
+'admin.doctors.afilas_general.save': 'አስቀምጥ',
+'admin.doctors.afilas_general.update': 'አሻሽል',
+'admin.doctors.afilas_general.refresh': 'ያድሱ',
+'admin.doctors.afilas_general.upload': 'ስቀል',
+'admin.doctors.afilas_general.form.title': 'የዶክተር ዝርዝሮች',
+'admin.doctors.afilas_general.form.add_title': 'አዲስ ዶክተር ያክሉ',
+'admin.doctors.afilas_general.form.edit_title': 'ዶክተር አስተካክል',
+'admin.doctors.afilas_general.form.name': 'ሙሉ ስም',
+'admin.doctors.afilas_general.form.name_placeholder': 'ዶ/ር ጆን ዶ',
+'admin.doctors.afilas_general.form.title_label': 'ርዕስ',
+'admin.doctors.afilas_general.form.title_placeholder': 'የልብ ሐኪም',
+'admin.doctors.afilas_general.form.email': 'ኢሜይል',
+'admin.doctors.afilas_general.form.email_placeholder': 'doctor@example.com',
+'admin.doctors.afilas_general.form.phone': 'ስልክ',
+'admin.doctors.afilas_general.form.phone_placeholder': '+251-911-123456',
+'admin.doctors.afilas_general.form.bio': 'የህይወት ታሪክ',
+'admin.doctors.afilas_general.form.bio_placeholder': 'የዶክተሩ የህይወት ታሪክ...',
+'admin.doctors.afilas_general.form.photo': 'ፎቶ',
+'admin.doctors.afilas_general.form.upload_photo': 'የዶክተር ፎቶ ይስቀሉ (JPG፣ PNG)',
+'admin.doctors.afilas_general.form.photo_preview': 'የዶክተር ቅድመ-እይታ',
+'admin.doctors.afilas_general.form.required': 'ያስፈልጋል',
+'admin.doctors.afilas_general.form.optional': 'አማራጭ',
+'admin.doctors.afilas_general.status.active': 'ንቁ',
+'admin.doctors.afilas_general.status.inactive': 'የማይንቀሳቀስ',
+'admin.doctors.afilas_general.empty.title': 'ምንም ዶክተሮች አልተገኙም',
+'admin.doctors.afilas_general.empty.description': 'ለአፊላስ አጠቃላይ ሆስፒታል ምንም ዶክተሮች የሉም',
+'admin.doctors.afilas_general.empty.add_first': '+ ዶክተር ያክሉ',
+'admin.doctors.afilas_general.loading': 'ዶክተሮችን በማጫን ላይ...',
+'admin.doctors.afilas_general.saving': 'በማስቀመጥ ላይ...',
+'admin.doctors.afilas_general.uploading': 'ምስል በመስቀል ላይ...',
+'admin.doctors.afilas_general.showing': 'ከአፊላስ አጠቃላይ ሆስፒታል {count} ዶክተር(ዎች) እያሳየ ነው',
+'admin.doctors.afilas_general.success.created': 'ዶክተር በተሳካ ሁኔታ ተፈጥሯል!',
+'admin.doctors.afilas_general.success.updated': 'ዶክተር በተሳካ ሁኔታ ተሻሽሏል!',
+'admin.doctors.afilas_general.success.deleted': 'ዶክተር በተሳካ ሁኔታ ተሰርዟል!',
+'admin.doctors.afilas_general.error.name_required': 'ስም ያስፈልጋል',
+'admin.doctors.afilas_general.error.title_required': 'ርዕስ ያስፈልጋል',
+'admin.doctors.afilas_general.error.email_required': 'ኢሜይል ያስፈልጋል',
+'admin.doctors.afilas_general.error.email_invalid': 'እባክዎ ትክክለኛ ኢሜይል አድራሻ ያስገቡ',
+'admin.doctors.afilas_general.error.phone_invalid': 'እባክዎ ትክክለኛ ስልክ ቁጥር ያስገቡ',
+'admin.doctors.afilas_general.error.save': 'ዶክተር ማስቀመጥ አልተቻለም',
+'admin.doctors.afilas_general.error.delete': 'ዶክተር መሰረዝ አልተቻለም',
+'admin.doctors.afilas_general.error.load': 'ዶክተሮችን መጫን አልተቻለም',
+'admin.doctors.afilas_general.error.upload': 'ምስል መስቀል አልተቻለም',
+'admin.doctors.afilas_general.error.session_expired': 'ክፍለ-ጊዜዎ አልቋል። እባክዎ እንደገና ይግቡ።',
+'admin.doctors.afilas_general.error.general': 'የሆነ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።',
+'admin.doctors.afilas_general.error.no_token': 'ምንም የማረጋገጫ ቶከን አልተገኘም',
+'admin.doctors.afilas_general.confirm.delete': 'ይህን ዶክተር መሰረዝ እንደሚፈልጉ እርግጠኛ ነዎት?',
+'admin.doctors.afilas_general.actions.edit': 'አስተካክል',
+'admin.doctors.afilas_general.actions.delete': 'ሰርዝ',
+'admin.doctors.afilas_general.actions.refresh': 'ያድሱ',
+
+// ============================================
+// MY PROFILE PAGE (AMHARIC)
+// ============================================
+
+// Page Header
+'profile.title': 'የኔ መገለጫ',
+'profile.subtitle': 'የእርስዎ የግል መረጃ',
+
+// Profile Fields
+'profile.name': 'ስም',
+'profile.name_placeholder': 'ሙሉ ስምዎን ያስገቡ',
+'profile.email': 'ኢሜይል',
+'profile.email_placeholder': 'ኢሜይል አድራሻዎን ያስገቡ',
+'profile.phone': 'ስልክ ቁጥር',
+'profile.phone_placeholder': 'ስልክ ቁጥርዎን ያስገቡ',
+'profile.location': 'አድራሻ',
+'profile.location_placeholder': 'አድራሻዎን ያስገቡ',
+'profile.role': 'ሚና',
+
+// Buttons
+'profile.edit': 'አስተካክል',
+'profile.save': 'አስቀምጥ',
+'profile.cancel': 'ይቅር',
+'profile.update': 'መገለጫ አሻሽል',
+
+// Messages
+'profile.success.updated': 'መገለጫ በተሳካ ሁኔታ ተሻሽሏል!',
+'profile.error.update_failed': 'መገለጫ ማሻሻል አልተቻለም',
+'profile.error.name_required': 'ስም ያስፈልጋል',
+'profile.error.email_required': 'ኢሜይል ያስፈልጋል',
+'profile.error.email_invalid': 'እባክዎ ትክክለኛ ኢሜይል አድራሻ ያስገቡ',
+'profile.error.phone_invalid': 'እባክዎ ትክክለኛ ስልክ ቁጥር ያስገቡ',
+
+// Confirmations
+'profile.confirm.discard': 'ለውጦችን መተው እንደሚፈልጉ እርግጠኛ ነዎት?',
+
+// Avatar
+'profile.avatar.label': 'የመገለጫ ምስል',
+'profile.avatar.upload': 'ፎቶ ስቀል',
+'profile.avatar.remove': 'ፎቶ አስወግድ',
+'profile.avatar.hint': 'JPG፣ PNG፣ GIF (ከፍተኛ 5MB)',
+
+// ============================================
+// SECURITY PAGE (AMHARIC)
+// ============================================
+
+// Page Header
+'security.title': 'ደህንነት',
+'security.subtitle': 'የደህንነት ቅንብሮችዎን ያስተዳድሩ',
+
+// Change Password Section
+'security.change_password.title': 'የይለፍ ቃል ቀይር',
+'security.change_password.subtitle': 'መለያዎን ደህንነቱ የተጠበቀ ለማድረግ የይለፍ ቃልዎን ያዘምኑ',
+
+// Form Labels
+'security.current_password': 'የአሁኑ የይለፍ ቃል',
+'security.current_password_placeholder': 'የአሁኑን የይለፍ ቃል ያስገቡ',
+'security.new_password': 'አዲስ የይለፍ ቃል',
+'security.new_password_placeholder': 'አዲስ የይለፍ ቃል ያስገቡ',
+'security.confirm_password': 'የይለፍ ቃል አረጋግጥ',
+'security.confirm_password_placeholder': 'አዲስ የይለፍ ቃል ያረጋግጡ',
+
+// Buttons
+'security.update_password': 'የይለፍ ቃል አዘምን',
+'security.show_passwords': 'የይለፍ ቃሎችን አሳይ',
+'security.hide_passwords': 'የይለፍ ቃሎችን ደብቅ',
+
+// Messages
+'security.success.updated': 'የይለፍ ቃል በተሳካ ሁኔታ ተሻሽሏል!',
+'security.error.mismatch': 'የይለፍ ቃሎቹ አይዛመዱም!',
+'security.error.current_required': 'የአሁኑ የይለፍ ቃል ያስፈልጋል',
+'security.error.new_required': 'አዲስ የይለፍ ቃል ያስፈልጋል',
+'security.error.confirm_required': 'እባክዎ የይለፍ ቃልዎን ያረጋግጡ',
+'security.error.password_length': 'የይለፍ ቃል ቢያንስ 8 ቁምፊዎች ሊሆን ይገባል',
+'security.error.update_failed': 'የይለፍ ቃል ማሻሻል አልተቻለም። እባክዎ እንደገና ይሞክሩ።',
+
+// Validation
+'security.password_strength.weak': 'ደካማ',
+'security.password_strength.medium': 'መካከለኛ',
+'security.password_strength.strong': 'ጠንካራ',
+'security.password_requirements': 'የይለፍ ቃል ቢያንስ 8 ቁምፊዎች ፊደሎች፣ ቁጥሮች እና ምልክቶች መያዝ አለበት',
+
+// ============================================
+// ADMIN SERVICES - AFILAS DIAGNOSIS CENTER (AMHARIC)
+// ============================================
+
+// Page Header
+'admin.services.afilas_diagnosis.title': 'የምርመራ አገልግሎቶች - {location}',
+'admin.services.afilas_diagnosis.subtitle': 'በ{location} ሁሉንም የምርመራ እና የላቦራቶሪ አገልግሎቶችን ያስተዳድሩ',
+'admin.services.afilas_diagnosis.page_title': 'የምርመራ አገልግሎቶች',
+'admin.services.afilas_diagnosis.page_subtitle': 'ሁሉንም የምርመራ እና የላቦራቶሪ አገልግሎቶችን ያስተዳድሩ',
+
+// Buttons
+'admin.services.afilas_diagnosis.refresh': 'ያድሱ',
+'admin.services.afilas_diagnosis.add_service': 'የምርመራ አገልግሎት ያክሉ',
+'admin.services.afilas_diagnosis.edit': 'አስተካክል',
+'admin.services.afilas_diagnosis.delete': 'ሰርዝ',
+'admin.services.afilas_diagnosis.cancel': 'ይቅር',
+'admin.services.afilas_diagnosis.save': 'አስቀምጥ',
+'admin.services.afilas_diagnosis.create': 'አገልግሎት ፍጠር',
+'admin.services.afilas_diagnosis.update': 'አገልግሎት አሻሽል',
+
+// Filters
+'admin.services.afilas_diagnosis.search_placeholder': 'የምርመራ አገልግሎቶችን ፈልግ...',
+'admin.services.afilas_diagnosis.all_categories': 'ሁሉም ምድቦች',
+'admin.services.afilas_diagnosis.services_found': 'አገልግሎት(ዎች) ተገኝተዋል',
+'admin.services.afilas_diagnosis.showing': 'ከ {location} {count} የምርመራ አገልግሎት(ዎች) እያሳየ ነው',
+
+// Table Headers
+'admin.services.afilas_diagnosis.table.name': 'የአገልግሎት ስም',
+'admin.services.afilas_diagnosis.table.category': 'ምድብ',
+'admin.services.afilas_diagnosis.table.description': 'መግለጫ',
+'admin.services.afilas_diagnosis.table.price': 'ዋጋ',
+'admin.services.afilas_diagnosis.table.duration': 'ቆይታ',
+'admin.services.afilas_diagnosis.table.status': 'ሁኔታ',
+'admin.services.afilas_diagnosis.table.actions': 'ድርጊቶች',
+
+// Status
+'admin.services.afilas_diagnosis.status.active': 'ንቁ',
+'admin.services.afilas_diagnosis.status.inactive': 'የማይንቀሳቀስ',
+'admin.services.afilas_diagnosis.status.activated': 'ነቅቷል',
+'admin.services.afilas_diagnosis.status.deactivated': 'ተቋርጧል',
+
+// Empty States
+'admin.services.afilas_diagnosis.empty.title': 'ምንም የምርመራ አገልግሎቶች አልተገኙም',
+'admin.services.afilas_diagnosis.empty.help': 'እባክዎ ማጣሪያዎችዎን ያስተካክሉ',
+'admin.services.afilas_diagnosis.empty.create': 'አዲስ ለመፍጠር "የምርመራ አገልግሎት ያክሉ" ን ጠቅ ያድርጉ',
+'admin.services.afilas_diagnosis.loading': 'የምርመራ አገልግሎቶችን በማጫን ላይ...',
+
+// Modal
+'admin.services.afilas_diagnosis.modal.edit_title': 'የምርመራ አገልግሎት አስተካክል',
+'admin.services.afilas_diagnosis.modal.add_title': 'አዲስ የምርመራ አገልግሎት ያክሉ',
+
+// Form Labels
+'admin.services.afilas_diagnosis.form.name': 'የአገልግሎት ስም',
+'admin.services.afilas_diagnosis.form.name_placeholder': 'የምርመራ አገልግሎት ስም ያስገቡ',
+'admin.services.afilas_diagnosis.form.description': 'መግለጫ',
+'admin.services.afilas_diagnosis.form.description_placeholder': 'የአገልግሎት መግለጫ ያስገቡ',
+'admin.services.afilas_diagnosis.form.category': 'ምድብ',
+'admin.services.afilas_diagnosis.form.category_placeholder': 'ምድብ ይምረጡ',
+'admin.services.afilas_diagnosis.form.location': 'ቦታ',
+'admin.services.afilas_diagnosis.form.location_disabled': 'ቦታ ለዚህ ገጽ ተስተካክሏል',
+'admin.services.afilas_diagnosis.form.price': 'ዋጋ (ዶላር)',
+'admin.services.afilas_diagnosis.form.price_placeholder': 'ዋጋ ያስገቡ',
+'admin.services.afilas_diagnosis.form.duration': 'ቆይታ (ደቂቃዎች)',
+'admin.services.afilas_diagnosis.form.duration_placeholder': 'ቆይታ በደቂቃ ያስገቡ',
+'admin.services.afilas_diagnosis.form.active': 'ንቁ',
+'admin.services.afilas_diagnosis.form.required': 'ያስፈልጋል',
+
+// Category Names
+'admin.services.afilas_diagnosis.category.blood_tests': 'የደም ምርመራዎች',
+'admin.services.afilas_diagnosis.category.imaging': 'የምስል ምርመራ',
+'admin.services.afilas_diagnosis.category.xray': 'ኤክስሬይ',
+'admin.services.afilas_diagnosis.category.mri': 'ኤምአርአይ',
+'admin.services.afilas_diagnosis.category.ct_scan': 'ሲቲ ስካን',
+'admin.services.afilas_diagnosis.category.ultrasound': 'አልትራሳውንድ',
+'admin.services.afilas_diagnosis.category.ecg': 'ኢሲጂ',
+'admin.services.afilas_diagnosis.category.endoscopy': 'ኢንዶስኮፒ',
+'admin.services.afilas_diagnosis.category.biopsy': 'ባዮፕሲ',
+'admin.services.afilas_diagnosis.category.genetic_testing': 'የጄኔቲክ ምርመራ',
+'admin.services.afilas_diagnosis.category.pathology': 'ፓቶሎጂ',
+'admin.services.afilas_diagnosis.category.microbiology': 'ማይክሮባዮሎጂ',
+
+// Duration
+'admin.services.afilas_diagnosis.duration.min': 'ደቂቃ',
+
+// Validation Errors
+'admin.services.afilas_diagnosis.error.name_required': 'የአገልግሎት ስም ያስፈልጋል',
+'admin.services.afilas_diagnosis.error.description_required': 'መግለጫ ያስፈልጋል',
+'admin.services.afilas_diagnosis.error.price_required': 'ዋጋ ከ0 በላይ መሆን አለበት',
+'admin.services.afilas_diagnosis.error.duration_required': 'ቆይታ ከ0 በላይ መሆን አለበት',
+'admin.services.afilas_diagnosis.error.category_required': 'ምድብ ያስፈልጋል',
+'admin.services.afilas_diagnosis.error.save': 'አገልግሎት ማስቀመጥ አልተቻለም',
+'admin.services.afilas_diagnosis.error.delete': 'አገልግሎት መሰረዝ አልተቻለም',
+'admin.services.afilas_diagnosis.error.load': 'አገልግሎቶችን መጫን አልተቻለም',
+'admin.services.afilas_diagnosis.error.general': 'የሆነ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።',
+
+// Success Messages
+'admin.services.afilas_diagnosis.success.created': 'አገልግሎት በተሳካ ሁኔታ ተፈጥሯል!',
+'admin.services.afilas_diagnosis.success.updated': 'አገልግሎት በተሳካ ሁኔታ ተሻሽሏል!',
+'admin.services.afilas_diagnosis.success.deleted': 'አገልግሎት በተሳካ ሁኔታ ተሰርዟል!',
+'admin.services.afilas_diagnosis.success.activated': 'አገልግሎት በተሳካ ሁኔታ ነቅቷል!',
+'admin.services.afilas_diagnosis.success.deactivated': 'አገልግሎት በተሳካ ሁኔታ ተቋርጧል!',
+
+// Confirmations
+'admin.services.afilas_diagnosis.confirm.delete': 'ይህን አገልግሎት መሰረዝ እንደሚፈልጉ እርግጠኛ ነዎት?',
+
+// Actions
+'admin.services.afilas_diagnosis.actions.edit': 'አስተካክል',
+'admin.services.afilas_diagnosis.actions.delete': 'ሰርዝ',
+'admin.services.afilas_diagnosis.actions.refresh': 'ያድሱ',
+
+// ============================================
+// ADMIN SERVICES - AFILAS DRUG MANUFACTURING (AMHARIC)
+// ============================================
+
+// Page Header
+'admin.services.afilas_drug.title': 'የፋርማሲዩቲካል ምርቶች - {location}',
+'admin.services.afilas_drug.subtitle': 'በ{location} የሚመረቱ ሁሉንም የፋርማሲዩቲካል ምርቶች እና መድኃኒቶች ያስተዳድሩ',
+'admin.services.afilas_drug.page_title': 'የፋርማሲዩቲካል ምርቶች',
+'admin.services.afilas_drug.page_subtitle': 'ሁሉንም የፋርማሲዩቲካል ምርቶች እና መድኃኒቶች ያስተዳድሩ',
+
+// Buttons
+'admin.services.afilas_drug.refresh': 'ያድሱ',
+'admin.services.afilas_drug.add_product': 'ምርት ያክሉ',
+'admin.services.afilas_drug.edit': 'አስተካክል',
+'admin.services.afilas_drug.delete': 'ሰርዝ',
+'admin.services.afilas_drug.cancel': 'ይቅር',
+'admin.services.afilas_drug.save': 'አስቀምጥ',
+'admin.services.afilas_drug.create': 'ምርት ፍጠር',
+'admin.services.afilas_drug.update': 'ምርት አሻሽል',
+
+// Filters
+'admin.services.afilas_drug.search_placeholder': 'ምርቶችን ፈልግ...',
+'admin.services.afilas_drug.all_categories': 'ሁሉም ምድቦች',
+'admin.services.afilas_drug.products_found': 'ምርት(ዎች) ተገኝተዋል',
+'admin.services.afilas_drug.showing': 'ከ {location} {count} ምርት(ዎች) እያሳየ ነው',
+
+// Table Headers
+'admin.services.afilas_drug.table.name': 'የምርት ስም',
+'admin.services.afilas_drug.table.category': 'ምድብ',
+'admin.services.afilas_drug.table.description': 'መግለጫ',
+'admin.services.afilas_drug.table.price': 'ዋጋ',
+'admin.services.afilas_drug.table.duration': 'ቆይታ',
+'admin.services.afilas_drug.table.status': 'ሁኔታ',
+'admin.services.afilas_drug.table.actions': 'ድርጊቶች',
+
+// Status
+'admin.services.afilas_drug.status.active': 'ንቁ',
+'admin.services.afilas_drug.status.inactive': 'የማይንቀሳቀስ',
+'admin.services.afilas_drug.status.activated': 'ነቅቷል',
+'admin.services.afilas_drug.status.deactivated': 'ተቋርጧል',
+
+// Empty States
+'admin.services.afilas_drug.empty.title': 'ምንም ምርቶች አልተገኙም',
+'admin.services.afilas_drug.empty.help': 'እባክዎ ማጣሪያዎችዎን ያስተካክሉ',
+'admin.services.afilas_drug.empty.create': 'አዲስ ለመፍጠር "ምርት ያክሉ" ን ጠቅ ያድርጉ',
+'admin.services.afilas_drug.loading': 'ምርቶችን በማጫን ላይ...',
+
+// Modal
+'admin.services.afilas_drug.modal.edit_title': 'ምርት አስተካክል',
+'admin.services.afilas_drug.modal.add_title': 'አዲስ ምርት ያክሉ',
+
+// Form Labels
+'admin.services.afilas_drug.form.name': 'የምርት ስም',
+'admin.services.afilas_drug.form.name_placeholder': 'የምርት ስም ያስገቡ',
+'admin.services.afilas_drug.form.description': 'መግለጫ',
+'admin.services.afilas_drug.form.description_placeholder': 'የምርት መግለጫ ያስገቡ',
+'admin.services.afilas_drug.form.category': 'ምድብ',
+'admin.services.afilas_drug.form.category_placeholder': 'ምድብ ይምረጡ',
+'admin.services.afilas_drug.form.location': 'ቦታ',
+'admin.services.afilas_drug.form.location_disabled': 'ቦታ ለዚህ ገጽ ተስተካክሏል',
+'admin.services.afilas_drug.form.price': 'ዋጋ (ዶላር)',
+'admin.services.afilas_drug.form.price_placeholder': 'ዋጋ ያስገቡ',
+'admin.services.afilas_drug.form.duration': 'ቆይታ (ደቂቃዎች)',
+'admin.services.afilas_drug.form.duration_placeholder': 'ቆይታ በደቂቃ ያስገቡ',
+'admin.services.afilas_drug.form.active': 'ንቁ',
+'admin.services.afilas_drug.form.required': 'ያስፈልጋል',
+
+// Category Names
+'admin.services.afilas_drug.category.prescription_drugs': 'የሐኪም ማዘዣ መድኃኒቶች',
+'admin.services.afilas_drug.category.over_the_counter': 'ያለሐኪም ማዘዣ',
+'admin.services.afilas_drug.category.antibiotics': 'አንቲባዮቲክስ',
+'admin.services.afilas_drug.category.pain_relievers': 'የህመም ማስታገሻዎች',
+'admin.services.afilas_drug.category.antivirals': 'አንቲቫይራሎች',
+'admin.services.afilas_drug.category.vaccines': 'ክትባቶች',
+'admin.services.afilas_drug.category.insulin_diabetes': 'ኢንሱሊን እና የስኳር በሽታ',
+'admin.services.afilas_drug.category.cardiovascular': 'የልብና የደም ቧንቧ',
+'admin.services.afilas_drug.category.respiratory': 'የመተንፈሻ አካላት',
+'admin.services.afilas_drug.category.dermatological': 'የቆዳ',
+'admin.services.afilas_drug.category.gastrointestinal': 'የሆድና አንጀት',
+'admin.services.afilas_drug.category.neurological': 'የነርቭ',
+'admin.services.afilas_drug.category.oncology': 'ኦንኮሎጂ',
+'admin.services.afilas_drug.category.immunology': 'ኢምዩኖሎጂ',
+'admin.services.afilas_drug.category.nutraceuticals': 'ኒውትራሲዩቲካሎች',
+
+// Duration
+'admin.services.afilas_drug.duration.min': 'ደቂቃ',
+
+// Validation Errors
+'admin.services.afilas_drug.error.name_required': 'የምርት ስም ያስፈልጋል',
+'admin.services.afilas_drug.error.description_required': 'መግለጫ ያስፈልጋል',
+'admin.services.afilas_drug.error.price_required': 'ዋጋ ከ0 በላይ መሆን አለበት',
+'admin.services.afilas_drug.error.duration_required': 'ቆይታ ከ0 በላይ መሆን አለበት',
+'admin.services.afilas_drug.error.category_required': 'ምድብ ያስፈልጋል',
+'admin.services.afilas_drug.error.save': 'ምርት ማስቀመጥ አልተቻለም',
+'admin.services.afilas_drug.error.delete': 'ምርት መሰረዝ አልተቻለም',
+'admin.services.afilas_drug.error.load': 'ምርቶችን መጫን አልተቻለም',
+'admin.services.afilas_drug.error.general': 'የሆነ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።',
+
+// Success Messages
+'admin.services.afilas_drug.success.created': 'ምርት በተሳካ ሁኔታ ተፈጥሯል!',
+'admin.services.afilas_drug.success.updated': 'ምርት በተሳካ ሁኔታ ተሻሽሏል!',
+'admin.services.afilas_drug.success.deleted': 'ምርት በተሳካ ሁኔታ ተሰርዟል!',
+'admin.services.afilas_drug.success.activated': 'ምርት በተሳካ ሁኔታ ነቅቷል!',
+'admin.services.afilas_drug.success.deactivated': 'ምርት በተሳካ ሁኔታ ተቋርጧል!',
+
+// Confirmations
+'admin.services.afilas_drug.confirm.delete': 'ይህን ምርት መሰረዝ እንደሚፈልጉ እርግጠኛ ነዎት?',
+
+// Actions
+'admin.services.afilas_drug.actions.edit': 'አስተካክል',
+'admin.services.afilas_drug.actions.delete': 'ሰርዝ',
+'admin.services.afilas_drug.actions.refresh': 'ያድሱ',
+
+// ADMIN SERVICES - AFILAS GENERAL HOSPITAL (AMHARIC)
+'admin.services.afilas_general.title': 'አገልግሎቶች - {location}',
+'admin.services.afilas_general.subtitle': 'በ{location} የሚሰጡ ሁሉንም የህክምና አገልግሎቶች ያስተዳድሩ',
+'admin.services.afilas_general.page_title': 'የሆስፒታል አገልግሎቶች',
+'admin.services.afilas_general.page_subtitle': 'የሚሰጡ ሁሉንም የህክምና አገልግሎቶች ያስተዳድሩ',
+'admin.services.afilas_general.refresh': 'ያድሱ',
+'admin.services.afilas_general.add_service': 'አዲስ አገልግሎት ያክሉ',
+'admin.services.afilas_general.edit': 'አስተካክል',
+'admin.services.afilas_general.delete': 'ሰርዝ',
+'admin.services.afilas_general.cancel': 'ይቅር',
+'admin.services.afilas_general.save': 'አስቀምጥ',
+'admin.services.afilas_general.create': 'አገልግሎት ፍጠር',
+'admin.services.afilas_general.update': 'አገልግሎት አሻሽል',
+'admin.services.afilas_general.search_placeholder': 'አገልግሎቶችን ፈልግ...',
+'admin.services.afilas_general.all_categories': 'ሁሉም ምድቦች',
+'admin.services.afilas_general.services_found': 'አገልግሎት(ዎች) ተገኝተዋል',
+'admin.services.afilas_general.showing': 'ከ {location} {count} አገልግሎት(ዎች) እያሳየ ነው',
+'admin.services.afilas_general.table.name': 'ስም',
+'admin.services.afilas_general.table.category': 'ምድብ',
+'admin.services.afilas_general.table.description': 'መግለጫ',
+'admin.services.afilas_general.table.price': 'ዋጋ',
+'admin.services.afilas_general.table.duration': 'ቆይታ',
+'admin.services.afilas_general.table.status': 'ሁኔታ',
+'admin.services.afilas_general.table.actions': 'ድርጊቶች',
+'admin.services.afilas_general.status.active': 'ንቁ',
+'admin.services.afilas_general.status.inactive': 'የማይንቀሳቀስ',
+'admin.services.afilas_general.status.activated': 'ነቅቷል',
+'admin.services.afilas_general.status.deactivated': 'ተቋርጧል',
+'admin.services.afilas_general.empty.title': 'ምንም አገልግሎቶች አልተገኙም',
+'admin.services.afilas_general.empty.help': 'እባክዎ ማጣሪያዎችዎን ያስተካክሉ',
+'admin.services.afilas_general.empty.create': 'አዲስ ለመፍጠር "አዲስ አገልግሎት ያክሉ" ን ጠቅ ያድርጉ',
+'admin.services.afilas_general.loading': 'አገልግሎቶችን በማጫን ላይ...',
+'admin.services.afilas_general.modal.edit_title': 'አገልግሎት አስተካክል',
+'admin.services.afilas_general.modal.add_title': 'አዲስ አገልግሎት ያክሉ',
+'admin.services.afilas_general.form.name': 'የአገልግሎት ስም',
+'admin.services.afilas_general.form.name_placeholder': 'የአገልግሎት ስም ያስገቡ',
+'admin.services.afilas_general.form.description': 'መግለጫ',
+'admin.services.afilas_general.form.description_placeholder': 'የአገልግሎት መግለጫ ያስገቡ',
+'admin.services.afilas_general.form.category': 'ምድብ',
+'admin.services.afilas_general.form.category_placeholder': 'ምድብ ይምረጡ',
+'admin.services.afilas_general.form.location': 'ቦታ',
+'admin.services.afilas_general.form.location_disabled': 'ቦታ ለዚህ ገጽ ተስተካክሏል',
+'admin.services.afilas_general.form.price': 'ዋጋ (ዶላር)',
+'admin.services.afilas_general.form.price_placeholder': 'ዋጋ ያስገቡ',
+'admin.services.afilas_general.form.duration': 'ቆይታ (ደቂቃዎች)',
+'admin.services.afilas_general.form.duration_placeholder': 'ቆይታ በደቂቃ ያስገቡ',
+'admin.services.afilas_general.form.active': 'ንቁ',
+'admin.services.afilas_general.form.required': 'ያስፈልጋል',
+'admin.services.afilas_general.category.consultation': 'ምክር',
+'admin.services.afilas_general.category.diagnostic': 'ምርመራ',
+'admin.services.afilas_general.category.surgery': 'ቀዶ ጥገና',
+'admin.services.afilas_general.category.emergency': 'ድንገተኛ',
+'admin.services.afilas_general.category.pharmacy': 'ፋርማሲ',
+'admin.services.afilas_general.category.laboratory': 'ላቦራቶሪ',
+'admin.services.afilas_general.category.radiology': 'ራዲዮሎጂ',
+'admin.services.afilas_general.category.therapy': 'ህክምና',
+'admin.services.afilas_general.category.preventive_care': 'መከላከያ እንክብካቤ',
+'admin.services.afilas_general.category.specialist': 'ስፔሻሊስት',
+'admin.services.afilas_general.duration.min': 'ደቂቃ',
+'admin.services.afilas_general.error.name_required': 'የአገልግሎት ስም ያስፈልጋል',
+'admin.services.afilas_general.error.description_required': 'መግለጫ ያስፈልጋል',
+'admin.services.afilas_general.error.price_required': 'ዋጋ ከ0 በላይ መሆን አለበት',
+'admin.services.afilas_general.error.duration_required': 'ቆይታ ከ0 በላይ መሆን አለበት',
+'admin.services.afilas_general.error.category_required': 'ምድብ ያስፈልጋል',
+'admin.services.afilas_general.error.save': 'አገልግሎት ማስቀመጥ አልተቻለም',
+'admin.services.afilas_general.error.delete': 'አገልግሎት መሰረዝ አልተቻለም',
+'admin.services.afilas_general.error.load': 'አገልግሎቶችን መጫን አልተቻለም',
+'admin.services.afilas_general.error.general': 'የሆነ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።',
+'admin.services.afilas_general.success.created': 'አገልግሎት በተሳካ ሁኔታ ተፈጥሯል!',
+'admin.services.afilas_general.success.updated': 'አገልግሎት በተሳካ ሁኔታ ተሻሽሏል!',
+'admin.services.afilas_general.success.deleted': 'አገልግሎት በተሳካ ሁኔታ ተሰርዟል!',
+'admin.services.afilas_general.success.activated': 'አገልግሎት በተሳካ ሁኔታ ነቅቷል!',
+'admin.services.afilas_general.success.deactivated': 'አገልግሎት በተሳካ ሁኔታ ተቋርጧል!',
+'admin.services.afilas_general.confirm.delete': 'ይህን አገልግሎት መሰረዝ እንደሚፈልጉ እርግጠኛ ነዎት?',
+'admin.services.afilas_general.actions.edit': 'አስተካክል',
+'admin.services.afilas_general.actions.delete': 'ሰርዝ',
+'admin.services.afilas_general.actions.refresh': 'ያድሱ',
+// ADMIN USERS - AFILAS DIAGNOSIS CENTER (AMHARIC)
+'admin.users.afilas_diagnosis.title': '{location} - ተጠቃሚዎች',
+'admin.users.afilas_diagnosis.subtitle': 'ለ{location} ሁሉንም ተጠቃሚዎች ይመልከቱ',
+'admin.users.afilas_diagnosis.page_title': 'ተጠቃሚዎች',
+'admin.users.afilas_diagnosis.page_subtitle': 'ለዚህ ቦታ ሁሉንም ተጠቃሚዎች ይመልከቱ',
+'admin.users.afilas_diagnosis.refresh': 'ያድሱ',
+'admin.users.afilas_diagnosis.back': 'ወደ ኋላ',
+'admin.users.afilas_diagnosis.search_placeholder': 'ተጠቃሚዎችን በስም ወይም በኢሜይል ፈልግ...',
+'admin.users.afilas_diagnosis.all_roles': 'ሁሉም ሚናዎች',
+'admin.users.afilas_diagnosis.role_super_admin': 'ሱፐር አስተዳዳሪ',
+'admin.users.afilas_diagnosis.role_admin': 'አስተዳዳሪ',
+'admin.users.afilas_diagnosis.role_doctor': 'ዶክተር',
+'admin.users.afilas_diagnosis.role_user': 'ተጠቃሚ',
+'admin.users.afilas_diagnosis.table.user': 'ተጠቃሚ',
+'admin.users.afilas_diagnosis.table.email': 'ኢሜይል',
+'admin.users.afilas_diagnosis.table.role': 'ሚና',
+'admin.users.afilas_diagnosis.table.status': 'ሁኔታ',
+'admin.users.afilas_diagnosis.table.last_login': 'የመጨረሻ መግቢያ',
+'admin.users.afilas_diagnosis.status.active': 'ንቁ',
+'admin.users.afilas_diagnosis.status.inactive': 'የማይንቀሳቀስ',
+'admin.users.afilas_diagnosis.status.never': 'በፊት አልገቡም',
+'admin.users.afilas_diagnosis.empty.title': 'ለ{location} ምንም ተጠቃሚዎች አልተገኙም',
+'admin.users.afilas_diagnosis.empty.help': 'እባክዎ ማጣሪያዎችዎን ይቀይሩ',
+'admin.users.afilas_diagnosis.empty.no_users': 'ለዚህ ቦታ ምንም ተጠቃሚዎች አልተመዘገቡም',
+'admin.users.afilas_diagnosis.loading': 'ተጠቃሚዎችን በማጫን ላይ...',
+'admin.users.afilas_diagnosis.showing': 'ከ {location} {count} ተጠቃሚ(ዎች) እያሳየ ነው',
+'admin.users.afilas_diagnosis.error.load': 'ተጠቃሚዎችን መጫን አልተቻለም',
+'admin.users.afilas_diagnosis.actions.refresh': 'ያድሱ',
+// ============================================
+// ADMIN USERS - AFILAS DRUG MANUFACTURING (AMHARIC)
+// ============================================
+
+// Page Header
+'admin.users.afilas_drug.title': '{location} - ተጠቃሚዎች',
+'admin.users.afilas_drug.subtitle': 'ለ{location} ሁሉንም ተጠቃሚዎች ይመልከቱ',
+'admin.users.afilas_drug.page_title': 'ተጠቃሚዎች',
+'admin.users.afilas_drug.page_subtitle': 'ለዚህ ቦታ ሁሉንም ተጠቃሚዎች ይመልከቱ',
+
+// Buttons
+'admin.users.afilas_drug.refresh': 'ያድሱ',
+'admin.users.afilas_drug.back': 'ወደ ኋላ',
+
+// Filters
+'admin.users.afilas_drug.search_placeholder': 'ተጠቃሚዎችን በስም ወይም በኢሜይል ፈልግ...',
+'admin.users.afilas_drug.all_roles': 'ሁሉም ሚናዎች',
+'admin.users.afilas_drug.role_super_admin': 'ሱፐር አስተዳዳሪ',
+'admin.users.afilas_drug.role_admin': 'አስተዳዳሪ',
+'admin.users.afilas_drug.role_doctor': 'ዶክተር',
+'admin.users.afilas_drug.role_user': 'ተጠቃሚ',
+
+// Table Headers
+'admin.users.afilas_drug.table.user': 'ተጠቃሚ',
+'admin.users.afilas_drug.table.email': 'ኢሜይል',
+'admin.users.afilas_drug.table.role': 'ሚና',
+'admin.users.afilas_drug.table.status': 'ሁኔታ',
+'admin.users.afilas_drug.table.last_login': 'የመጨረሻ መግቢያ',
+
+// Status
+'admin.users.afilas_drug.status.active': 'ንቁ',
+'admin.users.afilas_drug.status.inactive': 'የማይንቀሳቀስ',
+'admin.users.afilas_drug.status.never': 'በፊት አልገቡም',
+
+// Empty States
+'admin.users.afilas_drug.empty.title': 'ለ{location} ምንም ተጠቃሚዎች አልተገኙም',
+'admin.users.afilas_drug.empty.help': 'እባክዎ ማጣሪያዎችዎን ይቀይሩ',
+'admin.users.afilas_drug.empty.no_users': 'ለዚህ ቦታ ምንም ተጠቃሚዎች አልተመዘገቡም',
+'admin.users.afilas_drug.loading': 'ተጠቃሚዎችን በማጫን ላይ...',
+
+// Showing count
+'admin.users.afilas_drug.showing': 'ከ {location} {count} ተጠቃሚ(ዎች) እያሳየ ነው',
+
+// Validation Errors
+'admin.users.afilas_drug.error.load': 'ተጠቃሚዎችን መጫን አልተቻለም',
+
+// Actions
+'admin.users.afilas_drug.actions.refresh': 'ያድሱ',
+// ADMIN USERS - AFILAS GENERAL HOSPITAL (AMHARIC)
+'admin.users.afilas_general.title': '{location} - ተጠቃሚዎች',
+'admin.users.afilas_general.subtitle': 'ለ{location} ሁሉንም ተጠቃሚዎች ይመልከቱ',
+'admin.users.afilas_general.page_title': 'ተጠቃሚዎች',
+'admin.users.afilas_general.page_subtitle': 'ለዚህ ቦታ ሁሉንም ተጠቃሚዎች ይመልከቱ',
+'admin.users.afilas_general.refresh': 'ያድሱ',
+'admin.users.afilas_general.back': 'ወደ ኋላ',
+'admin.users.afilas_general.search_placeholder': 'ተጠቃሚዎችን በስም ወይም በኢሜይል ፈልግ...',
+'admin.users.afilas_general.all_roles': 'ሁሉም ሚናዎች',
+'admin.users.afilas_general.role_super_admin': 'ሱፐር አስተዳዳሪ',
+'admin.users.afilas_general.role_admin': 'አስተዳዳሪ',
+'admin.users.afilas_general.role_doctor': 'ዶክተር',
+'admin.users.afilas_general.role_user': 'ተጠቃሚ',
+'admin.users.afilas_general.table.user': 'ተጠቃሚ',
+'admin.users.afilas_general.table.email': 'ኢሜይል',
+'admin.users.afilas_general.table.role': 'ሚና',
+'admin.users.afilas_general.table.status': 'ሁኔታ',
+'admin.users.afilas_general.table.last_login': 'የመጨረሻ መግቢያ',
+'admin.users.afilas_general.status.active': 'ንቁ',
+'admin.users.afilas_general.status.inactive': 'የማይንቀሳቀስ',
+'admin.users.afilas_general.status.never': 'በፊት አልገቡም',
+'admin.users.afilas_general.empty.title': 'ለ{location} ምንም ተጠቃሚዎች አልተገኙም',
+'admin.users.afilas_general.empty.help': 'እባክዎ ማጣሪያዎችዎን ይቀይሩ',
+'admin.users.afilas_general.empty.no_users': 'ለዚህ ቦታ ምንም ተጠቃሚዎች አልተመዘገቡም',
+'admin.users.afilas_general.loading': 'ተጠቃሚዎችን በማጫን ላይ...',
+'admin.users.afilas_general.showing': 'ከ {location} {count} ተጠቃሚ(ዎች) እያሳየ ነው',
+'admin.users.afilas_general.error.load': 'ተጠቃሚዎችን መጫን አልተቻለም',
+'admin.users.afilas_general.actions.refresh': 'ያድሱ',
+// ADMIN USER MANAGEMENT (AMHARIC)
+'admin.users.management.title': 'የተጠቃሚዎች አስተዳደር',
+'admin.users.management.subtitle': 'በስርዓቱ ውስጥ ያሉ ሁሉንም ተጠቃሚዎች ያስተዳድሩ',
+'admin.users.management.refresh': 'ያድሱ',
+'admin.users.management.add_user': 'ተጠቃሚ ያክሉ',
+'admin.users.management.edit': 'አስተካክል',
+'admin.users.management.delete': 'ሰርዝ',
+'admin.users.management.cancel': 'ይቅር',
+'admin.users.management.save': 'አስቀምጥ',
+'admin.users.management.create': 'ተጠቃሚ ፍጠር',
+'admin.users.management.update': 'ተጠቃሚ አሻሽል',
+'admin.users.management.stats.total': 'ጠቅላላ',
+'admin.users.management.stats.super_admin': 'ሱፐር አስተዳዳሪ',
+'admin.users.management.stats.admin': 'አስተዳዳሪ',
+'admin.users.management.stats.doctor': 'ዶክተር',
+'admin.users.management.stats.user': 'ተጠቃሚ',
+'admin.users.management.stats.active': 'ንቁ',
+'admin.users.management.stats.inactive': 'የማይንቀሳቀስ',
+'admin.users.management.locations.all': 'ሁሉም ተጠቃሚዎች',
+'admin.users.management.locations.general': 'አፊላስ አጠቃላይ ሆስፒታል',
+'admin.users.management.locations.diagnosis': 'አፊላስ ዲያግኖሲስ ማዕከል',
+'admin.users.management.locations.drug': 'አፊላስ የመድኃኒት ማምረቻ',
+'admin.users.management.locations.view': 'ተጠቃሚዎችን ይመልከቱ',
+'admin.users.management.search_placeholder': 'ተጠቃሚዎችን በስም ወይም በኢሜይል ፈልግ...',
+'admin.users.management.all_roles': 'ሁሉም ሚናዎች',
+'admin.users.management.role_super_admin': 'ሱፐር አስተዳዳሪ',
+'admin.users.management.role_admin': 'አስተዳዳሪ',
+'admin.users.management.role_doctor': 'ዶክተር',
+'admin.users.management.role_user': 'ተጠቃሚ',
+'admin.users.management.table.user': 'ተጠቃሚ',
+'admin.users.management.table.email': 'ኢሜይል',
+'admin.users.management.table.role': 'ሚና',
+'admin.users.management.table.location': 'ቦታ',
+'admin.users.management.table.status': 'ሁኔታ',
+'admin.users.management.table.last_login': 'የመጨረሻ መግቢያ',
+'admin.users.management.table.actions': 'ድርጊቶች',
+'admin.users.management.status.active': 'ንቁ',
+'admin.users.management.status.inactive': 'የማይንቀሳቀስ',
+'admin.users.management.status.never': 'በፊት አልገቡም',
+'admin.users.management.status.activated': 'ነቅቷል',
+'admin.users.management.status.deactivated': 'ተቋርጧል',
+'admin.users.management.form.title': 'የተጠቃሚ ዝርዝሮች',
+'admin.users.management.form.add_title': 'አዲስ ተጠቃሚ ያክሉ',
+'admin.users.management.form.edit_title': 'ተጠቃሚ አስተካክል',
+'admin.users.management.form.name': 'ሙሉ ስም',
+'admin.users.management.form.name_placeholder': 'ጆን ዶ',
+'admin.users.management.form.email': 'ኢሜይል',
+'admin.users.management.form.email_placeholder': 'john@example.com',
+'admin.users.management.form.phone': 'ስልክ',
+'admin.users.management.form.phone_placeholder': '+251-911-123456',
+'admin.users.management.form.password': 'የይለፍ ቃል',
+'admin.users.management.form.password_placeholder': 'የይለፍ ቃል ያስገቡ',
+'admin.users.management.form.password_edit_placeholder': 'አሁን ያለውን ለማቆየት ባዶ ይተውት',
+'admin.users.management.form.password_required': 'ለአዲስ ተጠቃሚዎች የይለፍ ቃል ያስፈልጋል',
+'admin.users.management.form.role': 'ሚና',
+'admin.users.management.form.location': 'ቦታ',
+'admin.users.management.form.active': 'ንቁ',
+'admin.users.management.form.required': 'ያስፈልጋል',
+'admin.users.management.error.name_required': 'ስም ያስፈልጋል',
+'admin.users.management.error.email_required': 'ኢሜይል ያስፈልጋል',
+'admin.users.management.error.email_invalid': 'እባክዎ ትክክለኛ ኢሜይል አድራሻ ያስገቡ',
+'admin.users.management.error.password_required': 'ለአዲስ ተጠቃሚዎች የይለፍ ቃል ያስፈልጋል',
+'admin.users.management.error.email_exists': 'በዚህ ኢሜይል ያለ ተጠቃሚ አለ',
+'admin.users.management.error.save': 'ተጠቃሚ ማስቀመጥ አልተቻለም',
+'admin.users.management.error.delete': 'ተጠቃሚ መሰረዝ አልተቻለም',
+'admin.users.management.error.load': 'ተጠቃሚዎችን መጫን አልተቻለም',
+'admin.users.management.error.status': 'የተጠቃሚ ሁኔታ ማሻሻል አልተቻለም',
+'admin.users.management.error.general': 'የሆነ ስህተት ተከስቷል። እባክዎ እንደገና ይሞክሩ።',
+'admin.users.management.success.created': 'ተጠቃሚ በተሳካ ሁኔታ ተፈጥሯል!',
+'admin.users.management.success.updated': 'ተጠቃሚ በተሳካ ሁኔታ ተሻሽሏል!',
+'admin.users.management.success.deleted': 'ተጠቃሚ በተሳካ ሁኔታ ተሰርዟል!',
+'admin.users.management.success.activated': 'ተጠቃሚ በተሳካ ሁኔታ ነቅቷል!',
+'admin.users.management.success.deactivated': 'ተጠቃሚ በተሳካ ሁኔታ ተቋርጧል!',
+'admin.users.management.confirm.delete': 'ይህን ተጠቃሚ መሰረዝ እንደሚፈልጉ እርግጠኛ ነዎት?',
+'admin.users.management.loading': 'ተጠቃሚዎችን በማጫን ላይ...',
+'admin.users.management.saving': 'በማስቀመጥ ላይ...',
+'admin.users.management.empty.title': 'ምንም ተጠቃሚዎች አልተገኙም',
+'admin.users.management.empty.help': 'እባክዎ ማጣሪያዎችዎን ይቀይሩ',
+'admin.users.management.empty.create': 'ለመጀመር የመጀመሪያ ተጠቃሚዎን ይፍጠሩ',
+'admin.users.management.showing': '{count} ተጠቃሚ(ዎች) እያሳየ ነው',
+'admin.users.management.actions.edit': 'አስተካክል',
+'admin.users.management.actions.delete': 'ሰርዝ',
+'admin.users.management.actions.refresh': 'ያድሱ',
   }
 };
 

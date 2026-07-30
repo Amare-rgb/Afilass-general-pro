@@ -97,7 +97,8 @@ export default function AfilasGeneralUsersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <Link href="/admin/users" className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          {/* FIXED: Back button now goes to /admin/user/all */}
+          <Link href="/admin/user/all" className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
             <ArrowLeft size={20} className="text-gray-600 dark:text-gray-300" />
           </Link>
           <div>

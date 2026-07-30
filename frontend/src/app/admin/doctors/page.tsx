@@ -1,96 +1,114 @@
 // app/admin/doctors/page.tsx
 'use client';
 
-import { useEffect, useState, FormEvent, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { api, ApiError } from '@/lib/api';
-import { getToken, clearSession } from '@/lib/auth';
-import { Department, Doctor } from '@/lib/types';
+import { api } from '@/lib/api';
+import { Doctor } from '@/lib/types';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
-  Upload,
-  X,
   Stethoscope,
   Building2,
   Clock,
-  CheckCircle,
   XCircle,
   Loader2,
-  UserPlus,
-  Edit,
-  Trash2,
   RefreshCw,
   Mail,
-  Phone
+  Phone,
+  MapPin,
+  Activity,
+  Pill,
+  Hospital,
+  UserPlus,
+  Calendar,
+  CheckCircle
 } from 'lucide-react';
 
-const emptyForm = { 
-  name: '', 
-  title: '', 
-  bio: '', 
-  photoUrl: '',
-  email: '',
-  phone: '',
-  departmentId: ''
-};
+interface LocationStat {
+  name: string;
+  slug: string;
+  count: number;
+  icon: React.ReactNode;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  textColor: string;
+  hoverBg: string;
+}
 
 export default function AdminDoctorsPage() {
   const { t } = useLanguage();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(emptyForm);
-  const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Location configurations (count will be calculated dynamically)
+  const getLocationConfigs = (): Omit<LocationStat, 'count'>[] => {
+    return [
+      {
+        name: 'Afilas General Hospital',
+        slug: 'afilas-general',
+        icon: <Hospital className="w-5 h-5" />,
+        color: 'bg-blue-600',
+        bgColor: 'bg-blue-50',
+        borderColor: 'border-blue-200',
+        textColor: 'text-blue-600',
+        hoverBg: 'hover:bg-blue-50'
+      },
+      {
+        name: 'Afilas Diagnosis Center',
+        slug: 'afilas-diagnosis',
+        icon: <Activity className="w-5 h-5" />,
+        color: 'bg-purple-600',
+        bgColor: 'bg-purple-50',
+        borderColor: 'border-purple-200',
+        textColor: 'text-purple-600',
+        hoverBg: 'hover:bg-purple-50'
+      },
+      {
+        name: 'Afilas Drug Manufacturing',
+        slug: 'afilas-drug',
+        icon: <Pill className="w-5 h-5" />,
+        color: 'bg-green-600',
+        bgColor: 'bg-green-50',
+        borderColor: 'border-green-200',
+        textColor: 'text-green-600',
+        hoverBg: 'hover:bg-green-50'
+      }
+    ];
+  };
+
+  const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
   async function load() {
     setLoading(true);
     setError('');
+    setSuccess('');
     try {
-      console.log('📡 Loading doctors and departments from backend...');
+      console.log('📡 Loading all doctors from backend...');
       
-      const [doctorsResponse, deptResponse] = await Promise.all([
-        api.get<any>('/doctors'),
-        api.get<any>('/departments'),
-      ]);
+      const response = await api.get<any>('/doctors');
       
       let doctorsData: Doctor[] = [];
-      if (doctorsResponse) {
-        if (Array.isArray(doctorsResponse)) {
-          doctorsData = doctorsResponse;
-        } else if (doctorsResponse.data && Array.isArray(doctorsResponse.data)) {
-          doctorsData = doctorsResponse.data;
-        } else if (doctorsResponse.doctors && Array.isArray(doctorsResponse.doctors)) {
-          doctorsData = doctorsResponse.doctors;
-        }
-      }
-      
-      let departmentsData: Department[] = [];
-      if (deptResponse) {
-        if (Array.isArray(deptResponse)) {
-          departmentsData = deptResponse;
-        } else if (deptResponse.data && Array.isArray(deptResponse.data)) {
-          departmentsData = deptResponse.data;
-        } else if (deptResponse.departments && Array.isArray(deptResponse.departments)) {
-          departmentsData = deptResponse.departments;
+      if (response) {
+        if (Array.isArray(response)) {
+          doctorsData = response;
+        } else if (response.data && Array.isArray(response.data)) {
+          doctorsData = response.data;
+        } else if (response.doctors && Array.isArray(response.doctors)) {
+          doctorsData = response.doctors;
         }
       }
       
       setDoctors(doctorsData);
-      setDepartments(departmentsData);
-      
-      console.log(`✅ Loaded ${doctorsData.length} doctors and ${departmentsData.length} departments`);
+      setSuccess(`✅ Loaded ${doctorsData.length} doctors successfully`);
+      console.log(`✅ Loaded ${doctorsData.length} doctors total`);
     } catch (error) {
       console.error('❌ Failed to load data:', error);
+      setError('Failed to load doctors. Please try again.');
       setDoctors([]);
-      setDepartments([]);
     } finally {
       setLoading(false);
     }
@@ -100,438 +118,217 @@ export default function AdminDoctorsPage() {
     load();
   }, []);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  // Get doctors by location
+  const getDoctorsByLocation = (locationName: string) => {
+    return doctors.filter(doc => doc.location === locationName);
   };
 
-  const uploadImage = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('image', file);
+  // Get location icon
+  const getLocationIcon = (location: string) => {
+    const configs = getLocationConfigs();
+    const found = configs.find(l => l.name === location);
+    return found ? found.icon : <Building2 className="w-5 h-5" />;
+  };
+
+  // Get location color
+  const getLocationColor = (location: string) => {
+    const configs = getLocationConfigs();
+    const found = configs.find(l => l.name === location);
+    return found ? found.textColor : 'text-gray-600';
+  };
+
+  // Get location bg color
+  const getLocationBgColor = (location: string) => {
+    const configs = getLocationConfigs();
+    const found = configs.find(l => l.name === location);
+    return found ? found.bgColor : 'bg-gray-50';
+  };
+
+  // Format time to 12-hour format
+  const formatTimeDisplay = (time?: string) => {
+    if (!time || time === '') return 'Not set';
     
     try {
-      const token = getToken();
-      console.log('🔑 Token:', token ? 'Present' : 'MISSING!');
+      const parts = time.split(':');
+      if (parts.length < 2) return time;
       
-      if (!token) {
-        throw new Error(t('admin.doctors.error_no_token'));
-      }
+      const hours = parseInt(parts[0]);
+      const minutes = parts[1];
       
-      const response = await fetch('http://localhost:5000/api/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
-      });
+      if (isNaN(hours) || hours < 0 || hours > 23) return time;
       
-      console.log('📡 Upload response status:', response.status);
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const hour12 = hours % 12 || 12;
       
-      const data = await response.json();
-      console.log('📡 Upload response data:', data);
-      
-      if (response.status === 401) {
-        clearSession();
-        throw new Error(t('admin.doctors.error_session_expired'));
-      }
-      
-      if (!response.ok) {
-        throw new Error(data.error || data.message || t('admin.doctors.error_upload_failed'));
-      }
-      
-      if (!data.url) {
-        throw new Error(t('admin.doctors.error_no_url'));
-      }
-      
-      return data.url;
+      return `${hour12}:${minutes} ${ampm}`;
     } catch (error) {
-      console.error('❌ Upload error:', error);
-      throw error;
+      return time;
     }
   };
 
-  function startCreate() {
-    setEditingId(null);
-    setForm(emptyForm);
-    setShowForm(true);
-    setError('');
-    setSuccess('');
-    setImageFile(null);
-    setImagePreview('');
-  }
-
-  function startEdit(doc: Doctor) {
-    setEditingId(doc.id);
-    setForm({
-      name: doc.name,
-      title: doc.title || '',
-      bio: doc.bio || '',
-      photoUrl: doc.photoUrl || '',
-      email: doc.email || '',
-      phone: doc.phone || '',
-      departmentId: doc.departmentId,
+  // Get schedule display text
+  const getScheduleDisplay = (doctor: Doctor) => {
+    if (!doctor.scheduleSlots || doctor.scheduleSlots.length === 0) {
+      return null;
+    }
+    
+    const availableSlots = doctor.scheduleSlots.filter(s => s.isAvailable);
+    if (availableSlots.length === 0) return null;
+    
+    // Get unique day names
+    const days = availableSlots
+      .map(s => DAYS_OF_WEEK[s.dayOfWeek])
+      .filter(Boolean);
+    
+    // Get unique time ranges
+    const timeRanges = availableSlots.map(s => {
+      const start = formatTimeDisplay(s.startTime);
+      const end = formatTimeDisplay(s.endTime);
+      return `${start} - ${end}`;
     });
-    setImagePreview(doc.photoUrl || '');
-    setShowForm(true);
-    setError('');
-    setSuccess('');
-  }
-
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    setError('');
-    setSuccess('');
     
-    try {
-      if (!form.email) {
-        setError(t('admin.doctors.error_email_required'));
-        setSaving(false);
-        return;
-      }
-      
-      let photoUrl = form.photoUrl;
-      
-      if (imageFile) {
-        try {
-          console.log('📸 Uploading image...');
-          photoUrl = await uploadImage(imageFile);
-          console.log('📸 Image uploaded successfully:', photoUrl);
-        } catch (uploadError) {
-          console.error('Upload failed:', uploadError);
-          setError(uploadError instanceof Error ? uploadError.message : t('admin.doctors.error_upload_image'));
-          setSaving(false);
-          return;
-        }
-      }
-      
-      const doctorData = { 
-        name: form.name,
-        title: form.title,
-        bio: form.bio || '',
-        photoUrl: photoUrl,
-        email: form.email,
-        phone: form.phone || '',
-        departmentId: form.departmentId,
-        active: true
-      };
-      
-      if (editingId) {
-        console.log('📝 Updating doctor:', editingId);
-        await api.put(`/doctors/${editingId}`, doctorData, true);
-        setSuccess(t('admin.doctors.updated'));
-      } else {
-        console.log('📝 Creating new doctor');
-        await api.post('/doctors', doctorData, true);
-        setSuccess(t('admin.doctors.created'));
-      }
-      
-      setShowForm(false);
-      await load();
-      setImageFile(null);
-      setImagePreview('');
-    } catch (err) {
-      console.error('❌ Error saving doctor:', err);
-      
-      if (err instanceof ApiError && err.message?.toLowerCase().includes('email already exists')) {
-        setError(t('admin.doctors.error_email_exists'));
-      } else if (err instanceof ApiError) {
-        setError(err.message || t('admin.doctors.error_save'));
-      } else {
-        setError(t('admin.doctors.error_save'));
-      }
-    } finally {
-      setSaving(false);
+    const uniqueDays = [...new Set(days)];
+    const uniqueTimes = [...new Set(timeRanges)];
+    
+    // Format: "Monday, Wednesday, Friday - 9:00 AM - 5:00 PM"
+    if (uniqueTimes.length === 1) {
+      return `${uniqueDays.join(', ')} - ${uniqueTimes[0]}`;
     }
+    
+    // Multiple time ranges
+    const timeDisplay = uniqueTimes.map(t => `(${t})`).join(' ');
+    return `${uniqueDays.join(', ')} ${timeDisplay}`;
+  };
+
+  // Get location slug for doctor
+  const getLocationSlug = (location: string) => {
+    const configs = getLocationConfigs();
+    const found = configs.find(l => l.name === location);
+    return found ? found.slug : 'afilas-general';
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center p-12 min-h-[400px]">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+          <p className="text-sm text-gray-500">Loading doctors...</p>
+        </div>
+      </div>
+    );
   }
 
-  async function remove(id: string) {
-    if (!confirm(t('admin.doctors.confirm_delete'))) return;
-    try {
-      console.log('🗑️ Deleting doctor:', id);
-      await api.delete(`/doctors/${id}`, true);
-      setSuccess(t('admin.doctors.deleted'));
-      await load();
-    } catch (error) {
-      console.error('❌ Failed to delete doctor:', error);
-      alert(t('admin.doctors.error_delete'));
-    }
-  }
+  // Get location configs with counts
+  const locationConfigs = getLocationConfigs();
+  const locationsWithCounts: LocationStat[] = locationConfigs.map(config => ({
+    ...config,
+    count: getDoctorsByLocation(config.name).length
+  }));
 
   return (
-    <>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Header */}
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div>
-          <h1 className="font-display text-3xl text-clinical-900">{t('admin.doctors.title')}</h1>
-          <p className="text-sm text-gray-500 mt-1">{t('admin.doctors.subtitle')}</p>
+          <h1 className="font-display text-3xl text-gray-900">Doctor Management</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage all doctors across all locations</p>
         </div>
         <button
-          onClick={startCreate}
-          className="focus-ring rounded-lg bg-clinical-700 hover:bg-clinical-800 text-white text-sm font-semibold px-5 py-2.5 transition-colors flex items-center gap-2 shadow-sm"
+          onClick={() => load()}
+          className="focus-ring rounded-lg bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold px-5 py-2.5 transition-colors flex items-center gap-2 shadow-sm"
         >
-          <UserPlus className="w-4 h-4" />
-          {t('admin.doctors.add')}
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
         </button>
       </div>
 
+      {/* Success Message */}
       {success && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 animate-fadeIn">
+        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-5 h-5 text-green-600" />
           <p className="text-sm text-green-600">{success}</p>
           <button onClick={() => setSuccess('')} className="ml-auto">
-            <X className="w-4 h-4 text-green-600" />
+            <XCircle className="w-4 h-4 text-green-600" />
           </button>
         </div>
       )}
 
+      {/* Error Message */}
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 animate-fadeIn">
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
           <XCircle className="w-5 h-5 text-red-600" />
           <p className="text-sm text-red-600">{error}</p>
           <button onClick={() => setError('')} className="ml-auto">
-            <X className="w-4 h-4 text-red-600" />
+            <XCircle className="w-4 h-4 text-red-600" />
           </button>
         </div>
       )}
 
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-slideUp">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-              <h2 className="font-semibold text-clinical-900 text-xl flex items-center gap-2">
-                {editingId ? (
-                  <>
-                    <Edit className="w-5 h-5 text-clinical-600" />
-                    {t('admin.doctors.edit')}
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="w-5 h-5 text-clinical-600" />
-                    {t('admin.doctors.add_new')}
-                  </>
-                )}
-              </h2>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowForm(false);
-                  setImageFile(null);
-                  setImagePreview('');
-                  setError('');
-                }}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <X size={20} className="text-gray-500" />
-              </button>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="p-6 space-y-5">
-              <div className="flex flex-col items-center gap-4">
-                <div className="relative">
-                  <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 border-4 border-dashed border-gray-300 flex items-center justify-center">
-                    {imagePreview ? (
-                      <Image
-                        src={imagePreview}
-                        alt="Doctor preview"
-                        width={128}
-                        height={128}
-                        className="object-cover w-full h-full"
-                      />
-                    ) : (
-                      <Stethoscope className="w-12 h-12 text-gray-400" />
-                    )}
+      {/* Location Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {locationsWithCounts.map((location) => {
+          const count = location.count;
+          
+          return (
+            <Link
+              key={location.slug}
+              href={`/admin/doctors/${location.slug}`}
+              className={`block rounded-xl border ${location.borderColor} ${location.bgColor} p-6 hover:shadow-lg transition-all duration-200 group ${location.hoverBg}`}
+            >
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`p-3 rounded-xl ${location.color} text-white`}>
+                    {location.icon}
                   </div>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleImageChange}
-                    accept="image/*"
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="absolute bottom-0 right-0 bg-clinical-700 text-white p-2 rounded-full hover:bg-clinical-800 transition-colors shadow-lg"
-                  >
-                    <Upload size={16} />
-                  </button>
-                </div>
-                <p className="text-xs text-gray-400">{t('admin.doctors.upload_hint')}</p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    {t('admin.doctors.full_name')} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    required
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="focus-ring w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-clinical-500 transition-colors"
-                    placeholder={t('admin.doctors.name_placeholder')}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    {t('admin.doctors.title')} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    required
-                    placeholder={t('admin.doctors.title_placeholder')}
-                    value={form.title}
-                    onChange={(e) => setForm({ ...form, title: e.target.value })}
-                    className="focus-ring w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-clinical-500 transition-colors"
-                  />
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    {t('admin.doctors.email')} <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      required
-                      type="email"
-                      placeholder={t('admin.doctors.email_placeholder')}
-                      value={form.email}
-                      onChange={(e) => setForm({ ...form, email: e.target.value })}
-                      className="focus-ring w-full rounded-lg border border-gray-300 pl-10 pr-4 py-2.5 focus:border-clinical-500 transition-colors"
-                    />
+                  <div>
+                    <h3 className="font-semibold text-gray-900 text-sm">{location.name}</h3>
+                    <p className={`text-2xl font-bold ${location.textColor}`}>{count}</p>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    {t('admin.doctors.phone')}
-                  </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="tel"
-                      placeholder={t('admin.doctors.phone_placeholder')}
-                      value={form.phone}
-                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                      className="focus-ring w-full rounded-lg border border-gray-300 pl-10 pr-4 py-2.5 focus:border-clinical-500 transition-colors"
-                    />
-                  </div>
+                <div className={`text-xs ${location.textColor} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                  View All →
                 </div>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  {t('admin.doctors.department')} <span className="text-red-500">*</span>
-                </label>
-                <select
-                  required
-                  value={form.departmentId}
-                  onChange={(e) => setForm({ ...form, departmentId: e.target.value })}
-                  className="focus-ring w-full rounded-lg border border-gray-300 px-4 py-2.5 bg-white focus:border-clinical-500 transition-colors"
-                >
-                  <option value="">{t('admin.doctors.select_department')}</option>
-                  {departments.map((d) => (
-                    <option key={d.id} value={d.id}>{d.name}</option>
-                  ))}
-                </select>
-                {departments.length === 0 && (
-                  <p className="text-xs text-amber-600 mt-1">
-                    ⚠️ {t('admin.doctors.no_departments')}
-                  </p>
-                )}
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                  {t('admin.doctors.bio')}
-                </label>
-                <textarea
-                  rows={3}
-                  value={form.bio}
-                  onChange={(e) => setForm({ ...form, bio: e.target.value })}
-                  className="focus-ring w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-clinical-500 transition-colors"
-                  placeholder={t('admin.doctors.bio_placeholder')}
-                />
-              </div>
-
-              {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600">{error}</p>
-                </div>
-              )}
-
-              <div className="flex gap-3 pt-2">
-                <button
-                  type="submit"
-                  disabled={saving || departments.length === 0}
-                  className="flex-1 focus-ring rounded-lg bg-clinical-700 hover:bg-clinical-800 disabled:opacity-50 text-white text-sm font-semibold px-6 py-2.5 transition-colors flex items-center justify-center gap-2"
-                >
-                  {saving ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      {t('admin.doctors.saving')}
-                    </>
-                  ) : (
-                    editingId ? t('admin.doctors.update') : t('admin.doctors.add')
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowForm(false);
-                    setImageFile(null);
-                    setImagePreview('');
-                    setError('');
-                  }}
-                  className="flex-1 focus-ring rounded-lg border border-gray-300 text-gray-700 text-sm font-semibold px-6 py-2.5 hover:bg-gray-50 transition-colors"
-                >
-                  {t('button.cancel')}
-                </button>
-              </div>
-              {departments.length === 0 && !editingId && (
-                <p className="text-xs text-amber-600 text-center -mt-2">
-                  ⚠️ {t('admin.doctors.no_departments_warning')}
+              <div className="mt-3">
+                <p className="text-xs text-gray-500">
+                  {count} doctor{count !== 1 ? 's' : ''} assigned
                 </p>
-              )}
-            </form>
-          </div>
-        </div>
-      )}
+              </div>
+            </Link>
+          );
+        })}
+      </div>
 
-      {loading ? (
-        <div className="flex items-center justify-center p-12">
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 text-clinical-700 animate-spin" />
-            <p className="text-sm text-clinical-500">{t('admin.doctors.loading')}</p>
-          </div>
+      {/* All Doctors List */}
+      {doctors.length === 0 ? (
+        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+          <Stethoscope className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">No Doctors Found</h3>
+          <p className="text-sm text-gray-500 mb-4">No doctors have been added to any location yet.</p>
+          <Link
+            href="/admin/doctors/afilas-general"
+            className="inline-block focus-ring rounded-lg bg-gray-900 hover:bg-gray-800 text-white text-sm font-semibold px-5 py-2.5 transition-colors"
+          >
+            <UserPlus className="w-4 h-4 inline mr-2" />
+            Add Doctor
+          </Link>
         </div>
       ) : (
         <>
-          {doctors.length === 0 ? (
-            <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
-              <Stethoscope className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">{t('admin.doctors.no_doctors')}</h3>
-              <p className="text-sm text-gray-500 mb-4">{t('admin.doctors.no_doctors_hint')}</p>
-              <button
-                onClick={startCreate}
-                className="focus-ring rounded-lg bg-clinical-700 hover:bg-clinical-800 text-white text-sm font-semibold px-5 py-2.5 transition-colors"
-              >
-                + {t('admin.doctors.add')}
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {doctors.map((doc) => (
-                <div key={doc.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-200 group">
-                  <div className="relative h-56 bg-gradient-to-br from-clinical-50 to-gray-100">
+          <div className="mb-4">
+            <p className="text-sm text-gray-500">Showing {doctors.length} doctor{doctors.length !== 1 ? 's' : ''} across all locations</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {doctors.map((doc) => {
+              const scheduleDisplay = getScheduleDisplay(doc);
+              const locationColor = getLocationColor(doc.location || '');
+              const locationBgColor = getLocationBgColor(doc.location || '');
+              const locationSlug = getLocationSlug(doc.location || '');
+              
+              return (
+                <div key={doc.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col">
+                  {/* Image Section */}
+                  <div className="relative h-48 bg-gradient-to-br from-gray-50 to-gray-100 flex-shrink-0">
                     {doc.photoUrl ? (
                       <Image
                         src={doc.photoUrl}
@@ -541,101 +338,92 @@ export default function AdminDoctorsPage() {
                       />
                     ) : (
                       <div className="flex items-center justify-center h-full">
-                        <Stethoscope className="w-20 h-20 text-clinical-300" />
+                        <Stethoscope className="w-20 h-20 text-gray-300" />
                       </div>
                     )}
-                    <div className="absolute top-3 right-3">
+                    <div className="absolute top-3 right-3 flex gap-2">
                       <span className={`text-xs px-3 py-1 rounded-full font-medium ${
-                        doc.active === true ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'
+                        doc.active !== false ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'
                       }`}>
-                        {doc.active === true ? t('admin.doctors.active') : t('admin.doctors.inactive')}
+                        {doc.active !== false ? 'Active' : 'Inactive'}
                       </span>
                     </div>
+                    {doc.location && (
+                      <div className="absolute bottom-3 left-3">
+                        <span className={`text-xs px-3 py-1 rounded-full font-medium ${locationBgColor} ${locationColor} border border-gray-200 flex items-center gap-1`}>
+                          <MapPin className="w-3 h-3" />
+                          {doc.location}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   
-                  <div className="p-5">
-                    <h3 className="font-semibold text-clinical-900 text-lg">{doc.name}</h3>
-                    <p className="text-sm text-clinical-600">{doc.title}</p>
+                  {/* Content Section */}
+                  <div className="p-5 flex flex-col flex-1">
+                    <h3 className="font-semibold text-gray-900 text-lg">{doc.name}</h3>
+                    <p className="text-sm text-gray-600">{doc.specialization || doc.title}</p>
                     
                     {doc.email && (
                       <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                        <Mail className="w-3 h-3" />
-                        {doc.email}
+                        <Mail className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{doc.email}</span>
                       </p>
                     )}
                     
-                    <div className="mt-3 space-y-1.5">
-                      {doc.department && (
-                        <p className="text-xs text-gray-500 flex items-center gap-2">
-                          <Building2 className="w-3.5 h-3.5" />
-                          {doc.department.name}
-                        </p>
-                      )}
-                      {doc.scheduleSlots && doc.scheduleSlots.length > 0 && (
-                        <p className="text-xs text-gray-500 flex items-center gap-2">
-                          <Clock className="w-3.5 h-3.5" />
-                          {doc.scheduleSlots.length} {t('admin.doctors.schedule_slots')}
-                        </p>
-                      )}
-                    </div>
-                    
-                    {doc.bio && (
-                      <p className="text-xs text-gray-500 mt-3 line-clamp-2">{doc.bio}</p>
+                    {doc.phone && (
+                      <p className="text-xs text-gray-400 flex items-center gap-1">
+                        <Phone className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate">{doc.phone}</span>
+                      </p>
                     )}
                     
+                    {doc.department && (
+                      <p className="text-xs text-gray-500 mt-2 flex items-center gap-2">
+                        <Building2 className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span className="truncate">{doc.department.name}</span>
+                      </p>
+                    )}
+                    
+                    {doc.experience !== undefined && doc.experience > 0 && (
+                      <p className="text-xs text-gray-500 mt-1 flex items-center gap-2">
+                        <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span>{doc.experience} years experience</span>
+                      </p>
+                    )}
+                    
+                    {doc.bio && (
+                      <p className="text-xs text-gray-500 mt-2 line-clamp-2">{doc.bio}</p>
+                    )}
+                    
+                    {/* Schedule Display at Bottom */}
+                    {scheduleDisplay && (
+                      <div className="mt-4 pt-3 border-t border-gray-100">
+                        <div className="flex items-start gap-2">
+                          <Clock className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" />
+                          <div className="text-xs">
+                            <p className="font-medium text-gray-700">{scheduleDisplay}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Action Buttons */}
                     <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
-                      <button 
-                        onClick={() => startEdit(doc)} 
-                        className="flex-1 text-sm text-clinical-700 hover:text-clinical-900 font-medium hover:bg-clinical-50 px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"
+                      <Link
+                        href={`/admin/doctors/${locationSlug}`}
+                        className="flex-1 text-sm text-blue-600 hover:text-blue-800 font-medium hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"
                       >
-                        <Edit className="w-3.5 h-3.5" />
-                        {t('button.edit')}
-                      </button>
-                      <button 
-                        onClick={() => remove(doc.id)} 
-                        className="flex-1 text-sm text-red-600 hover:text-red-800 font-medium hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                        {t('button.delete')}
-                      </button>
+                        <Building2 className="w-3.5 h-3.5" />
+                        View Location
+                      </Link>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              );
+            })}
+          </div>
         </>
       )}
-      
-      {!loading && doctors.length > 0 && (
-        <div className="mt-4 text-xs text-gray-400 flex items-center justify-between">
-          <span>{t('admin.doctors.showing')} {doctors.length} {t('admin.doctors.doctor')}{doctors.length !== 1 ? 's' : ''}</span>
-          <button
-            onClick={() => load()}
-            className="text-clinical-600 hover:text-clinical-800 transition-colors flex items-center gap-1"
-          >
-            <RefreshCw className="w-3 h-3" />
-            {t('button.refresh')}
-          </button>
-        </div>
-      )}
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; }
-          to { opacity: 1; }
-        }
-        @keyframes slideUp {
-          from { transform: translateY(20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
-        }
-        .animate-slideUp {
-          animation: slideUp 0.3s ease-out;
-        }
-      `}</style>
-    </>
+    </div>
   );
 }

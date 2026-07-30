@@ -39,6 +39,7 @@ export interface Doctor {
   education?: string;
   rating?: number;
   consultationFee?: number;
+  location?: string | null; // ADD THIS LINE - Location field for doctors
 }
 
 export type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
@@ -64,7 +65,7 @@ export interface Appointment {
   symptoms?: string | null;
   isEmergency?: boolean;
   status: AppointmentStatus;
-  location?: string | null; // ADD THIS LINE - Location field
+  location?: string | null;
   reminderSentAt?: string | null;
   createdAt: string;
   updatedAt?: string;

@@ -1,4 +1,3 @@
-// backend/src/routes/appointments.js
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const prisma = require('../lib/prisma');
@@ -16,13 +15,13 @@ function mapAppointment(appointment) {
     patientPhone: appointment.patientPhone,
     patientAge: appointment.patientAge,
     patientGender: appointment.patientGender,
-    departmentId: appointment.doctor?.departmentId || null,
-    department: appointment.doctor?.department || null,
+    departmentId: null,
+    department: null,
     doctorId: appointment.doctorId,
     doctor: appointment.doctor ? {
       id: appointment.doctor.id,
       name: appointment.doctor.name,
-      title: appointment.doctor.specialization || appointment.doctor.title,
+      title: appointment.doctor.specialization || null,
       specialization: appointment.doctor.specialization,
     } : null,
     serviceId: appointment.serviceId,
@@ -56,7 +55,9 @@ router.get('/', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req, r
     
     if (status) where.status = status;
     if (doctorId) where.doctorId = doctorId;
-    if (location && location !== 'all') where.location = location;
+    if (location && location !== 'all' && location !== 'undefined') {
+      where.location = location;
+    }
     
     if (startDate || endDate) {
       where.date = {};
@@ -75,15 +76,26 @@ router.get('/', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req, r
       }
     }
 
+    // FIXED: Removed 'title' field from Doctor select
     const appointments = await prisma.appointment.findMany({
       where,
       include: {
         doctor: {
-          include: {
-            department: true,
+          select: {
+            id: true,
+            name: true,
+            specialization: true,
+            // title: true, // REMOVED - this field doesn't exist in the Doctor model
           },
         },
-        service: true,
+        service: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            duration: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -108,7 +120,7 @@ router.get('/', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req, r
     console.error('Get appointments error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch appointments',
+      error: 'Failed to fetch appointments: ' + error.message,
     });
   }
 });
@@ -122,11 +134,21 @@ router.get('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req
       where: { id },
       include: {
         doctor: {
-          include: {
-            department: true,
+          select: {
+            id: true,
+            name: true,
+            specialization: true,
+            // title: true, // REMOVED
           },
         },
-        service: true,
+        service: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            duration: true,
+          },
+        },
         user: {
           select: {
             id: true,
@@ -208,7 +230,6 @@ router.post('/', [
       where: { id: doctorId },
       include: {
         workingHours: true,
-        department: true,
       },
     });
 
@@ -299,11 +320,21 @@ router.post('/', [
       },
       include: {
         doctor: {
-          include: {
-            department: true,
+          select: {
+            id: true,
+            name: true,
+            specialization: true,
+            // title: true, // REMOVED
           },
         },
-        service: true,
+        service: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            duration: true,
+          },
+        },
       },
     });
 
@@ -345,11 +376,21 @@ router.patch('/:id/status', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), [
       where: { id },
       include: {
         doctor: {
-          include: {
-            department: true,
+          select: {
+            id: true,
+            name: true,
+            specialization: true,
+            // title: true, // REMOVED
           },
         },
-        service: true,
+        service: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            duration: true,
+          },
+        },
       },
     });
 
@@ -379,11 +420,21 @@ router.patch('/:id/status', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), [
       data: { status },
       include: {
         doctor: {
-          include: {
-            department: true,
+          select: {
+            id: true,
+            name: true,
+            specialization: true,
+            // title: true, // REMOVED
           },
         },
-        service: true,
+        service: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            duration: true,
+          },
+        },
       },
     });
 
@@ -451,11 +502,21 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
       },
       include: {
         doctor: {
-          include: {
-            department: true,
+          select: {
+            id: true,
+            name: true,
+            specialization: true,
+            // title: true, // REMOVED
           },
         },
-        service: true,
+        service: {
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            duration: true,
+          },
+        },
       },
     });
 
