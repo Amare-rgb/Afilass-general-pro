@@ -3,8 +3,72 @@
 @tailwind utilities;
 
 :root {
-  --font-display: 'Newsreader', serif;
-  --font-body: 'Inter', sans-serif;
+  --font-display: "Newsreader", serif;
+  --font-body: "Inter", sans-serif;
+}
+
+/* ========================================
+   LIGHT THEME VARIABLES
+   ======================================== */
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #0f6e5f; /* Matches your clinical-700 */
+  --primary-foreground: #f8fafc;
+  --secondary: #8dc4b1; /* Matches your clinical-300 */
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #0f6e5f;
+  --accent-foreground: #f8fafc;
+  --destructive: #ef4444;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #0f6e5f;
+  --sidebar: #f8fafc;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #0f6e5f;
+  --sidebar-primary-foreground: #f8fafc;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #0f6e5f;
+}
+
+/* ========================================
+   DARK THEME VARIABLES
+   ======================================== */
+.dark {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
+  --primary: #14b8a6; /* Brighter teal for dark mode */
+  --primary-foreground: #0f172a;
+  --secondary: #334155;
+  --secondary-foreground: #f8fafc;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #14b8a6;
+  --accent-foreground: #0f172a;
+  --destructive: #7f1d1d;
+  --border: #334155;
+  --input: #334155;
+  --ring: #14b8a6;
+  --sidebar: #0f172a;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #14b8a6;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #1e293b;
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: #334155;
+  --sidebar-ring: #14b8a6;
 }
 
 /* 
@@ -13,6 +77,7 @@
   ========================================
 */
 html {
+  background-color: var(--background);
   scroll-behavior: smooth;
   /* Standard property */
   text-size-adjust: 100%;
@@ -25,8 +90,8 @@ html {
 }
 
 body {
-  background-color: #f7f5f0;
-  color: #1f2933;
+  background-color: var(--background);
+  color: var(--foreground);
 }
 
 /*
@@ -41,27 +106,27 @@ body {
     -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
   }
-  
+
   .backdrop-blur {
     -webkit-backdrop-filter: blur(8px);
     backdrop-filter: blur(8px);
   }
-  
+
   .backdrop-blur-md {
     -webkit-backdrop-filter: blur(12px);
     backdrop-filter: blur(12px);
   }
-  
+
   .backdrop-blur-lg {
     -webkit-backdrop-filter: blur(16px);
     backdrop-filter: blur(16px);
   }
-  
+
   .backdrop-blur-xl {
     -webkit-backdrop-filter: blur(24px);
     backdrop-filter: blur(24px);
   }
-  
+
   .backdrop-blur-2xl {
     -webkit-backdrop-filter: blur(40px);
     backdrop-filter: blur(40px);
@@ -73,23 +138,23 @@ body {
   .backdrop-blur-sm {
     backdrop-filter: blur(4px);
   }
-  
+
   .backdrop-blur {
     backdrop-filter: blur(8px);
   }
-  
+
   .backdrop-blur-md {
     backdrop-filter: blur(12px);
   }
-  
+
   .backdrop-blur-lg {
     backdrop-filter: blur(16px);
   }
-  
+
   .backdrop-blur-xl {
     backdrop-filter: blur(24px);
   }
-  
+
   .backdrop-blur-2xl {
     backdrop-filter: blur(40px);
   }
@@ -151,4 +216,264 @@ body {
   -webkit-text-size-adjust: none;
   -moz-text-size-adjust: none;
   -ms-text-size-adjust: none;
+}
+
+/* ============================ Hopital Division =================================================== */
+/* ========================================
+   HOSPITAL HERO ANIMATIONS
+   ======================================== */
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes floatShape {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translate(30px, -30px) scale(1.1);
+    opacity: 0.3;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOutDown {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.animated-gradient {
+  background: linear-gradient(135deg, #0f6e5f, #14b8a6, #2563eb, #7c3aed);
+  background-size: 400% 400%;
+  animation: gradientMove 18s ease infinite;
+}
+
+.floating-shape {
+  animation: floatShape 12s ease-in-out infinite alternate;
+}
+
+.floating-shape:nth-child(2) {
+  animation-delay: -4s;
+}
+.floating-shape:nth-child(3) {
+  animation-delay: -8s;
+}
+.floating-shape:nth-child(4) {
+  animation-delay: -2s;
+}
+
+.fade-in-up {
+  animation: fadeInUp 1s ease-out forwards;
+}
+
+.scroll-indicator {
+  animation: fadeOutDown 1s ease-in forwards;
+  animation-delay: 4s;
+}
+
+/* ========================================
+   HERO ZOOM PARALLAX ANIMATIONS
+   ======================================== */
+@keyframes heroZoomOut {
+  from {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: scale(1.4) translateY(-20vh);
+    opacity: 0;
+  }
+}
+
+.hero-content-zoom {
+  animation: heroZoomOut linear forwards;
+  animation-timeline: scroll();
+  animation-range: 0vh 50vh;
+}
+
+/* Fallback for browsers that don't support animation-timeline */
+@supports not (animation-timeline: scroll()) {
+  .hero-content-zoom {
+    animation: heroZoomOut 1.5s ease forwards;
+    animation-timeline: auto;
+  }
+}
+
+/* ---- Parallax Wrapper ---- */
+.parallax-wrapper {
+  overflow-x: hidden;
+  overflow-y: auto;
+  perspective: 1px;
+  transform-style: preserve-3d;
+}
+
+/* ---- Each Parallax Section ---- */
+.parallax-section {
+  position: relative;
+  transform-style: inherit;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* ========================================
+   DIVISION HERO – PARALLAX BACKGROUND IMAGE
+   ======================================== */
+.division-hero-bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  z-index: 0;
+  will-change: transform;
+}
+
+/* Safari fallback – fixed attachment not supported on mobile */
+@supports (-webkit-touch-callout: none) {
+  .division-hero-bg {
+    background-attachment: scroll;
+  }
+}
+
+/* ========================================
+   TEXT ROLLER ANIMATION (Hospital Hero)
+   ======================================== */
+@keyframes textRollerSlide {
+  0% {
+    top: 0;
+  }
+  25% {
+    top: -4.125rem;
+  }
+  50% {
+    top: -8.25rem;
+  }
+  75% {
+    top: -12.375rem;
+  }
+  100% {
+    top: -12.375rem;
+  }
+}
+
+@keyframes textRollerSlideMobile {
+  0% {
+    top: 0;
+  }
+  25% {
+    top: -2.6rem;
+  }
+  50% {
+    top: -5.2rem;
+  }
+  75% {
+    top: -7.8rem;
+  }
+  100% {
+    top: -7.8rem;
+  }
+}
+
+.text-roller {
+  height: 4.125rem;
+  line-height: 4.125rem;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.text-roller-track {
+  position: absolute;
+  top: 0;
+  animation: textRollerSlide 5s ease-in-out forwards;
+}
+
+@media screen and (max-width: 640px) {
+  .text-roller {
+    height: 2.6rem;
+    line-height: 2.6rem;
+  }
+  .text-roller-track {
+    animation: textRollerSlideMobile 5s ease-in-out forwards;
+  }
+}
+
+/* ========================================
+   HERO TEXT REVEAL – Slide in on enter, out on exit
+   ======================================== */
+@keyframes heroTextSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heroTextSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+}
+
+.hero-text-enter {
+  animation: heroTextSlideIn 0.8s ease-out forwards;
+}
+
+.hero-text-exit {
+  animation: heroTextSlideOut 0.5s ease-in forwards;
+}
+
+/* Staggered delays for child elements */
+.hero-text-enter-d1 {
+  animation: heroTextSlideIn 0.8s ease-out 0.15s forwards;
+  opacity: 0;
+}
+.hero-text-enter-d2 {
+  animation: heroTextSlideIn 0.8s ease-out 0.3s forwards;
+  opacity: 0;
+}
+.hero-text-enter-d3 {
+  animation: heroTextSlideIn 0.8s ease-out 0.45s forwards;
+  opacity: 0;
+}
+.hero-text-enter-d4 {
+  animation: heroTextSlideIn 0.8s ease-out 0.6s forwards;
+  opacity: 0;
 }
