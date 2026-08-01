@@ -205,21 +205,19 @@ export function Header() {
             </span>
           </div>
           <a
-            href="tel:+251583201998"
+            href="tel:+251983201998"
             className={`inline-flex items-center gap-1 whitespace-nowrap transition-colors ${
               isScrolled
                 ? "text-destructive-foreground/80 hover:text-destructive-foreground"
                 : "text-white/90 hover:text-white"
             }`}
           >
-            <span>{t("topbar.call")} +251 58 320 1998</span>
+            <span>{t("topbar.call")} +251 98 320 1998</span>
           </a>
         </div>
       </div>
 
-      {/* ============================================================
-          MAIN NAV
-          ============================================================ */}
+      
       <header
         className={`fixed left-1/2 top-[36px] z-40 mx-auto flex w-[95vw] max-w-[1400px] -translate-x-1/2 rounded-2xl transition-all duration-300 ease-in-out`}
       >
@@ -259,13 +257,12 @@ export function Header() {
                 />
               </div>
               
-              {/* ✅ CHANGED: Added "Afilas Diagnostics Center" right under the logo */}
               <span
                 className={`mt-0.5 text-[6px] sm:text-[10px] font-medium tracking-wide uppercase ${
                   isScrolled ? "text-slate-500 dark:text-slate-400" : "text-white/70"
                 }`}
               >
-                Afilas Diagnostics Center
+                Share Company
               </span>
             </Link>
 
@@ -674,7 +671,6 @@ export function Header() {
               ) : (
                 <Menu className="size-3 sm:size-4 shrink-0" />
               )}
-              {/* ✅ FIX: Use translation variable instead of hardcoded text! */}
               <span className="sr-only">{t("nav.toggle_menu") || "Toggle navigation"}</span>
             </button>
           </div>
