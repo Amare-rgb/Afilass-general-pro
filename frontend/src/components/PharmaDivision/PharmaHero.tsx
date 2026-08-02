@@ -92,28 +92,7 @@ export function PharmaHero() {
               >
                 {t("pharma.hero.subtitle")}
               </p>
-
-              {/* Social proof */}
-              <div
-                className={`mt-8 flex flex-col sm:flex-row items-center gap-4 lg:justify-start ${
-                  isInView ? "hero-text-enter-d2" : hasExited ? "hero-text-exit" : "opacity-0"
-                }`}
-              >
-                <div className="flex -space-x-3 overflow-hidden">
-                  <div className="inline-block w-12 h-12 rounded-full ring-2 ring-white bg-white/20 flex items-center justify-center text-white font-bold">
-                    <Pill className="w-6 h-6" />
-                  </div>
-                  <div className="inline-block w-12 h-12 rounded-full ring-2 ring-white bg-white/20 flex items-center justify-center text-white font-bold">
-                    <Package className="w-6 h-6" />
-                  </div>
-                  <div className="inline-block w-12 h-12 rounded-full ring-2 ring-white bg-primary/40 flex items-center justify-center text-white font-bold text-[10px]">
-                    GMP
-                  </div>
-                </div>
-                <p className="text-sm text-white/80">
-                  {t("pharma.hero.social_proof")}
-                </p>
-              </div>
+              
 
               {/* Buttons */}
               <div
