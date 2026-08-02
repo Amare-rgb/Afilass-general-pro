@@ -1,4 +1,4 @@
-// frontend/src/components/TrustSection.tsx
+// src/components/TrustSection.tsx
 "use client";
 
 import { useLanguage } from "@/contexts/LanguageProvider";
@@ -38,7 +38,7 @@ export function TrustSection() {
   ];
 
   return (
-    <section className="py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-background">
+    <section className="relative z-20 py-16 sm:py-24 px-4 sm:px-6 lg:px-8 bg-white dark:bg-gray-900">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">

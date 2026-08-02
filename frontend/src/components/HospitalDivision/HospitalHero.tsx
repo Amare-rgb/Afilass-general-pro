@@ -18,11 +18,11 @@ interface DiagnosticsHeroProps {
   version?: string;
 }
 
-export function DiagnosticsHero({ 
+export function HospitalHero({ 
   title = "Afilas General Hospital",
   subtitle = "Monitor your application health and performance",
   status = 'healthy',
-  version = '1.0.0'
+  
 }: DiagnosticsHeroProps) {
   const { t } = useLanguage();
   const [showScroll, setShowScroll] = useState(true);
@@ -189,4 +189,4 @@ export function DiagnosticsHero({
   );
 }
 
-export default DiagnosticsHero;
+export default HospitalHero;

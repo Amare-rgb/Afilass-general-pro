@@ -1,4 +1,3 @@
-// app.js
 require('dotenv').config();
 
 // ===== FIX: Verify JWT_SECRET is loaded =====
@@ -51,8 +50,13 @@ app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Static files
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+// ============================================================
+// Static files - serve the actual uploads directory
+// ============================================================
+const uploadsPath = path.join(__dirname, '../uploads');
+console.log('Serving uploads from:', uploadsPath);
+app.use('/uploads', express.static(uploadsPath));
+// ============================================================
 
 // ===== NOTIFICATION DATA (In-memory storage) =====
 let notifications = [];

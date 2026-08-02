@@ -79,6 +79,9 @@
 html {
   background-color: var(--background);
   scroll-behavior: smooth;
+  /* dynamic header offset (set by Header component) */
+  --header-offset: 11rem;
+  scroll-padding-top: var(--header-offset);
   /* Standard property */
   text-size-adjust: 100%;
   /* Safari/iOS support */
@@ -92,6 +95,11 @@ html {
 body {
   background-color: var(--background);
   color: var(--foreground);
+}
+
+/* Ensure section anchors are not hidden behind fixed header/top bar */
+section[id] {
+  scroll-margin-top: var(--header-offset);
 }
 
 /*

@@ -113,26 +113,96 @@ export const api = {
   get: <T>(path: string, auth = false): Promise<T> => 
     request<T>(path, { method: 'GET', auth }),
   
-  post: <T>(path: string, body?: unknown, auth = false): Promise<T> =>
-    request<T>(path, { 
+  post: <T>(path: string, body?: unknown, auth = false): Promise<T> => {
+    // 🔥 FIX: Handle FormData separately
+    if (body instanceof FormData) {
+      const token = getToken();
+      const headers: Record<string, string> = { 'Accept': 'application/json' };
+      if (auth && token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const url = `${API_URL}${path}`;
+      return fetch(url, { 
+        method: 'POST', 
+        headers, 
+        body: body,
+      }).then(async (res) => {
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new ApiError(data.error || data.message || `HTTP ${res.status}`, res.status, data);
+        }
+        return res.json() as Promise<T>;
+      });
+    }
+    
+    // Standard JSON request
+    return request<T>(path, { 
       method: 'POST', 
       body: body ? JSON.stringify(body) : undefined, 
       auth 
-    }),
+    });
+  },
   
-  put: <T>(path: string, body?: unknown, auth = false): Promise<T> =>
-    request<T>(path, { 
+  put: <T>(path: string, body?: unknown, auth = false): Promise<T> => {
+    // 🔥 FIX: Handle FormData separately
+    if (body instanceof FormData) {
+      const token = getToken();
+      const headers: Record<string, string> = { 'Accept': 'application/json' };
+      if (auth && token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const url = `${API_URL}${path}`;
+      return fetch(url, { 
+        method: 'PUT', 
+        headers, 
+        body: body,
+      }).then(async (res) => {
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new ApiError(data.error || data.message || `HTTP ${res.status}`, res.status, data);
+        }
+        return res.json() as Promise<T>;
+      });
+    }
+    
+    return request<T>(path, { 
       method: 'PUT', 
       body: body ? JSON.stringify(body) : undefined, 
       auth 
-    }),
+    });
+  },
   
-  patch: <T>(path: string, body?: unknown, auth = false): Promise<T> =>
-    request<T>(path, { 
+  patch: <T>(path: string, body?: unknown, auth = false): Promise<T> => {
+    // 🔥 FIX: Handle FormData separately
+    if (body instanceof FormData) {
+      const token = getToken();
+      const headers: Record<string, string> = { 'Accept': 'application/json' };
+      if (auth && token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const url = `${API_URL}${path}`;
+      return fetch(url, { 
+        method: 'PATCH', 
+        headers, 
+        body: body,
+      }).then(async (res) => {
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new ApiError(data.error || data.message || `HTTP ${res.status}`, res.status, data);
+        }
+        return res.json() as Promise<T>;
+      });
+    }
+    
+    return request<T>(path, { 
       method: 'PATCH', 
       body: body ? JSON.stringify(body) : undefined, 
       auth 
-    }),
+    });
+  },
   
   delete: <T>(path: string, auth = false): Promise<T> => 
     request<T>(path, { method: 'DELETE', auth }),
@@ -288,6 +358,121 @@ export const api = {
       );
     }
   },
+
+  // ============ APPOINTMENT SPECIFIC METHODS ============
+
+  // Get all appointments with filters
+  getAppointments: async (params?: {
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+    doctorId?: string;
+    location?: string;
+  }, auth = true) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value && value !== 'all' && value !== 'undefined') {
+          queryParams.append(key, value);
+        }
+      });
+    }
+    const queryString = queryParams.toString();
+    const endpoint = `/appointments${queryString ? `?${queryString}` : ''}`;
+    return api.get(endpoint, auth);
+  },
+
+  // Get single appointment
+  getAppointment: (id: string, auth = true) => 
+    api.get(`/appointments/${id}`, auth),
+
+  // Create appointment (public or authenticated)
+  createAppointment: (data: any, auth = false) => 
+    api.post('/appointments', data, auth),
+
+  // Update appointment status
+  updateAppointmentStatus: (id: string, status: string, auth = true) =>
+    api.patch(`/appointments/${id}/status`, { status }, auth),
+
+  // Update appointment details
+  updateAppointment: (id: string, data: any, auth = true) =>
+    api.put(`/appointments/${id}`, data, auth),
+
+  // Delete appointment
+  deleteAppointment: (id: string, auth = true) =>
+    api.delete(`/appointments/${id}`, auth),
+
+  // Cancel appointment (user)
+  cancelAppointment: (id: string, auth = true) =>
+    api.delete(`/appointments/${id}/cancel`, auth),
+
+  // ============ DEPARTMENT METHODS ============
+  
+  getDepartments: (auth = false) => 
+    api.get('/departments', auth),
+
+  getDepartment: (id: string, auth = false) => 
+    api.get(`/departments/${id}`, auth),
+
+  // ============ DOCTOR METHODS ============
+  
+  getDoctors: (params?: { departmentId?: string; active?: boolean }, auth = false) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+    const queryString = queryParams.toString();
+    const endpoint = `/doctors${queryString ? `?${queryString}` : ''}`;
+    return api.get(endpoint, auth);
+  },
+
+  getDoctor: (id: string, auth = false) => 
+    api.get(`/doctors/${id}`, auth),
+
+  // ============ SERVICE METHODS ============
+  
+  getServices: (params?: { departmentId?: string; isActive?: boolean }, auth = false) => {
+    const queryParams = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value));
+        }
+      });
+    }
+    const queryString = queryParams.toString();
+    const endpoint = `/services${queryString ? `?${queryString}` : ''}`;
+    return api.get(endpoint, auth);
+  },
+
+  getService: (id: string, auth = false) => 
+    api.get(`/services/${id}`, auth),
+
+  // ============ AUTH METHODS ============
+  
+  login: (email: string, password: string) => 
+    api.post('/auth/login', { email, password }),
+
+  register: (data: any) => 
+    api.post('/auth/register', data),
+
+  getProfile: (auth = true) => 
+    api.get('/auth/profile', auth),
+
+  logout: () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(TOKEN_KEY);
+    }
+  },
+
+  // ============ DASHBOARD METHODS ============
+  
+  getDashboardSummary: (auth = true) => 
+    api.get('/dashboard/summary', auth),
 };
 
 // Helper function to safely extract data from API responses
@@ -299,3 +484,30 @@ export function extractApiData<T>(response: any): T {
   if (response.success && response.data) return response.data as T;
   return response as T;
 }
+
+// Helper function to check if API response is successful
+export function isApiSuccess(response: any): boolean {
+  return response && (response.success === true || response.status === 'success');
+}
+
+// Helper to get error message from API error
+export function getApiErrorMessage(error: any): string {
+  if (error instanceof ApiError) {
+    return error.message;
+  }
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  if (error?.message) {
+    return error.message;
+  }
+  if (error?.data?.error) {
+    return error.data.error;
+  }
+  return 'An unexpected error occurred';
+}
+
+export default api;

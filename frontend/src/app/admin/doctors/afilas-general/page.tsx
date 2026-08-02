@@ -434,6 +434,7 @@ export default function AfilasGeneralDoctorsPage() {
                         alt="Doctor preview"
                         width={128}
                         height={128}
+                        unoptimized
                         className="object-cover w-full h-full"
                       />
                     ) : (
@@ -686,6 +687,7 @@ export default function AfilasGeneralDoctorsPage() {
                     src={doc.photoUrl}
                     alt={doc.name}
                     fill
+                    unoptimized
                     className="object-cover"
                   />
                 ) : (

@@ -1,15 +1,13 @@
-// app/hospital/page.tsx
 "use client";
 
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DoctorFinder } from "@/components/DoctorFinder";
-import HospitalHero from "@/components/HospitalDivision/HospitalHero"; 
+import HospitalHero from "@/components/HospitalDivision/HospitalHero"; // ✅ Ensure this import is correct
 import { HospitalServices } from "@/components/HospitalDivision/HospitalServices";
 import Link from "next/link";
 import { 
   ArrowRight, 
-  Stethoscope, 
   Building2, 
   Users, 
   Heart, 
@@ -76,9 +74,14 @@ export default function HospitalPage() {
       <Header />
       <main className="pt-32">
         <div className="relative">
-          <HospitalHero />
+          
+          {/* ✅ USE THE CORRECT HERO COMPONENT */}
+          <HospitalHero 
+            title="Afilas General Hospital"
+            subtitle="Providing world-class healthcare with compassion and advanced medical technology."
+          />
 
-          {/* Departments section - Frontend with clickable cards */}
+          {/* Departments section */}
           <section
             id="departments"
             className="relative z-10 bg-background py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-t border-border"
@@ -138,33 +141,27 @@ export default function HospitalPage() {
                 {[
                   {
                     title: "ICU/CCU",
-                    desc: "Intensive care units with advanced monitoring and life support systems. Equipped with state-of-the-art ventilators, cardiac monitors, and 24/7 critical care specialists.",
-                    icon: "Heart"
+                    desc: "Intensive care units with advanced monitoring and life support systems.",
                   },
                   {
                     title: "Surgery Suites",
-                    desc: "Modern operating rooms with latest equipment including robotic-assisted surgery, laparoscopic instruments, and advanced anesthesia monitoring.",
-                    icon: "Hospital"
+                    desc: "Modern operating rooms with latest equipment including robotic-assisted surgery.",
                   },
                   {
                     title: "Diagnostic Center",
-                    desc: "Advanced imaging and laboratory services including MRI, CT scans, digital X-ray, ultrasound, and comprehensive clinical laboratory testing.",
-                    icon: "Microscope"
+                    desc: "Advanced imaging and laboratory services including MRI, CT scans, and X-ray.",
                   },
                   {
                     title: "Pharmacy",
-                    desc: "In-house pharmacy with comprehensive stock of medications, IV admixtures, and clinical pharmacy services available 24/7.",
-                    icon: "Pill"
+                    desc: "In-house pharmacy with comprehensive stock of medications available 24/7.",
                   },
                   {
                     title: "Blood Bank",
-                    desc: "Safe and tested blood transfusion services with full blood typing, cross-matching, and component therapy available around the clock.",
-                    icon: "Activity"
+                    desc: "Safe and tested blood transfusion services available around the clock.",
                   },
                   {
                     title: "Emergency Room",
-                    desc: "24/7 emergency services and trauma care with rapid response teams, dedicated cardiac and stroke protocols, and advanced life support.",
-                    icon: "Ambulance"
+                    desc: "24/7 emergency services and trauma care with rapid response teams.",
                   },
                 ].map((amenity, idx) => (
                   <div key={idx} className="text-center space-y-3 p-6 hover:bg-accent/5 rounded-2xl transition">

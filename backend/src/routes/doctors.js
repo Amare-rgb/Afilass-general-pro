@@ -1,10 +1,29 @@
-// backend/src/routes/doctors.js
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const prisma = require('../lib/prisma');
 const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
+
+// ============================================================
+// HELPER: Build absolute image URL for the Frontend
+// ============================================================
+function buildImageUrl(imagePath) {
+  if (!imagePath) return null;
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  // Ensure there's exactly one leading slash and handle /public/ paths
+  let cleanPath = imagePath;
+  if (!cleanPath.startsWith('/')) {
+    cleanPath = `/${cleanPath}`;
+  }
+  return `http://localhost:5000${cleanPath}`;
+}
+
+// ============================================================
+// ROUTES
+// ============================================================
 
 // Get all doctors with filters
 router.get('/', async (req, res) => {
@@ -43,7 +62,8 @@ router.get('/', async (req, res) => {
       name: doc.name,
       title: doc.specialization,
       bio: doc.bio || '',
-      photoUrl: doc.image || '',
+      // 🔥 FIX: Use the helper to send a valid full URL to the frontend
+      photoUrl: buildImageUrl(doc.image),
       active: doc.isAvailable,
       email: doc.email,
       phone: doc.phone,
@@ -52,7 +72,7 @@ router.get('/', async (req, res) => {
       education: doc.education,
       rating: doc.rating,
       consultationFee: doc.consultationFee,
-      scheduleSlots: doc.workingHours || [], // Ensure empty array if no working hours
+      scheduleSlots: doc.workingHours || [], 
       location: doc.location || null,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
@@ -97,7 +117,8 @@ router.get('/:id', async (req, res) => {
       name: doctor.name,
       title: doctor.specialization,
       bio: doctor.bio || '',
-      photoUrl: doctor.image || '',
+      // 🔥 FIX: Use the helper to send a valid full URL to the frontend
+      photoUrl: buildImageUrl(doctor.image),
       active: doctor.isAvailable,
       email: doctor.email,
       phone: doctor.phone,
@@ -272,7 +293,7 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
         bio: bio || '',
         education: education || '',
         experience: experience ? parseInt(experience) : 0,
-        image: photoUrl || '',
+        image: photoUrl || '', // This stores the database path
         isAvailable: true,
         consultationFee: consultationFee ? parseFloat(consultationFee) : 0,
         location: location || 'Afilas General Hospital',
@@ -290,7 +311,8 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
       name: doctor.name,
       title: doctor.specialization,
       bio: doctor.bio || '',
-      photoUrl: doctor.image || '',
+      // 🔥 Ensure we send the frontend-ready URL on creation
+      photoUrl: buildImageUrl(doctor.image),
       active: doctor.isAvailable,
       email: doctor.email,
       phone: doctor.phone,
@@ -437,7 +459,8 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
       name: finalDoctor.name,
       title: finalDoctor.specialization,
       bio: finalDoctor.bio || '',
-      photoUrl: finalDoctor.image || '',
+      // 🔥 Send the absolute URL to the frontend
+      photoUrl: buildImageUrl(finalDoctor.image),
       active: finalDoctor.isAvailable,
       email: finalDoctor.email,
       phone: finalDoctor.phone,
@@ -585,7 +608,7 @@ router.patch('/:id/toggle-status', auth, authorize('SUPER_ADMIN', 'ADMIN'), asyn
       name: updated.name,
       title: updated.specialization,
       bio: updated.bio || '',
-      photoUrl: updated.image || '',
+      photoUrl: buildImageUrl(updated.image),
       active: updated.isAvailable,
       email: updated.email,
       phone: updated.phone,

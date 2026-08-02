@@ -334,6 +334,7 @@ export default function AdminDoctorsPage() {
                         src={doc.photoUrl}
                         alt={doc.name}
                         fill
+                        unoptimized
                         className="object-cover"
                       />
                     ) : (

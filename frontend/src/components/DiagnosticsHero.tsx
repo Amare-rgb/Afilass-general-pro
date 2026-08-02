@@ -94,22 +94,7 @@ export function DiagnosticsHero() {
                 {t("diagnostics.hero.subtitle")}
               </p>
 
-              {/* Social proof - removed the text */}
-              <div
-                className={`mt-8 flex flex-col sm:flex-row items-center gap-4 lg:justify-start ${
-                  isInView ? "hero-text-enter-d2" : hasExited ? "hero-text-exit" : "opacity-0"
-                }`}
-              >
-                <div className="flex -space-x-3 overflow-hidden">
-                  <div className="inline-block w-12 h-12 rounded-full ring-2 ring-white bg-white/20 flex items-center justify-center text-white font-bold">
-                    <Microscope className="w-6 h-6" />
-                  </div>
-                  <div className="inline-block w-12 h-12 rounded-full ring-2 ring-white bg-white/20 flex items-center justify-center text-white font-bold">
-                    <Activity className="w-6 h-6" />
-                  </div>
-                </div>
-                {/* Removed the text paragraph */}
-              </div>
+             
 
               {/* Buttons */}
               <div

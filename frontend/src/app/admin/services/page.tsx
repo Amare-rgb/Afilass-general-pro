@@ -16,11 +16,12 @@ import {
   Image as ImageIcon,
   Trash2,
   Edit2,
-  GripVertical,
   Upload,
   Building2,
   DollarSign,
-  Clock
+  Clock,
+  Power,
+  PowerOff
 } from 'lucide-react';
 
 export default function AdminServicesPage() {
@@ -181,6 +182,20 @@ export default function AdminServicesPage() {
       setError(err instanceof ApiError ? err.message : t('admin.services.error_save'));
     } finally {
       setSaving(false);
+    }
+  }
+
+  // 🚀 NEW FUNCTION: Toggle Active Status
+  async function toggleStatus(service: Service) {
+    try {
+      // The correct URL for your backend route!
+      await api.patch(`/services/${service.id}/toggle-status`, {}, true);
+      
+      setSuccess(`Service ${service.isActive ? 'deactivated' : 'activated'} successfully`);
+      await loadData();
+    } catch (error) {
+      console.error('❌ Toggle error:', error);
+      setError(error instanceof ApiError ? error.message : 'Failed to toggle service status');
     }
   }
 
@@ -531,6 +546,26 @@ export default function AdminServicesPage() {
                   </div>
 
                   <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+                    <button
+                      onClick={() => toggleStatus(service)}
+                      className={`flex-1 text-sm font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1 ${
+                        service.isActive 
+                          ? 'text-orange-600 hover:text-orange-800 hover:bg-orange-50' 
+                          : 'text-green-600 hover:text-green-800 hover:bg-green-50'
+                      }`}
+                    >
+                      {service.isActive ? (
+                        <>
+                          <PowerOff className="w-3.5 h-3.5" />
+                          Deactivate
+                        </>
+                      ) : (
+                        <>
+                          <Power className="w-3.5 h-3.5" />
+                          Activate
+                        </>
+                      )}
+                    </button>
                     <button
                       onClick={() => startEdit(service)}
                       className="flex-1 text-sm text-clinical-700 hover:text-clinical-900 font-medium hover:bg-clinical-50 px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"

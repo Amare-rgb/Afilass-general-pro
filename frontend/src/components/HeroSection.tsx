@@ -90,26 +90,7 @@ export function HeroSection() {
             </div>
 
             {/* Trust Badges - Left aligned on mobile, centered on desktop */}
-            <div className="mt-6 flex flex-wrap items-center justify-start lg:justify-center gap-x-4 gap-y-2 text-sm font-medium text-white/90 drop-shadow-md">
-              <span className="flex items-center gap-1.5">
-                <span className="text-primary font-bold text-base">✓</span>
-                {t("hero.badge_emergency")}
-              </span>
-              <span className="hidden sm:inline text-white/30 select-none">
-                |
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="text-primary font-bold text-base">✓</span>
-                {t("hero.badge_iso")}
-              </span>
-              <span className="hidden sm:inline text-white/30 select-none">
-                |
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="text-primary font-bold text-base">✓</span>
-                {t("hero.badge_lab")}
-              </span>
-            </div>
+            
           </div>
         </div>
       </div>

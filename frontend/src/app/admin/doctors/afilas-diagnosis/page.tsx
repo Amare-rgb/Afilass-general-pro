@@ -686,6 +686,7 @@ export default function AfilasDiagnosisDoctorsPage() {
                     src={doc.photoUrl}
                     alt={doc.name}
                     fill
+                    unoptimized
                     className="object-cover"
                   />
                 ) : (

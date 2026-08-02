@@ -1,3 +1,4 @@
+// src/components/PageContent.tsx
 "use client";
 
 import { Header } from "@/components/Header";
@@ -12,24 +13,17 @@ export function PageContent() {
     <>
       <Header />
       <main>
-        {/* Sticky Slides Container */}
-        <div className="relative">
-          {/* Slide 1: Hero */}
-          <div className="sticky top-0 h-screen overflow-hidden z-0">
-            <HeroSection />
-          </div>
-
-          {/* Slide 2: Pillar Cards */}
-          <div className="sticky top-0 h-screen overflow-hidden z-0">
-            <PillarCards />
-          </div>
-        </div>
-
-        {/* Normal scrolling sections below */}
+        {/* Hero Section - Full viewport height, static */}
+        <HeroSection />
+        
+        {/* Pillar Cards Section - Normal scroll */}
+        <PillarCards />
+        
+        {/* Trust Section */}
         <TrustSection />
+        
+        {/* Doctor Finder */}
         <DoctorFinder />
-        {/* <HealthPackages /> */}
-        {/* <PharmaCatalog /> */}
       </main>
       <Footer />
     </>
