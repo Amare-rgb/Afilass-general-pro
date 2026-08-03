@@ -70,9 +70,10 @@ export function Header() {
 
   // Navigation links - About Us ONLY on Home page
   const navLinks = useMemo(() => {
+    const isPharma = pathname?.startsWith("/pharma");
     const links = [
       { label: t("nav.home"), href: "/" },
-      { label: t("nav.service") || "Services", href: "/services" },
+      { label: t("nav.service") || "Services", href: isPharma ? "/pharma#catalog" : "/services" },
       { label: t("nav.blog") || "Blog", href: "/blogs" },
     ];
     
@@ -85,7 +86,7 @@ export function Header() {
     links.push({ label: t("nav.contact_emergency"), href: isHome ? "/#contact" : "/contact" });
     
     return links;
-  }, [t, isHome]);
+  }, [t, isHome, pathname]);
 
   // Afilas Group branches - with bold colors and icons in front
   const pillarItems = useMemo(
@@ -310,6 +311,15 @@ export function Header() {
                 <Link
                   key={link.href}
                   href={link.href}
+                  onClick={(e) => {
+                    if (pathname?.startsWith("/pharma") && link.href.includes("#catalog")) {
+                      const el = document.getElementById("catalog");
+                      if (el) {
+                        e.preventDefault();
+                        el.scrollIntoView({ behavior: "smooth" });
+                      }
+                    }
+                  }}
                   className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${
                     isScrolled
                       ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
@@ -697,7 +707,16 @@ export function Header() {
                     ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
                     : "text-white/90 hover:bg-white/20 hover:text-white"
                 }`}
-                onClick={closeAll}
+                onClick={(e) => {
+                  closeAll();
+                  if (pathname?.startsWith("/pharma") && link.href.includes("#catalog")) {
+                    const el = document.getElementById("catalog");
+                    if (el) {
+                      e.preventDefault();
+                      el.scrollIntoView({ behavior: "smooth" });
+                    }
+                  }
+                }}
               >
                 {link.label}
               </Link>
