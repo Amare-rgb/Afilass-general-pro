@@ -237,6 +237,8 @@ const translations: Record<Language, Record<string, string>> = {
     "pharma.catalog.price": "Price",
     "pharma.catalog.active": "Active",
     "pharma.catalog.days": "days",
+    "pharma.catalog.empty_title": "No services yet",
+    "pharma.catalog.empty_desc": "We are currently updating our pharmaceutical service catalog for Afilas Drug Manufacturing. Please check back soon or submit a B2B inquiry.",
 
     // ============= Blog Page ==================
     "blog.title": "Health & Medical Insights",
@@ -514,6 +516,8 @@ const translations: Record<Language, Record<string, string>> = {
     "pharma.catalog.price": "ዋጋ",
     "pharma.catalog.active": "ንቁ",
     "pharma.catalog.days": "ቀናት",
+    "pharma.catalog.empty_title": "ምንም አገልግሎቶች የሉም",
+    "pharma.catalog.empty_desc": "በአሁኑ ጊዜ ለአፊላስ መድሃኒት ማምረቻ የመድሃኒት አገልግሎት ካታሎጋችንን በማዘመን ላይ ነን። እባክዎን በቅርቡ ተመልሰው ይመልከቱ ወይም B2B ጥያቄ ያስገቡ።",
 
     // ============= Blog Page ==================
     "blog.title": "የጤና እና ህክምና ግንዛቤዎች",
