@@ -4,7 +4,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useTheme } from "@/contexts/ThemeProvider";
 import { useLanguage } from "@/contexts/LanguageProvider";
 import {
@@ -20,10 +20,6 @@ import {
   Calendar,
   Menu,
   Monitor,
-  Stethoscope,
-  Hospital,
-  FlaskRoundIcon as Flask,
-  ShoppingBag,
 } from "lucide-react";
 
 // ============================================================
@@ -46,6 +42,31 @@ function useScroll() {
 }
 
 // ============================================================
+// CUSTOM HOOK: Click outside detection
+// ============================================================
+function useClickOutside(
+  ref: React.RefObject<HTMLElement>,
+  handler: () => void
+) {
+  useEffect(() => {
+    const listener = (event: MouseEvent | TouchEvent) => {
+      if (!ref.current || ref.current.contains(event.target as Node)) {
+        return;
+      }
+      handler();
+    };
+
+    document.addEventListener("mousedown", listener);
+    document.addEventListener("touchstart", listener);
+
+    return () => {
+      document.removeEventListener("mousedown", listener);
+      document.removeEventListener("touchstart", listener);
+    };
+  }, [ref, handler]);
+}
+
+// ============================================================
 // HEADER COMPONENT
 // ============================================================
 export function Header() {
@@ -54,8 +75,15 @@ export function Header() {
   const [groupDropdownOpen, setGroupDropdownOpen] = useState(false);
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
-  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
   const [appointmentDropdownOpen, setAppointmentDropdownOpen] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
+
+  // Refs for dropdowns
+  const groupDropdownRef = useRef<HTMLDivElement>(null);
+  const languageDropdownRef = useRef<HTMLDivElement>(null);
+  const themeDropdownRef = useRef<HTMLDivElement>(null);
+  const appointmentDropdownRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const { theme, setTheme } = useTheme();
   const { language, setLanguage, t } = useLanguage();
@@ -67,14 +95,25 @@ export function Header() {
   const isBranchPage = ["/hospital", "/diagnostics", "/pharma"].includes(pathname);
   const isHeaderTransparent = isBranchPage && !isScrolled;
 
+  // Click outside handlers
+  useClickOutside(groupDropdownRef, () => setGroupDropdownOpen(false));
+  useClickOutside(languageDropdownRef, () => setLanguageDropdownOpen(false));
+  useClickOutside(themeDropdownRef, () => setThemeDropdownOpen(false));
+  useClickOutside(appointmentDropdownRef, () => setAppointmentDropdownOpen(false));
+  useClickOutside(mobileMenuRef, () => setMobileOpen(false));
+
   useEffect(() => {
     setMounted(true);
-    // Check if there's a saved branch in localStorage
     const savedBranch = localStorage.getItem('selected-branch');
     if (savedBranch) {
       setSelectedBranch(savedBranch);
     }
   }, []);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
 
   // Afilas Group branches
   const pillarItems = useMemo(
@@ -125,7 +164,7 @@ export function Header() {
     router.push(branchHref);
   };
 
-  // Clear selected branch - Navigate to home
+  // Clear selected branch
   const clearSelectedBranch = () => {
     setSelectedBranch(null);
     localStorage.removeItem('selected-branch');
@@ -145,7 +184,6 @@ export function Header() {
   const getThemeLabel = (): string => {
     if (theme === "light") return "Light";
     if (theme === "dark") return "Dark";
-    if (theme === "system") return "System";
     return "System";
   };
 
@@ -168,9 +206,7 @@ export function Header() {
 
   return (
     <>
-      {/* ============================================================
-          TOP BAR
-          ============================================================ */}
+      {/* TOP BAR */}
       <div
         className={`topbar fixed top-0 z-50 w-full border-b transition-all duration-300 ease-in-out ${
           isScrolled
@@ -196,10 +232,10 @@ export function Header() {
         </div>
       </div>
 
-      
       <header
-        className={`fixed left-1/2 top-[36px] z-40 mx-auto flex w-[95vw] max-w-[1400px] -translate-x-1/2 rounded-2xl transition-all duration-300 ease-in-out`}
+        className="fixed left-1/2 z-40 mx-auto flex w-[95vw] max-w-[1400px] -translate-x-1/2 rounded-2xl transition-all duration-300 ease-in-out"
         id="main-header"
+        style={{ top: "var(--topbar-height, 36px)" }}
       >
         {/* Header Background */}
         <div
@@ -278,11 +314,11 @@ export function Header() {
             )}
           </div>
 
-          {/* ✅ DYNAMIC DESKTOP NAVIGATION */}
+          {/* DESKTOP NAVIGATION */}
           <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-center">
             <div className="flex items-center gap-1 xl:gap-2">
               
-              {/* 1. HOME - Only on Home Page */}
+              {/* HOME */}
               {isHome && (
                 <Link
                   href="/"
@@ -294,8 +330,8 @@ export function Header() {
                 </Link>
               )}
 
-              {/* 2. AFILAS GROUP - ALWAYS DISPLAYED (CLICK ONLY) */}
-              <div className="relative">
+              {/* AFILAS GROUP DROPDOWN */}
+              <div className="relative" ref={groupDropdownRef}>
                 <button
                   type="button"
                   onClick={() => setGroupDropdownOpen(!groupDropdownOpen)}
@@ -309,7 +345,6 @@ export function Header() {
                   <ChevronDown className={`ml-1 h-4 w-4 transition-transform duration-200 ${groupDropdownOpen ? "rotate-180" : ""}`} />
                 </button>
 
-                {/* PERFECT DESKTOP DROPDOWN */}
                 {groupDropdownOpen && (
                   <div className={`absolute left-0 top-full z-50 mt-3 w-[650px] max-w-[90vw] rounded-2xl p-6 transition-all duration-300 shadow-2xl ${
                     isScrolled ? "bg-white/95 backdrop-blur-xl border border-slate-200/80 dark:bg-slate-900/95 dark:border-slate-700/80" : "bg-white/10 backdrop-blur-2xl border border-white/25"
@@ -362,11 +397,11 @@ export function Header() {
                 )}
               </div>
 
-              {/* 🟢 HOME PAGE LINKS */}
+              {/* HOME PAGE LINKS */}
               {isHome && (
                 <>
                   <Link
-                    href="/#contact"
+                    href="/contact"
                     className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${
                       isScrolled ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"
                     }`}
@@ -384,7 +419,7 @@ export function Header() {
                 </>
               )}
 
-              {/* 🔵 BRANCH PAGE LINKS (Services, Doctors, Blog) */}
+              {/* BRANCH PAGE LINKS */}
               {isBranchPage && (
                 <>
                   <Link
@@ -419,7 +454,7 @@ export function Header() {
           {/* Right Controls */}
           <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
             {/* Language Dropdown */}
-            <div className="relative">
+            <div className="relative" ref={languageDropdownRef}>
               <button
                 type="button"
                 onClick={() => { setLanguageDropdownOpen(!languageDropdownOpen); setThemeDropdownOpen(false); }}
@@ -449,7 +484,7 @@ export function Header() {
 
             {/* Theme Dropdown */}
             {mounted && (
-              <div className="relative">
+              <div className="relative" ref={themeDropdownRef}>
                 <button
                   type="button"
                   onClick={() => { setThemeDropdownOpen(!themeDropdownOpen); setLanguageDropdownOpen(false); }}
@@ -481,8 +516,8 @@ export function Header() {
               </div>
             )}
 
-            {/* Appointment Dropdown - Updated with correct names and no icons */}
-            <div className="relative">
+            {/* Appointment Dropdown */}
+            <div className="relative" ref={appointmentDropdownRef}>
               <button
                 type="button"
                 onClick={() => setAppointmentDropdownOpen(!appointmentDropdownOpen)}
@@ -557,10 +592,13 @@ export function Header() {
           </div>
         </nav>
 
-        {/* MOBILE NAVIGATION - DYNAMIC */}
-        <div className={`${mobileOpen ? "max-h-[85vh] opacity-100" : "max-h-0 opacity-0"} absolute left-0 right-0 top-full mt-2 overflow-hidden overflow-y-auto rounded-2xl transition-all duration-300 lg:hidden ${
-          isScrolled ? "border border-slate-200/80 bg-white/95 shadow-lg dark:border-slate-700/80 dark:bg-slate-900/95" : "border border-white/20 bg-white/10 backdrop-blur-md shadow-lg"
-        }`}>
+        {/* MOBILE NAVIGATION */}
+        <div
+          ref={mobileMenuRef}
+          className={`${mobileOpen ? "max-h-[85vh] opacity-100" : "max-h-0 opacity-0"} absolute left-0 right-0 top-full mt-2 overflow-hidden overflow-y-auto rounded-2xl transition-all duration-300 lg:hidden ${
+            isScrolled ? "border border-slate-200/80 bg-white/95 shadow-lg dark:border-slate-700/80 dark:bg-slate-900/95" : "border border-white/20 bg-white/10 backdrop-blur-md shadow-lg"
+          }`}
+        >
           <div className="flex flex-col gap-0.5 p-4">
             
             {/* HOME - Mobile */}
@@ -598,7 +636,7 @@ export function Header() {
             {/* HOME PAGE MOBILE LINKS */}
             {isHome && (
               <>
-                <Link href="/#contact" className={`flex items-center rounded-lg p-3 font-medium transition-colors ${isScrolled ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
+                <Link href="/contact" className={`flex items-center rounded-lg p-3 font-medium transition-colors ${isScrolled ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
                   {t("nav.contact_emergency") || "Contact & Emergency"}
                 </Link>
                 <Link href="/aboutUs" className={`flex items-center rounded-lg p-3 font-medium transition-colors ${isScrolled ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
@@ -622,7 +660,7 @@ export function Header() {
               </>
             )}
 
-            {/* Mobile Appointment Links - Updated with correct names and no icons */}
+            {/* Mobile Appointment Links */}
             <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 px-1">Book Services</p>
               <Link
@@ -704,8 +742,7 @@ export function Header() {
   );
 }
 
-// Set CSS variable for header offset (topbar + header heights)
-// Run in client by mounting a small effect
+// Set CSS variable for header offset
 if (typeof window !== 'undefined') {
   const setHeaderOffset = () => {
     try {
@@ -713,14 +750,14 @@ if (typeof window !== 'undefined') {
       const header = document.querySelector('#main-header') as HTMLElement | null;
       const topbarH = topbar ? topbar.offsetHeight : 0;
       const headerH = header ? header.offsetHeight : 0;
-      const total = topbarH + headerH + 8; // small extra gap
+      const total = topbarH + headerH + 8;
       document.documentElement.style.setProperty('--header-offset', `${total}px`);
+      document.documentElement.style.setProperty('--topbar-height', `${topbarH}px`);
     } catch (e) {
       /* ignore */
     }
   };
 
-  // set initially and on resize
   setHeaderOffset();
   window.addEventListener('resize', setHeaderOffset);
 }

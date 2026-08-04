@@ -88,7 +88,7 @@ export function HospitalHero({
   return (
     <div
       ref={heroRef}
-      className="relative sm:sticky sm:top-0 h-screen min-h-screen overflow-hidden flex items-center py-0 bg-gradient-to-br from-green-900 via-emerald-800 to-teal-950"
+      className="relative h-screen min-h-screen overflow-hidden flex items-center py-0 bg-gradient-to-br from-green-900 via-emerald-800 to-teal-950"
     >
       {/* Background pattern overlay */}
       <div

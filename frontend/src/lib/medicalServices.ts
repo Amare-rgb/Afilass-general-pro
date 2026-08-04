@@ -1,4 +1,4 @@
-// lib/medicalServices.ts
+// src/lib/medicalServices.ts
 import axios from 'axios';
 
 export interface Service {
@@ -19,6 +19,23 @@ export interface Service {
   updatedAt?: string;
 }
 
+export interface Doctor {
+  id: string;
+  name: string;
+  title: string;
+  specialization: string;
+  department: string;
+  active: boolean;
+  email: string;
+  phone: string;
+  availableDays: string[];
+  availableTime: string;
+  image?: string;
+  experience?: string;
+  education?: string;
+  bio?: string;
+}
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
 // Create axios instance with default config
@@ -27,124 +44,205 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000, // 10 second timeout
+  timeout: 10000,
 });
 
-// Fallback mock data
+// ============================================================
+// MOCK DOCTORS
+// ============================================================
+const mockDoctors: Doctor[] = [
+  {
+    id: 'doc-1',
+    name: 'Dr. Abebe Kebede',
+    title: 'Dr.',
+    specialization: 'Cardiology',
+    department: 'Cardiology',
+    active: true,
+    email: 'abebe.kebede@afilas.com',
+    phone: '+251 911 000 001',
+    availableDays: ['Monday', 'Wednesday', 'Friday'],
+    availableTime: '9:00 AM - 5:00 PM',
+    image: '/doctors/doctor-1.jpg',
+    experience: '15 years',
+    education: 'MD, Addis Ababa University',
+    bio: 'Dr. Abebe Kebede is a renowned cardiologist with over 15 years of experience.'
+  },
+  {
+    id: 'doc-2',
+    name: 'Dr. Selam Tesfaye',
+    title: 'Dr.',
+    specialization: 'Pediatrics',
+    department: 'Pediatrics',
+    active: true,
+    email: 'selam.tesfaye@afilas.com',
+    phone: '+251 911 000 002',
+    availableDays: ['Tuesday', 'Thursday', 'Saturday'],
+    availableTime: '9:00 AM - 5:00 PM',
+    image: '/doctors/doctor-2.jpg',
+    experience: '10 years',
+    education: 'MD, Gondar University',
+    bio: 'Dr. Selam Tesfaye is a compassionate pediatrician dedicated to children\'s health.'
+  },
+  {
+    id: 'doc-3',
+    name: 'Dr. Yonas Worku',
+    title: 'Dr.',
+    specialization: 'Orthopedics',
+    department: 'Orthopedics',
+    active: true,
+    email: 'yonas.worku@afilas.com',
+    phone: '+251 911 000 003',
+    availableDays: ['Monday', 'Tuesday', 'Thursday'],
+    availableTime: '8:00 AM - 4:00 PM',
+    image: '/doctors/doctor-3.jpg',
+    experience: '12 years',
+    education: 'MD, Jimma University',
+    bio: 'Dr. Yonas Worku is an experienced orthopedic surgeon.'
+  },
+  {
+    id: 'doc-4',
+    name: 'Dr. Tigist Hailu',
+    title: 'Dr.',
+    specialization: 'Gynecology',
+    department: 'Gynecology',
+    active: true,
+    email: 'tigist.hailu@afilas.com',
+    phone: '+251 911 000 004',
+    availableDays: ['Wednesday', 'Friday', 'Saturday'],
+    availableTime: '9:00 AM - 6:00 PM',
+    image: '/doctors/doctor-4.jpg',
+    experience: '8 years',
+    education: 'MD, Bahir Dar University',
+    bio: 'Dr. Tigist Hailu is a dedicated gynecologist.'
+  }
+];
+
+// ============================================================
+// SIMPLE MOCK SERVICES - Just enough to satisfy the backend
+// ============================================================
 const mockServices: Service[] = [
   {
-    id: "mock-1",
-    name: "General Consultation",
-    description: "Comprehensive consultation with a specialist physician for diagnosis and treatment planning.",
+    id: 'gen-consult',
+    name: 'General Consultation',
+    description: 'Standard general medical consultation',
     price: 50,
     duration: 30,
     image: null,
     departmentId: null,
-    location: "Afilas General Hospital",
+    location: 'Afilas General Hospital',
     isActive: true,
-    department: undefined
-  },
-  {
-    id: "mock-2",
-    name: "Cardiac Check-up",
-    description: "Full cardiac evaluation including ECG, stress test, and specialist cardiology review.",
-    price: 120,
-    duration: 45,
-    image: null,
-    departmentId: null,
-    location: "Afilas General Hospital",
-    isActive: true,
-    department: undefined
-  },
-  {
-    id: "mock-3",
-    name: "Pediatric Wellness Visit",
-    description: "Growth monitoring, developmental screening, vaccinations, and general pediatric care.",
-    price: 40,
-    duration: 25,
-    image: null,
-    departmentId: null,
-    location: "Afilas General Hospital",
-    isActive: true,
-    department: undefined
-  },
-  {
-    id: "mock-4",
-    name: "Orthopedic Assessment",
-    description: "Comprehensive bone, joint, and muscle examination with X-ray if needed.",
-    price: 70,
-    duration: 40,
-    image: null,
-    departmentId: null,
-    location: "Afilas General Hospital",
-    isActive: true,
-    department: undefined
-  },
-  {
-    id: "mock-5",
-    name: "Neurology Consultation",
-    description: "In-depth neurological examination, diagnostic testing, and treatment planning.",
-    price: 90,
-    duration: 50,
-    image: null,
-    departmentId: null,
-    location: "Afilas General Hospital",
-    isActive: true,
-    department: undefined
-  },
-  {
-    id: "mock-6",
-    name: "Emergency Triage",
-    description: "Rapid assessment and stabilisation for emergency cases with immediate care.",
-    price: 30,
-    duration: 20,
-    image: null,
-    departmentId: null,
-    location: "Afilas General Hospital",
-    isActive: true,
-    department: undefined
+    department: {
+      id: 'dept-1',
+      name: 'General Medicine'
+    }
   }
 ];
 
+// ============================================================
+// SERVICES API - MINIMAL VERSION
+// ============================================================
 export const servicesApi = {
-  // Get all services with fallback to mock data
+  // Get all services - returns mock data directly (no API call)
   async getAllServices(): Promise<Service[]> {
-    try {
-      console.log('Fetching services from API...');
-      const response = await api.get('/services');
-      console.log('API Response:', response.data);
-      
-      if (response.data && response.data.data && response.data.data.length > 0) {
-        return response.data.data;
-      } else {
-        console.log('No services from API, using mock data');
-        return mockServices;
-      }
-    } catch (error) {
-      console.error('Error fetching services, using mock data:', error);
-      return mockServices;
-    }
+    console.log('📋 Using mock services data');
+    return mockServices;
+  },
+
+  // Get active services - returns mock data directly (no API call)
+  async getActiveServices(): Promise<Service[]> {
+    console.log('📋 Using mock active services data');
+    return mockServices.filter(s => s.isActive === true);
   },
 
   // Get single service
   async getServiceById(id: string): Promise<Service | null> {
-    try {
-      const response = await api.get(`/services/${id}`);
-      return response.data.data || null;
-    } catch (error) {
-      console.error('Error fetching service:', error);
-      return mockServices.find(s => s.id === id) || null;
-    }
+    return mockServices.find(s => s.id === id) || null;
   },
 
   // Get services by department
   async getServicesByDepartment(departmentId: string): Promise<Service[]> {
+    return mockServices.filter(s => s.department?.id === departmentId);
+  },
+
+  // Get all doctors - tries API first, falls back to mock
+  async getDoctors(filters?: { active?: boolean }): Promise<Doctor[]> {
     try {
-      const response = await api.get(`/services/department/${departmentId}`);
+      console.log('Fetching doctors from API...');
+      const response = await api.get('/doctors');
+      console.log('Doctors API Response:', response.data);
+      
+      if (response.data && response.data.data && response.data.data.length > 0) {
+        let result = response.data.data;
+        if (filters?.active !== undefined) {
+          result = result.filter((d: Doctor) => d.active === filters.active);
+        }
+        return result;
+      } else {
+        console.log('No doctors from API, using mock data');
+        let result = mockDoctors;
+        if (filters?.active !== undefined) {
+          result = result.filter(d => d.active === filters.active);
+        }
+        return result;
+      }
+    } catch (error) {
+      console.error('Error fetching doctors, using mock data:', error);
+      let result = mockDoctors;
+      if (filters?.active !== undefined) {
+        result = result.filter(d => d.active === filters.active);
+      }
+      return result;
+    }
+  },
+
+  // Get a single doctor by ID
+  async getDoctorById(id: string): Promise<Doctor | null> {
+    try {
+      const response = await api.get(`/doctors/${id}`);
+      return response.data.data || null;
+    } catch (error) {
+      console.error('Error fetching doctor:', error);
+      return mockDoctors.find(d => d.id === id) || null;
+    }
+  },
+
+  // Get doctors by department
+  async getDoctorsByDepartment(department: string): Promise<Doctor[]> {
+    try {
+      const response = await api.get(`/doctors/department/${department}`);
       return response.data.data || [];
     } catch (error) {
-      console.error('Error fetching services by department:', error);
-      return mockServices;
+      console.error('Error fetching doctors by department:', error);
+      return mockDoctors.filter(d => d.department === department);
     }
+  },
+
+  // Search doctors
+  async searchDoctors(query: string): Promise<Doctor[]> {
+    try {
+      const response = await api.get(`/doctors/search?q=${query}`);
+      return response.data.data || [];
+    } catch (error) {
+      console.error('Error searching doctors:', error);
+      const lowerQuery = query.toLowerCase();
+      return mockDoctors.filter(d => 
+        d.name.toLowerCase().includes(lowerQuery) ||
+        d.specialization?.toLowerCase().includes(lowerQuery) ||
+        d.department?.toLowerCase().includes(lowerQuery)
+      );
+    }
+  },
+
+  // Search services - uses mock data
+  async searchServices(query: string): Promise<Service[]> {
+    console.log('📋 Searching services in mock data');
+    const lowerQuery = query.toLowerCase();
+    return mockServices.filter(s => 
+      s.name.toLowerCase().includes(lowerQuery) ||
+      (s.department && s.department.name && s.department.name.toLowerCase().includes(lowerQuery))
+    );
   }
 };
+
+// Default export
+export default servicesApi;

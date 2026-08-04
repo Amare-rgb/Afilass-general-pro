@@ -3,10 +3,12 @@
 
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
-import { PillarCards } from "@/components/PillarCards";
-import { TrustSection } from "@/components/TrustSection";
+import { GeneralSec } from "@/components/generalsec";
+import DiagnosisCenterSection from "@/components/DiagnosisCenterSection";
 import { DoctorFinder } from "@/components/DoctorFinder";
 import { Footer } from "@/components/Footer";
+import DrugManufacturingSection from "@/components/DrugManufacturingSection";
+import { UnifiedPillarsSection } from "@/components/Shared Essential";
 
 export function PageContent() {
   return (
@@ -16,11 +18,17 @@ export function PageContent() {
         {/* Hero Section - Full viewport height, static */}
         <HeroSection />
         
-        {/* Pillar Cards Section - Normal scroll */}
-        <PillarCards />
+        {/* General Section */}
+        <GeneralSec />
+
+        {/* Diagnosis Center Summary Section */}
+        <DiagnosisCenterSection />
         
-        {/* Trust Section */}
-        <TrustSection />
+        {/* Drug Manufacturing Section */}
+        <DrugManufacturingSection />
+        
+        {/* Three Pillars - Simple Cards (Displayed at Bottom) */}
+        <UnifiedPillarsSection />
         
         {/* Doctor Finder */}
         <DoctorFinder />
