@@ -124,25 +124,25 @@ export function Footer() {
           {/* Column 2: Contact Info */}
           <div className="md:col-span-3">
             <h3 className="text-[#888888] dark:text-slate-400 font-normal text-base mb-4">
-              {t("footer.contact")}
+              {t("contact")}
             </h3>
             <ul className="space-y-3 text-[#1A1A1A] dark:text-white font-normal text-base">
               <li className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-[#888888] dark:text-slate-400 shrink-0 mt-0.5" />
                 <span className="hover:opacity-75 transition-opacity">
-                  {t("footer.address")}
+                  Bahir Dar, Kebele 13, Around Felege Hiwot Hospital
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <Phone className="w-4 h-4 text-[#888888] dark:text-slate-400 shrink-0 mt-0.5" />
                 <span className="hover:opacity-75 transition-opacity">
-                  {t("footer.phone")}
+                  +251 58 320 4167
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <Mail className="w-4 h-4 text-[#888888] dark:text-slate-400 shrink-0 mt-0.5" />
                 <span className="hover:opacity-75 transition-opacity">
-                  {t("footer.email")}
+                  info@afilaspmms.com
                 </span>
               </li>
             </ul>
@@ -158,8 +158,9 @@ export function Footer() {
                 <div className="flex items-start gap-2">
                   <PhoneCall className="w-4 h-4 text-red-500 dark:text-red-400 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-medium">
-                      {t("footer.emergency_hotline")}
+                    <p className="font-medium">Emergency Hotline</p>
+                    <p className="text-lg font-bold text-red-600 dark:text-red-400">
+                      8560
                     </p>
                     <p className="text-xs text-[#888888] dark:text-slate-400">
                       24/7 Available

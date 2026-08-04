@@ -76,7 +76,6 @@ router.get('/', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req, r
       }
     }
 
-    // FIXED: Removed 'title' field from Doctor select
     const appointments = await prisma.appointment.findMany({
       where,
       include: {
@@ -85,7 +84,6 @@ router.get('/', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req, r
             id: true,
             name: true,
             specialization: true,
-            // title: true, // REMOVED - this field doesn't exist in the Doctor model
           },
         },
         service: {
@@ -138,7 +136,6 @@ router.get('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req
             id: true,
             name: true,
             specialization: true,
-            // title: true, // REMOVED
           },
         },
         service: {
@@ -194,7 +191,7 @@ router.get('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req
   }
 });
 
-// Create appointment
+// Create appointment - SERVICE ID IS NOW OPTIONAL
 router.post('/', [
   body('patientName').trim().notEmpty().withMessage('Patient name is required'),
   body('patientEmail').isEmail().withMessage('Valid email is required'),
@@ -202,7 +199,8 @@ router.post('/', [
   body('date').isISO8601().withMessage('Valid date is required'),
   body('time').matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Valid time is required (HH:MM)'),
   body('doctorId').notEmpty().withMessage('Doctor is required'),
-  body('serviceId').notEmpty().withMessage('Service is required'),
+  // serviceId is now optional - removed .notEmpty()
+  body('serviceId').optional().isString().withMessage('Service ID must be a string'),
   body('location').optional().isString(),
   body('notes').optional().isString(),
   body('symptoms').optional().isString(),
@@ -240,16 +238,19 @@ router.post('/', [
       });
     }
 
-    // Check if service exists
-    const service = await prisma.service.findUnique({
-      where: { id: serviceId },
-    });
-
-    if (!service || !service.isActive) {
-      return res.status(400).json({
-        success: false,
-        error: 'Service is not available',
+    // Check if service exists - ONLY IF serviceId IS PROVIDED
+    let service = null;
+    if (serviceId) {
+      service = await prisma.service.findUnique({
+        where: { id: serviceId },
       });
+
+      if (!service || !service.isActive) {
+        return res.status(400).json({
+          success: false,
+          error: 'Service is not available',
+        });
+      }
     }
 
     // Check if time slot is available
@@ -299,32 +300,37 @@ router.post('/', [
       }
     }
 
-    // Create appointment
+    // Create appointment - serviceId is optional
+    const appointmentData = {
+      patientName,
+      patientEmail,
+      patientPhone,
+      patientAge: patientAge ? parseInt(patientAge) : null,
+      patientGender,
+      date: appointmentDate,
+      time,
+      notes,
+      symptoms,
+      isEmergency: isEmergency || false,
+      doctorId,
+      userId: userId,
+      location: location || 'Afilas General Hospital',
+      status: 'PENDING',
+    };
+
+    // Only add serviceId if it's provided
+    if (serviceId) {
+      appointmentData.serviceId = serviceId;
+    }
+
     const appointment = await prisma.appointment.create({
-      data: {
-        patientName,
-        patientEmail,
-        patientPhone,
-        patientAge: patientAge ? parseInt(patientAge) : null,
-        patientGender,
-        date: appointmentDate,
-        time,
-        notes,
-        symptoms,
-        isEmergency: isEmergency || false,
-        doctorId,
-        serviceId,
-        userId: userId,
-        location: location || 'Afilas General Hospital',
-        status: 'PENDING',
-      },
+      data: appointmentData,
       include: {
         doctor: {
           select: {
             id: true,
             name: true,
             specialization: true,
-            // title: true, // REMOVED
           },
         },
         service: {
@@ -380,7 +386,6 @@ router.patch('/:id/status', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), [
             id: true,
             name: true,
             specialization: true,
-            // title: true, // REMOVED
           },
         },
         service: {
@@ -424,7 +429,6 @@ router.patch('/:id/status', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), [
             id: true,
             name: true,
             specialization: true,
-            // title: true, // REMOVED
           },
         },
         service: {
@@ -494,7 +498,7 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
         date: date ? new Date(date) : appointment.date,
         time: time || appointment.time,
         doctorId: doctorId || appointment.doctorId,
-        serviceId: serviceId || appointment.serviceId,
+        serviceId: serviceId !== undefined ? serviceId : appointment.serviceId,
         notes: notes !== undefined ? notes : appointment.notes,
         symptoms: symptoms !== undefined ? symptoms : appointment.symptoms,
         isEmergency: isEmergency !== undefined ? isEmergency : appointment.isEmergency,
@@ -506,7 +510,6 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
             id: true,
             name: true,
             specialization: true,
-            // title: true, // REMOVED
           },
         },
         service: {

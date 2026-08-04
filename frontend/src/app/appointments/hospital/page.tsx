@@ -17,12 +17,30 @@ import {
   Navigation
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { appointmentService } from '@/lib/appointment';
-import { medicalServices } from '@/lib/medicalServices';
-import { Appointment, Doctor, Service } from '@/lib/types';
+import api from '@/lib/api';
+import { Appointment } from '@/lib/types';
 
 // ============================================================
-// SCHEMA DEFINITION
+// TYPE DEFINITIONS
+// ============================================================
+interface Doctor {
+  id: string;
+  name: string;
+  title: string;
+  specialization: string;
+  department: string;
+  active: boolean;
+  email: string;
+  phone: string;
+  availableDays: string[];
+  availableTime: string;
+  image?: string;
+  experience?: string;
+  education?: string;
+}
+
+// ============================================================
+// SCHEMA DEFINITION - NO SERVICE SELECTION
 // ============================================================
 const hospitalBookingSchema = z.object({
   isEmergency: z.boolean(),
@@ -39,8 +57,7 @@ const hospitalBookingSchema = z.object({
   medicalHistory: z.string().optional(),
   appointmentDate: z.string().min(1, 'Date is required'),
   timeSlot: z.enum(['MORNING', 'AFTERNOON', 'EVENING']),
-  doctorId: z.string().optional(),
-  serviceId: z.string().optional(),
+  doctorId: z.string().min(1, 'Please select a doctor'),
 });
 
 type HospitalBookingData = z.infer<typeof hospitalBookingSchema>;
@@ -115,23 +132,23 @@ function EmergencyStep({ form, watch, setValue }: { form: any; watch: any; setVa
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <a
-                    href="tel:+251911000000"
+                    href="tel:8560"
                     className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white text-sm font-bold rounded-lg transition-all shadow-md hover:shadow-lg hover:shadow-red-500/30 transform hover:-translate-y-0.5"
                   >
                     <PhoneCall className="w-4 h-4" />
-                    +251 911 000 000
+                    8560 (Emergency Hotline)
                   </a>
                   <a
-                    href="tel:+251911000001"
+                    href="tel:+251583204167"
                     className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800/50 text-red-700 dark:text-red-300 text-sm font-bold rounded-lg transition-all border-2 border-red-300 dark:border-red-700 hover:border-red-500"
                   >
                     <PhoneCall className="w-4 h-4" />
-                    +251 911 000 001
+                    +251 58 320 4167
                   </a>
                 </div>
                 <div className="mt-3 flex items-center gap-2 text-xs text-red-600 dark:text-red-400 bg-white/50 dark:bg-black/20 p-2 rounded-lg">
                   <span className="font-medium text-base">📍</span>
-                  <span>Emergency Department - Ground Floor, East Wing</span>
+                  <span>Emergency Department - Bahir Dar, Kebele 13, Around Felege Hiwot Hospital</span>
                 </div>
                 <button
                   type="button"
@@ -181,7 +198,7 @@ function ServiceTypeStep({ form, watch, setValue }: { form: any; watch: any; set
             Visit us at Afilas General Hospital
           </div>
           <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
-            Bole Sub-city, Addis Ababa
+            Bahir Dar, Kebele 13, Around Felege Hiwot Hospital
           </div>
         </button>
 
@@ -199,7 +216,7 @@ function ServiceTypeStep({ form, watch, setValue }: { form: any; watch: any; set
             Doctor visits you at home
           </div>
           <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
-            Available within Addis Ababa
+            Available within Bahir Dar area
           </div>
         </button>
       </div>
@@ -222,7 +239,7 @@ function ServiceTypeStep({ form, watch, setValue }: { form: any; watch: any; set
               <input
                 {...register('city')}
                 type="text"
-                placeholder="Addis Ababa"
+                placeholder="Bahir Dar"
                 className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-1 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
@@ -233,7 +250,7 @@ function ServiceTypeStep({ form, watch, setValue }: { form: any; watch: any; set
               <input
                 {...register('subCity')}
                 type="text"
-                placeholder="Bole"
+                placeholder="Kebele 13"
                 className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-1 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
               />
             </div>
@@ -445,7 +462,7 @@ function PatientInfoStep({ form }: { form: any }) {
 }
 
 // Step 4: Scheduling
-function SchedulingStep({ form, doctors, services }: { form: any; doctors: Doctor[]; services: Service[] }) {
+function SchedulingStep({ form, doctors }: { form: any; doctors: Doctor[] }) {
   const { register, formState: { errors }, watch } = form;
 
   const getAvailableDates = () => {
@@ -488,26 +505,6 @@ function SchedulingStep({ form, doctors, services }: { form: any; doctors: Docto
           </select>
           {errors.doctorId && (
             <p className="mt-0.5 text-xs text-red-600">{errors.doctorId.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-            Service *
-          </label>
-          <select
-            {...register('serviceId')}
-            className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-1 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
-          >
-            <option value="">Select a service</option>
-            {services.filter(s => s.isActive !== false).map((service) => (
-              <option key={service.id} value={service.id}>
-                {service.name} {service.price ? `- $${service.price}` : ''}
-              </option>
-            ))}
-          </select>
-          {errors.serviceId && (
-            <p className="mt-0.5 text-xs text-red-600">{errors.serviceId.message}</p>
           )}
         </div>
 
@@ -587,6 +584,72 @@ function SchedulingStep({ form, doctors, services }: { form: any; doctors: Docto
 }
 
 // ============================================================
+// MOCK DOCTORS DATA
+// ============================================================
+const mockDoctors: Doctor[] = [
+  {
+    id: 'doc-1',
+    name: 'Dr. Abebe Kebede',
+    title: 'Dr.',
+    specialization: 'Cardiology',
+    department: 'Cardiology',
+    active: true,
+    email: 'abebe.kebede@afilas.com',
+    phone: '+251 911 000 001',
+    availableDays: ['Monday', 'Wednesday', 'Friday'],
+    availableTime: '9:00 AM - 5:00 PM',
+    image: '/doctors/doctor-1.jpg',
+    experience: '15 years',
+    education: 'MD, Addis Ababa University'
+  },
+  {
+    id: 'doc-2',
+    name: 'Dr. Selam Tesfaye',
+    title: 'Dr.',
+    specialization: 'Pediatrics',
+    department: 'Pediatrics',
+    active: true,
+    email: 'selam.tesfaye@afilas.com',
+    phone: '+251 911 000 002',
+    availableDays: ['Tuesday', 'Thursday', 'Saturday'],
+    availableTime: '9:00 AM - 5:00 PM',
+    image: '/doctors/doctor-2.jpg',
+    experience: '10 years',
+    education: 'MD, Gondar University'
+  },
+  {
+    id: 'doc-3',
+    name: 'Dr. Yonas Worku',
+    title: 'Dr.',
+    specialization: 'Orthopedics',
+    department: 'Orthopedics',
+    active: true,
+    email: 'yonas.worku@afilas.com',
+    phone: '+251 911 000 003',
+    availableDays: ['Monday', 'Tuesday', 'Thursday'],
+    availableTime: '8:00 AM - 4:00 PM',
+    image: '/doctors/doctor-3.jpg',
+    experience: '12 years',
+    education: 'MD, Jimma University'
+  },
+  {
+    id: 'doc-4',
+    name: 'Dr. Tigist Hailu',
+    title: 'Dr.',
+    specialization: 'Gynecology',
+    department: 'Gynecology',
+    active: true,
+    email: 'tigist.hailu@afilas.com',
+    phone: '+251 911 000 004',
+    availableDays: ['Wednesday', 'Friday', 'Saturday'],
+    availableTime: '9:00 AM - 6:00 PM',
+    image: '/doctors/doctor-4.jpg',
+    experience: '8 years',
+    education: 'MD, Bahir Dar University'
+  }
+];
+
+// ============================================================
 // MAIN COMPONENT
 // ============================================================
 export default function HospitalBookingPage() {
@@ -597,8 +660,8 @@ export default function HospitalBookingPage() {
   const [bookingData, setBookingData] = useState<HospitalBookingData | null>(null);
   const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
   const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [services, setServices] = useState<Service[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [errorDetails, setErrorDetails] = useState<string>('');
 
   const form = useForm<HospitalBookingData>({
     resolver: zodResolver(hospitalBookingSchema),
@@ -607,28 +670,34 @@ export default function HospitalBookingPage() {
       visitType: 'HOSPITAL',
       patientType: 'RETURNING',
       timeSlot: 'MORNING',
+      doctorId: '',
     },
   });
 
   const { watch, handleSubmit, trigger, setValue } = form;
   const isEmergency = watch('isEmergency');
 
-  // Load doctors and services using the medicalServices
+  // Load doctors
   useEffect(() => {
     async function loadData() {
       try {
-        const [doctorsData, servicesData] = await Promise.all([
-          medicalServices.getDoctors({ active: true }),
-          medicalServices.getServices({ isActive: true })
-        ]);
+        let doctorsData: Doctor[] = [];
+
+        try {
+          const response = await api.getDoctors({ active: true });
+          const data = api.extractData<Doctor[]>(response);
+          doctorsData = data && data.length > 0 ? data : mockDoctors;
+        } catch (error) {
+          console.log('API failed, using mock data:', error);
+          doctorsData = mockDoctors;
+        }
         
         setDoctors(doctorsData);
-        setServices(servicesData);
         console.log('✅ Loaded doctors:', doctorsData.length);
-        console.log('✅ Loaded services:', servicesData.length);
       } catch (error) {
         console.error('❌ Failed to load data:', error);
-        toast.error('Failed to load doctors and services');
+        setDoctors(mockDoctors);
+        toast.info('Using offline data');
       } finally {
         setLoadingData(false);
       }
@@ -652,7 +721,7 @@ export default function HospitalBookingPage() {
       case 2:
         return <PatientInfoStep form={form} />;
       case 3:
-        return <SchedulingStep form={form} doctors={doctors} services={services} />;
+        return <SchedulingStep form={form} doctors={doctors} />;
       default:
         return null;
     }
@@ -674,22 +743,22 @@ export default function HospitalBookingPage() {
             </p>
             <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
               <a
-                href="tel:+251911000000"
+                href="tel:8560"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition shadow-lg hover:shadow-red-500/30 text-lg font-bold"
               >
                 <PhoneCall className="w-5 h-5" />
-                +251 911 000 000
+                8560
               </a>
               <a
-                href="tel:+251911000001"
+                href="tel:+251583204167"
                 className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800/50 transition border-2 border-red-300 dark:border-red-700 text-lg font-bold"
               >
                 <PhoneCall className="w-5 h-5" />
-                +251 911 000 001
+                +251 58 320 4167
               </a>
             </div>
             <p className="mt-3 text-xs text-red-600 dark:text-red-400">
-              📍 Emergency Department - Ground Floor, East Wing
+              📍 Bahir Dar, Kebele 13, Around Felege Hiwot Hospital
             </p>
             <button
               onClick={() => setValue('isEmergency', false)}
@@ -721,7 +790,7 @@ export default function HospitalBookingPage() {
         }
         break;
       case 3:
-        fields = ['doctorId', 'serviceId', 'appointmentDate', 'timeSlot'];
+        fields = ['doctorId', 'appointmentDate', 'timeSlot'];
         break;
     }
 
@@ -752,54 +821,53 @@ export default function HospitalBookingPage() {
 
   const onSubmit = async (data: HospitalBookingData) => {
     setIsSubmitting(true);
+    setErrorDetails('');
+    
     try {
-      // Convert timeSlot to time string
       const timeMap: Record<string, string> = {
         MORNING: '09:00',
         AFTERNOON: '14:00',
         EVENING: '17:00',
       };
 
-      // Use selected doctor and service or fallback to first available
-      const doctorId = data.doctorId || (doctors.length > 0 ? doctors[0].id : '');
-      const serviceId = data.serviceId || (services.length > 0 ? services[0].id : '');
+      // Use a hardcoded service ID (you need this service in your database)
+      const DEFAULT_SERVICE_ID = 'gen-consult';
 
-      if (!doctorId || !serviceId) {
-        toast.error('No doctors or services available. Please contact support.');
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Prepare payload for API
       const payload = {
-        patientName: data.patientName,
-        patientEmail: data.patientEmail,
-        patientPhone: data.patientPhone,
+        patientName: data.patientName.trim(),
+        patientEmail: data.patientEmail.trim(),
+        patientPhone: data.patientPhone.trim(),
         patientAge: null,
         patientGender: null,
         date: data.appointmentDate,
         time: timeMap[data.timeSlot] || '09:00',
-        doctorId: doctorId,
-        serviceId: serviceId,
+        doctorId: data.doctorId,
+        serviceId: DEFAULT_SERVICE_ID,
         location: data.visitType === 'HOME_CARE' ? 'Home Care' : 'Afilas General Hospital',
         notes: data.medicalHistory || '',
         symptoms: data.medicalHistory || '',
         isEmergency: data.isEmergency || false,
       };
 
-      console.log('📤 Submitting appointment:', payload);
+      console.log('📤 Submitting appointment payload:', payload);
       
-      // Use the appointment service to create the appointment
-      const appointment = await appointmentService.createAppointment(payload);
-      console.log('✅ Appointment created:', appointment);
+      // Use api.createAppointment directly
+      const response = await api.createAppointment(payload, false);
       
-      setCreatedAppointment(appointment);
+      console.log('✅ Appointment created:', response);
+      
+      // Extract the appointment data
+      const appointmentData = api.extractData<Appointment>(response);
+      
+      setCreatedAppointment(appointmentData);
       setBookingData(data);
       setShowConfirmation(true);
       toast.success('Appointment booked successfully! 🎉');
     } catch (error: any) {
       console.error('❌ Booking error:', error);
-      toast.error(error.message || 'Failed to book appointment. Please try again.');
+      const errorMessage = error.message || 'Failed to book appointment. Please try again.';
+      setErrorDetails(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -842,7 +910,7 @@ export default function HospitalBookingPage() {
                 <p className="text-xs text-gray-600 dark:text-gray-300">
                   <span className="font-medium">Booking ID:</span>{' '}
                   <span className="font-mono text-blue-600 dark:text-blue-400">
-                    {createdAppointment.id.slice(0, 8)}
+                    {createdAppointment.id?.slice(0, 8) || 'N/A'}
                   </span>
                 </p>
               )}
@@ -909,6 +977,13 @@ export default function HospitalBookingPage() {
                   getStepContent()
                 )}
               </div>
+
+              {/* Error Details */}
+              {errorDetails && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-sm text-red-600">{errorDetails}</p>
+                </div>
+              )}
 
               {/* Navigation */}
               <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
