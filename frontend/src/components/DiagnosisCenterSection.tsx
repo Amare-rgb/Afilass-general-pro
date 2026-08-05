@@ -1,237 +1,232 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {
-  Building2,
-  ArrowRight,
-  FlaskConical,
   Microscope,
-  Bug,
-  ShieldCheck,
-  Waves,
-  ScanLine,
-  Scan,
-  Activity,
-  Briefcase,
-  Droplet,
-  HeartPulse,
-  Smartphone,
-  Lock,
   ChevronRight,
   Award,
   Clock,
+  ShieldCheck,
+  Smartphone,
+  Briefcase,
+  Droplet,
+  HeartPulse,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import type { ReactNode } from "react";
+import { useLanguage } from "@/contexts/LanguageProvider";
 
-/* ---------- Reveal-on-scroll wrapper ---------- */
-function Reveal({
-  children,
-  delay = 0,
-  className = "",
-}: {
-  children: ReactNode;
-  delay?: number;
-  className?: string;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+// ============================================================
+// CONFIGURATION – Change this to your own image
+// ============================================================
+const DIAGNOSTIC_IMAGE = {
+  src: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80",
+  alt: "Afilas Diagnostic Center - Advanced laboratory equipment",
+};
+
+// ============================================================
+// COMPONENT
+// ============================================================
+export default function AfilasDiagnosticCenter() {
+  const { t } = useLanguage();
+  const sectionRef = useRef<HTMLElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setVisible(true);
+          setIsVisible(true);
           observer.disconnect();
         }
       },
-      { threshold: 0.15, rootMargin: "0px 0px -40px 0px" }
+      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" }
     );
-    observer.observe(el);
+    if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
   }, []);
 
+  const features = [
+    {
+      icon: Microscope,
+      title: t("diagnostic.feature1_title"),
+      note: t("diagnostic.feature1_desc"),
+    },
+    {
+      icon: Clock,
+      title: t("diagnostic.feature2_title"),
+      note: t("diagnostic.feature2_desc"),
+    },
+    {
+      icon: ShieldCheck,
+      title: t("diagnostic.feature3_title"),
+      note: t("diagnostic.feature3_desc"),
+    },
+    {
+      icon: Smartphone,
+      title: t("diagnostic.feature4_title"),
+      note: t("diagnostic.feature4_desc"),
+    },
+  ];
+
+  const packages = [
+    {
+      icon: Briefcase,
+      name: t("diagnostic.package1_name"),
+      note: t("diagnostic.package1_desc"),
+    },
+    {
+      icon: Droplet,
+      name: t("diagnostic.package2_name"),
+      note: t("diagnostic.package2_desc"),
+    },
+    {
+      icon: HeartPulse,
+      name: t("diagnostic.package3_name"),
+      note: t("diagnostic.package3_desc"),
+    },
+  ];
+
   return (
-    <div
-      ref={ref}
-      style={{ transitionDelay: visible ? `${delay}ms` : "0ms" }}
-      className={`transition-all duration-700 ease-out ${
-        visible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
-      } ${className}`}
+    <section
+      id="afilas-diagnostic-center"
+      ref={sectionRef}
+      className={`w-full py-16 sm:py-20 lg:py-28 px-4 sm:px-6 lg:px-8 relative overflow-hidden transition-all duration-700 ease-out ${
+        isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+      }`}
+      style={{
+        // =========================================================
+        // SHAPED SECTION – curve at the bottom
+        // =========================================================
+        clipPath: "polygon(0 0, 100% 0, 100% 85%, 0 95%)",
+        // Background color: visible ONLY in light mode
+        // In dark mode, it becomes transparent
+        backgroundColor: "var(--muted, #f1f5f9)",
+        // Override in dark mode via a class approach
+      }}
     >
-      {children}
-    </div>
-  );
-}
+      {/* Use a child div for the background so we can control it with Tailwind classes */}
+      {/* The actual background div with conditional classes */}
+      <div className="absolute inset-0 pointer-events-none z-0 bg-muted/30 dark:bg-transparent" />
 
-/* ---------- Data ---------- */
-const LAB_SERVICES = [
-  { icon: Microscope, name: "Hematology", note: "Blood count & clotting studies" },
-  { icon: FlaskConical, name: "Biochemistry", note: "Organ & metabolic panels" },
-  { icon: Bug, name: "Microbiology", note: "Culture & sensitivity testing" },
-  { icon: ShieldCheck, name: "Immunology", note: "Antibody & antigen screening" },
-];
+      {/* Decorative blurred circles – kept for extra depth */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-secondary/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/3 left-1/2 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
+      </div>
 
-const PACKAGES = [
-  {
-    icon: Briefcase,
-    name: "Executive Wellness",
-    note: "A full-body baseline for busy schedules — bloodwork, imaging, and a same-week consult.",
-  },
-  {
-    icon: Droplet,
-    name: "Diabetic Care",
-    note: "Glucose, HbA1c, kidney and eye screening tracked together for ongoing management.",
-  },
-  {
-    icon: HeartPulse,
-    name: "Women's / Men's Health",
-    note: "Comprehensive screening built around the checks that matter most at each life stage.",
-  },
-];
-
-export default function AfilasDiagnosticCenter() {
-  return (
-    <section className="w-full py-20 px-4 sm:px-6 lg:px-8 bg-white relative overflow-hidden">
-      {/* Background Pattern */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage:
-            "linear-gradient(#0284c7 1px, transparent 1px), linear-gradient(90deg, #0284c7 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-        }}
-      />
-
-      <div className="relative max-w-6xl mx-auto">
-        
-        {/* ===== AFILAS DIAGNOSTIC CENTER - MINIMIZED CENTERED ===== */}
-        <Reveal className="mb-16">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-2 mb-2">
-              <Building2 className="w-5 h-5 text-sky-600" />
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900">
-                Afilas <span className="text-sky-600">Diagnostic Center</span>
-              </h2>
-            </div>
-            
-            <p className="text-sm md:text-base text-slate-600 max-w-2xl mx-auto">
-              Fast, precise, and reliable diagnostic results driving accurate medical decisions.
-            </p>
+      <div className="max-w-6xl mx-auto relative z-10">
+        {/* Header */}
+        <div
+          className={`flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-12 transition-all duration-700 ease-out ${
+            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
+          }`}
+        >
+          <div className="w-14 h-14 bg-primary/10 flex items-center justify-center flex-shrink-0 shadow-sm shadow-primary/5">
+            <Microscope className="w-7 h-7 text-primary" />
           </div>
-        </Reveal>
+          <div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
+              {t("diagnostic.title")}
+            </h2>
+            {/* <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
+              {t("diagnostic.subtitle")}
+            </p> */}
+          </div>
+        </div>
 
-        {/* About Afilas Diagnostic Center - Fully Centered */}
-        <Reveal delay={100} className="mb-16">
-          <div className="bg-gradient-to-br from-sky-50 to-blue-50 rounded-3xl border border-sky-200 p-8 md:p-10 hover:shadow-xl transition-all duration-500 hover:scale-[1.01]">
-            {/* Header - Centered */}
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <div className="bg-sky-600 p-2.5 rounded-xl">
-                <Award className="w-6 h-6 text-white" />
+        {/* Two‑column layout: text + image */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start mb-16">
+          {/* Left: About and features */}
+          <div className="space-y-6">
+            
+
+            {/* Features grid 2x2 */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {features.map(({ icon: Icon, title, note }, idx) => (
+                <div key={idx} className="bg-card border border-border p-4">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <Icon className="w-4 h-4 text-primary flex-shrink-0" />
+                    <h4 className="font-semibold text-foreground text-sm">
+                      {title}
+                    </h4>
+                  </div>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {note}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right: Image with colorful glow */}
+          <div className="relative">
+            {/* Glow effects */}
+            <div className="absolute -top-6 -right-6 w-64 h-64 bg-primary/30 rounded-full blur-3xl opacity-70" />
+            <div className="absolute -bottom-6 -left-6 w-64 h-64 bg-secondary/30 rounded-full blur-3xl opacity-70" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
+
+            <div className="relative overflow-hidden shadow-xl shadow-primary/10 bg-card">
+              <div className="aspect-[4/3] relative">
+                <Image
+                  src={DIAGNOSTIC_IMAGE.src}
+                  alt={DIAGNOSTIC_IMAGE.alt}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  priority
+                />
               </div>
-              <h3 className="font-serif font-bold text-2xl text-slate-900 text-center">
-                About Afilas Diagnostic Center
+            </div>
+          </div>
+        </div>
+
+        {/* Health Packages Section */}
+        <div>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-1 h-8 bg-primary" />
+            <div>
+              <h3 className="text-2xl sm:text-3xl font-bold text-foreground">
+                {t("diagnostic.packages_title")}
               </h3>
-            </div>
-            
-            {/* Description - Centered */}
-            <p className="text-slate-700 text-sm md:text-base leading-relaxed max-w-3xl mx-auto mb-6 text-center">
-              <span className="font-semibold text-sky-700">Afilas Diagnostic Center</span> is a 
-              state-of-the-art diagnostic facility dedicated to providing accurate, timely, and 
-              reliable diagnostic services to support better healthcare outcomes.
-            </p>
-            
-            {/* Features Grid - Centered */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto mb-6">
-              <div className="bg-white/60 rounded-xl p-4 border border-sky-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Microscope className="w-4 h-4 text-sky-600" />
-                  <h4 className="font-semibold text-slate-800 text-sm">Comprehensive Testing</h4>
-                </div>
-                <p className="text-xs text-slate-600 text-center">
-                  From routine blood work to specialized diagnostic tests.
-                </p>
-              </div>
-              
-              <div className="bg-white/60 rounded-xl p-4 border border-sky-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Clock className="w-4 h-4 text-sky-600" />
-                  <h4 className="font-semibold text-slate-800 text-sm">Quick Turnaround</h4>
-                </div>
-                <p className="text-xs text-slate-600 text-center">
-                  Results delivered within 24-48 hours with digital access.
-                </p>
-              </div>
-              
-              <div className="bg-white/60 rounded-xl p-4 border border-sky-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <ShieldCheck className="w-4 h-4 text-sky-600" />
-                  <h4 className="font-semibold text-slate-800 text-sm">Quality Assurance</h4>
-                </div>
-                <p className="text-xs text-slate-600 text-center">
-                  Advanced equipment with international quality standards.
-                </p>
-              </div>
-              
-              <div className="bg-white/60 rounded-xl p-4 border border-sky-100 hover:shadow-md transition-all duration-300 hover:-translate-y-1 text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Smartphone className="w-4 h-4 text-sky-600" />
-                  <h4 className="font-semibold text-slate-800 text-sm">Digital Convenience</h4>
-                </div>
-                <p className="text-xs text-slate-600 text-center">
-                  Secure online access to reports anytime, anywhere.
-                </p>
-              </div>
-            </div>
-
-            {/* Go To Diagnostic Center Button - Centered */}
-            <div className="flex justify-center mt-4">
-              <Link
-                href="/diagnostics"
-                className="group inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold px-6 py-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
-              >
-                Go To Diagnostic Center
-                <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </Link>
+              <p className="text-xs text-muted-foreground mt-0.5 uppercase tracking-wider">
+                {t("diagnostic.packages_subtitle")}
+              </p>
             </div>
           </div>
-        </Reveal>
 
-        {/* Specialized Health Check Packages - Centered with Enhanced Hover */}
-        <Reveal delay={150} className="mb-16">
-          <div className="text-center mb-6">
-            <h3 className="font-serif font-bold text-3xl text-slate-900">
-              Specialized Health Check Packages
-            </h3>
-            <p className="text-sm uppercase tracking-widest text-slate-400 mt-2">
-              Comprehensive screening for every life stage
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-5">
-            {PACKAGES.map(({ icon: Icon, name, note }) => (
+          <div className="grid sm:grid-cols-3 gap-4">
+            {packages.map(({ icon: Icon, name, note }, idx) => (
               <div
-                key={name}
-                className="group rounded-2xl bg-gradient-to-b from-sky-50 to-white border border-sky-100 p-6 hover:border-sky-400 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 text-center cursor-pointer"
+                key={idx}
+                className="border border-primary/30 p-6"
               >
-                <div className="bg-sky-600 w-14 h-14 rounded-full flex items-center justify-center mb-4 mx-auto group-hover:bg-sky-700 group-hover:scale-110 transition-all duration-300 shadow-lg group-hover:shadow-xl">
-                  <Icon className="w-6 h-6 text-white group-hover:scale-110 transition-transform duration-300" />
+                <div className="w-16 h-16 bg-primary/10 flex items-center justify-center mb-4">
+                  <Icon className="w-8 h-8 text-primary" />
                 </div>
-                <p className="font-semibold text-slate-900 group-hover:text-sky-700 transition-colors duration-300 text-lg mb-1">
+                <p className="font-semibold text-foreground text-base mb-1">
                   {name}
                 </p>
-                <p className="text-sm text-slate-600 group-hover:text-slate-800 transition-colors duration-300 leading-relaxed">
+                <p className="text-sm text-muted-foreground leading-relaxed">
                   {note}
                 </p>
-                <div className="mt-3 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                  <span className="text-xs text-sky-600 font-medium">Learn More →</span>
-                </div>
               </div>
             ))}
           </div>
-        </Reveal>
 
+          {/* CTA */}
+          <div className="mt-8">
+            <Link
+              href="/diagnostics"
+              className="group inline-flex items-center gap-2 text-primary font-semibold text-sm hover:gap-3 transition-all duration-300"
+            >
+              {t("diagnostic.cta")}
+              <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+        </div>
       </div>
     </section>
   );

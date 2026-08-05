@@ -259,21 +259,29 @@ export function Header() {
               onClick={clearSelectedBranch}
             >
               <div className="relative h-6 w-auto sm:h-9">
-                <Image
-                  src="/logo-header-190x49-1.png"
-                  alt="Afilas Share Company Logo"
-                  width={190}
-                  height={49}
-                  className="object-contain"
-                  priority
-                  style={{ 
-                    height: 'auto', 
-                    width: 'auto',
-                    maxHeight: '24px',
-                    filter: isScrolled ? 'none' : 'brightness(0) invert(1)'
-                  }}
-                />
-              </div>
+  {/* Light Mode Logo */}
+  <Image
+    src="/Afilas-Logo-Light.png"
+    alt="Afilas Share Company Logo"
+    width={190}
+    height={49}
+    className="object-contain block dark:hidden"
+    priority
+    style={{ height: 'auto', width: 'auto', maxHeight: '24px' }}
+  />
+
+  {/* Dark Mode Logo */}
+  <Image
+    src="/Afilas-Logo-Dark.png"
+    alt="Afilas Share Company Logo"
+    width={190}
+    height={49}
+    className="object-contain hidden dark:block"
+    priority
+    style={{ height: 'auto', width: 'auto', maxHeight: '24px' }}
+  />
+</div>
+
               <span className={`mt-0.5 text-[6px] sm:text-[10px] font-medium tracking-wide uppercase ${
                 isScrolled ? "text-slate-500 dark:text-slate-400" : "text-white/70"
               }`}>

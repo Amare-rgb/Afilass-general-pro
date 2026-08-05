@@ -113,14 +113,7 @@ export function UnifiedPillarsSection() {
       id: 1,
       title: t("pillars.card1_title"),
       icon: Building2,
-      color: "blue",
-      bg: "bg-blue-50",
-      border: "border-blue-200",
-      hoverBorder: "hover:border-blue-400",
-      text: "text-blue-600",
-      tag: "24/7 Care",
-      tagBg: "bg-blue-100",
-      tagText: "text-blue-700",
+      tag: t("pillars.card1_tag") || "24/7 Care",
       description: t("pillars.card1_desc"),
       highlights: [
         t("pillars.card1_highlight1"),
@@ -134,14 +127,7 @@ export function UnifiedPillarsSection() {
       id: 2,
       title: t("pillars.card2_title"),
       icon: Microscope,
-      color: "sky",
-      bg: "bg-sky-50",
-      border: "border-sky-200",
-      hoverBorder: "hover:border-sky-400",
-      text: "text-sky-600",
-      tag: "Precision",
-      tagBg: "bg-sky-100",
-      tagText: "text-sky-700",
+      tag: t("pillars.card2_tag") || "Precision",
       description: t("pillars.card2_desc"),
       highlights: [
         t("pillars.card2_highlight1"),
@@ -155,14 +141,7 @@ export function UnifiedPillarsSection() {
       id: 3,
       title: t("pillars.card3_title"),
       icon: ShieldCheck,
-      color: "emerald",
-      bg: "bg-emerald-50",
-      border: "border-emerald-200",
-      hoverBorder: "hover:border-emerald-400",
-      text: "text-emerald-600",
-      tag: "GMP Certified",
-      tagBg: "bg-emerald-100",
-      tagText: "text-emerald-700",
+      tag: t("pillars.card3_tag") || "GMP Certified",
       description: t("pillars.card3_desc"),
       highlights: [
         t("pillars.card3_highlight1"),
@@ -178,92 +157,78 @@ export function UnifiedPillarsSection() {
     <section
       id="three-pillars"
       ref={sectionRef}
-      className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 overflow-hidden relative"
-      style={{
-        background: "linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f8fafc 100%)",
-      }}
+      className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-muted/50"
     >
-      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-200 rounded-full opacity-10 -mr-48 -mt-48"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-emerald-200 rounded-full opacity-10 -ml-48 -mb-48"></div>
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-sky-100/20 rounded-full blur-3xl"></div>
-
-      <div className="relative max-w-7xl mx-auto z-10">
+      <div className="max-w-5xl mx-auto">
         
         {/* Header */}
-        <div className={`text-center mb-12 transition-all duration-700 ease-out ${
-          isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-20 opacity-0 scale-95"
+        <div className={`mb-10 transition-all duration-600 ease-out ${
+          isVisible ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
         }`}>
-          <div className="flex items-center justify-center gap-2 mb-3">
-            <Sparkles className="w-5 h-5 text-blue-600" />
-            <span className="text-sm uppercase tracking-[0.35em] text-blue-600 font-semibold">
-              All Page Descriptions
-            </span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-800">
-            Shared Essential Pages <span className="text-blue-600">Afilas</span>
+          <p className="text-xs text-muted-foreground uppercase tracking-[0.2em] font-medium mb-2">
+            {t("pillars.header_badge")}
+          </p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-foreground">
+            {t("pillars.header_title")}
           </h2>
-          <div className="w-20 h-1 bg-blue-600 mx-auto rounded-full mt-4"></div>
-          <p className="text-sm md:text-base text-gray-600 max-w-2xl mx-auto mt-4">
-            Integrated healthcare solutions across hospital, diagnostic, and pharmaceutical services.
+          <p className="text-sm text-muted-foreground mt-2 max-w-lg">
+            {t("pillars.header_subtitle")}
           </p>
         </div>
 
-        {/* Three Simple Cards */}
-        <div className="grid md:grid-cols-3 gap-6">
+        {/* Three Cards */}
+        <div className="grid md:grid-cols-3 gap-4 sm:gap-5">
           {pillars.map((pillar, index) => {
             const Icon = pillar.icon;
             return (
               <div
                 key={pillar.id}
-                className={`group bg-white rounded-2xl border ${pillar.border} shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:${pillar.hoverBorder} overflow-hidden ${
-                  isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-20 opacity-0 scale-95"
+                className={`group bg-card rounded-xl border border-border p-5 sm:p-6 hover:border-primary/30 transition-all duration-500 ${
+                  isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
                 }`}
-                style={{ transitionDelay: `${200 + index * 150}ms` }}
+                style={{ transitionDelay: `${150 + index * 100}ms` }}
               >
-                <div className="p-6">
-                  {/* Icon & Tag */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`${pillar.bg} p-3 rounded-xl group-hover:scale-110 transition-transform duration-300`}>
-                      <Icon className={`w-6 h-6 ${pillar.text}`} />
-                    </div>
-                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${pillar.tagBg} ${pillar.tagText}`}>
-                      {pillar.tag}
-                    </span>
+                {/* Icon & Tag */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Icon className="w-5 h-5 text-primary" />
                   </div>
-
-                  {/* Title */}
-                  <h3 className={`text-xl font-bold ${pillar.text} mb-2`}>
-                    {pillar.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                    {pillar.description}
-                  </p>
-
-                  {/* Highlights */}
-                  <div className="space-y-1.5 mb-4">
-                    {pillar.highlights.map((highlight, idx) => (
-                      <div
-                        key={idx}
-                        className="flex items-center gap-2 text-sm text-gray-600 group-hover:translate-x-0.5 transition-all duration-300"
-                        style={{ transitionDelay: `${idx * 30}ms` }}
-                      >
-                        <CheckCircle className={`w-4 h-4 ${pillar.text} flex-shrink-0`} />
-                        <span>{highlight}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* CTA */}
-                  <Link
-                    href={pillar.ctaLink}
-                    className={`inline-flex items-center gap-2 ${pillar.text} font-semibold text-sm hover:underline transition-all group/link`}
-                  >
-                    {pillar.cta}
-                    <ChevronRight className="w-4 h-4 transition-all duration-300 group-hover/link:translate-x-1 group-hover/link:scale-110" />
-                  </Link>
+                  <span className="text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                    {pillar.tag}
+                  </span>
                 </div>
+
+                {/* Title */}
+                <h3 className="text-lg font-bold text-foreground mb-2">
+                  {pillar.title}
+                </h3>
+
+                {/* Description */}
+                <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                  {pillar.description}
+                </p>
+
+                {/* Highlights */}
+                <div className="space-y-1.5 mb-5">
+                  {pillar.highlights.map((highlight, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center gap-2 text-sm text-foreground/70"
+                    >
+                      <CheckCircle className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                      <span>{highlight}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* CTA */}
+                <Link
+                  href={pillar.ctaLink}
+                  className="group/link inline-flex items-center gap-1.5 text-primary font-semibold text-sm hover:gap-2.5 transition-all duration-300"
+                >
+                  {pillar.cta}
+                  <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover/link:translate-x-0.5" />
+                </Link>
               </div>
             );
           })}
