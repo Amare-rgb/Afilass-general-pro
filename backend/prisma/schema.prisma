@@ -27,23 +27,6 @@ model User {
   @@map("users")
 }
 
-model Department {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  description String
-  icon        String?
-  image       String?
-  isActive    Boolean   @default(true)
-  order       Int       @default(0)
-  location    String?   @default("Afilas General Hospital")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  services    Service[]
-  
-  @@map("departments")
-}
-
 model Service {
   id          String    @id @default(cuid())
   name        String
@@ -51,13 +34,12 @@ model Service {
   price       Float?
   duration    Int?
   image       String?
+  category    String?   // Added category field
   isActive    Boolean   @default(true)
   location    String?   @default("Afilas General Hospital")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   
-  departmentId  String?
-  department    Department? @relation(fields: [departmentId], references: [id])
   appointments  Appointment[]
   
   @@map("services")
@@ -121,8 +103,8 @@ model Appointment {
   
   doctorId      String
   doctor        Doctor   @relation(fields: [doctorId], references: [id])
-  serviceId     String?  // ✅ MADE OPTIONAL
-  service       Service? @relation(fields: [serviceId], references: [id]) // ✅ MADE OPTIONAL
+  serviceId     String?
+  service       Service? @relation(fields: [serviceId], references: [id])
   userId        String?
   user          User?    @relation(fields: [userId], references: [id])
   

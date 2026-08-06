@@ -94,23 +94,8 @@ export default function AfilasDrugUsersPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          {/* FIXED: Back button now goes to /admin/user/all */}
-          <Link href="/admin/user/all" className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-            <ArrowLeft size={20} className="text-gray-600 dark:text-gray-300" />
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-              <Pill className="w-7 h-7 text-green-600" />
-              {LOCATION_NAME} - Users
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              View all users for {LOCATION_NAME}
-            </p>
-          </div>
-        </div>
+      {/* Header - Refresh button on right */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-end gap-4">
         <button
           onClick={load}
           className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
