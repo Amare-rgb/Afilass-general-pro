@@ -1,10 +1,13 @@
-// backend/src/routes/blog.js
 const express = require('express');
-const { body, validationResult } = require('express-validator');
+const { body, validationResult, param, query } = require('express-validator');
 const prisma = require('../lib/prisma');
 const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
+
+// ============================================================
+// HELPER FUNCTIONS
+// ============================================================
 
 // Generate slug from title
 function generateSlug(title) {
@@ -14,14 +17,176 @@ function generateSlug(title) {
     .replace(/^-+|-+$/g, '');
 }
 
+// Build image URL
+function buildImageUrl(imagePath) {
+  if (!imagePath) return null;
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  let cleanPath = imagePath;
+  if (!cleanPath.startsWith('/')) {
+    cleanPath = `/${cleanPath}`;
+  }
+  return `http://localhost:5000${cleanPath}`;
+}
+
+// ============================================================
+// VALIDATION FUNCTIONS
+// ============================================================
+
+const validateTitle = (value) => {
+  if (!value || value.trim().length === 0) {
+    throw new Error('Title is required');
+  }
+  if (value.trim().length < 5) {
+    throw new Error('Title must be at least 5 characters');
+  }
+  if (value.trim().length > 200) {
+    throw new Error('Title must be less than 200 characters');
+  }
+  return value.trim();
+};
+
+const validateContent = (value) => {
+  if (!value || value.trim().length === 0) {
+    throw new Error('Content is required');
+  }
+  if (value.trim().length < 20) {
+    throw new Error('Content must be at least 20 characters');
+  }
+  if (value.trim().length > 10000) {
+    throw new Error('Content must be less than 10,000 characters');
+  }
+  return value.trim();
+};
+
+const validateExcerpt = (value) => {
+  if (!value || value.trim().length === 0) {
+    return null; // Excerpt is optional, will use content substring
+  }
+  if (value.trim().length < 10) {
+    throw new Error('Excerpt must be at least 10 characters');
+  }
+  if (value.trim().length > 500) {
+    throw new Error('Excerpt must be less than 500 characters');
+  }
+  return value.trim();
+};
+
+const validateAuthor = (value) => {
+  if (!value || value.trim().length === 0) {
+    throw new Error('Author is required');
+  }
+  if (value.trim().length < 2) {
+    throw new Error('Author must be at least 2 characters');
+  }
+  if (value.trim().length > 100) {
+    throw new Error('Author must be less than 100 characters');
+  }
+  return value.trim();
+};
+
+const validateCategory = (value) => {
+  if (!value || value.trim().length === 0) {
+    return 'General'; // Default category
+  }
+  if (value.trim().length > 50) {
+    throw new Error('Category must be less than 50 characters');
+  }
+  return value.trim();
+};
+
+const validateLocation = (value) => {
+  if (!value || value.trim().length === 0) {
+    return 'Afilas General Hospital';
+  }
+  if (value.trim().length > 100) {
+    throw new Error('Location must be less than 100 characters');
+  }
+  return value.trim();
+};
+
+const validateTags = (value) => {
+  if (!value || !Array.isArray(value)) {
+    return [];
+  }
+  if (value.length > 20) {
+    throw new Error('Maximum 20 tags allowed');
+  }
+  for (const tag of value) {
+    if (typeof tag !== 'string' || tag.trim().length === 0) {
+      throw new Error('Tags must be non-empty strings');
+    }
+    if (tag.trim().length < 2) {
+      throw new Error('Each tag must be at least 2 characters');
+    }
+    if (tag.trim().length > 30) {
+      throw new Error('Each tag must be less than 30 characters');
+    }
+  }
+  return value.map(tag => tag.trim());
+};
+
+const validateImage = (value) => {
+  if (!value || value.trim().length === 0) {
+    return null;
+  }
+  if (value.trim().length > 500) {
+    throw new Error('Image URL must be less than 500 characters');
+  }
+  return value.trim();
+};
+
+const validateVideoUrl = (value) => {
+  if (!value || value.trim().length === 0) {
+    return null;
+  }
+  const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+  if (!urlPattern.test(value.trim())) {
+    throw new Error('Please enter a valid video URL');
+  }
+  if (value.trim().length > 500) {
+    throw new Error('Video URL must be less than 500 characters');
+  }
+  return value.trim();
+};
+
+const validateIsPublished = (value) => {
+  if (value === undefined || value === null) {
+    return false;
+  }
+  if (typeof value === 'string') {
+    return value.toLowerCase() === 'true';
+  }
+  return Boolean(value);
+};
+
+// ============================================================
+// ROUTES
+// ============================================================
+
 // ===== GET ALL BLOG POSTS =====
-router.get('/', async (req, res) => {
+router.get('/', [
+  query('published').optional().isBoolean().withMessage('published must be a boolean'),
+  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('limit must be between 1 and 100'),
+  query('page').optional().isInt({ min: 1 }).withMessage('page must be a positive integer'),
+  query('location').optional().isString().withMessage('location must be a string'),
+  query('category').optional().isString().withMessage('category must be a string'),
+  query('search').optional().isString().withMessage('search must be a string'),
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
+      });
+    }
+
     const { published, limit, page, location, category, search } = req.query;
     
     const where = {};
     
-    // Filter by published status
     if (published === 'true') {
       where.isPublished = true;
       where.publishedAt = { lte: new Date() };
@@ -29,18 +194,15 @@ router.get('/', async (req, res) => {
       where.isPublished = false;
     }
 
-    // Filter by location
-    if (location && location !== 'all') {
+    if (location && location !== 'all' && location !== 'undefined' && location !== 'null') {
       where.location = location;
     }
 
-    // Filter by category
     if (category) {
       where.category = category;
     }
 
-    // Search by title, content, or excerpt
-    if (search) {
+    if (search && search.trim().length > 0) {
       where.OR = [
         { title: { contains: search, mode: 'insensitive' } },
         { content: { contains: search, mode: 'insensitive' } },
@@ -58,33 +220,19 @@ router.get('/', async (req, res) => {
         orderBy: { createdAt: 'desc' },
         take,
         skip,
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          excerpt: true,
-          image: true,
-          videoUrl: true,
-          author: true,
-          authorId: true,
-          category: true,
-          location: true,
-          tags: true,
-          isPublished: true,
-          publishedAt: true,
-          views: true,
-          likes: true,
-          comments: true,
-          createdAt: true,
-          updatedAt: true,
-        },
       }),
       prisma.news.count({ where }),
     ]);
 
+    // Build image URLs
+    const mappedPosts = posts.map(post => ({
+      ...post,
+      image: buildImageUrl(post.image)
+    }));
+
     res.json({
       success: true,
-      data: posts,
+      data: mappedPosts,
       pagination: {
         total,
         page: pageNum,
@@ -97,14 +245,24 @@ router.get('/', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch blog posts',
-      details: error.message,
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined,
     });
   }
 });
 
 // ===== GET BLOG POST BY SLUG =====
-router.get('/slug/:slug', async (req, res) => {
+router.get('/slug/:slug', [
+  param('slug').isString().withMessage('Invalid slug'),
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
+      });
+    }
+
     const { slug } = req.params;
     
     const post = await prisma.news.findUnique({
@@ -137,7 +295,10 @@ router.get('/slug/:slug', async (req, res) => {
 
     res.json({
       success: true,
-      data: post,
+      data: {
+        ...post,
+        image: buildImageUrl(post.image)
+      },
     });
   } catch (error) {
     console.error('Get blog post by slug error:', error);
@@ -149,8 +310,18 @@ router.get('/slug/:slug', async (req, res) => {
 });
 
 // ===== GET SINGLE BLOG POST BY ID =====
-router.get('/:id', async (req, res) => {
+router.get('/:id', [
+  param('id').isString().withMessage('Invalid post ID'),
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
+      });
+    }
+
     const { id } = req.params;
     
     const post = await prisma.news.findUnique({
@@ -166,7 +337,10 @@ router.get('/:id', async (req, res) => {
 
     res.json({
       success: true,
-      data: post,
+      data: {
+        ...post,
+        image: buildImageUrl(post.image)
+      },
     });
   } catch (error) {
     console.error('Get blog post error:', error);
@@ -182,15 +356,78 @@ router.post('/',
   auth,
   authorize('SUPER_ADMIN', 'ADMIN'),
   [
-    body('title').trim().notEmpty().withMessage('Title is required'),
-    body('content').trim().notEmpty().withMessage('Content is required'),
-    body('author').trim().notEmpty().withMessage('Author is required'),
+    body('title')
+      .notEmpty().withMessage('Title is required')
+      .isString().withMessage('Title must be a string')
+      .isLength({ min: 5, max: 200 }).withMessage('Title must be between 5 and 200 characters'),
+    
+    body('content')
+      .notEmpty().withMessage('Content is required')
+      .isString().withMessage('Content must be a string')
+      .isLength({ min: 20, max: 10000 }).withMessage('Content must be between 20 and 10,000 characters'),
+    
+    body('excerpt')
+      .optional()
+      .isString().withMessage('Excerpt must be a string')
+      .isLength({ min: 10, max: 500 }).withMessage('Excerpt must be between 10 and 500 characters'),
+    
+    body('author')
+      .notEmpty().withMessage('Author is required')
+      .isString().withMessage('Author must be a string')
+      .isLength({ min: 2, max: 100 }).withMessage('Author must be between 2 and 100 characters'),
+    
+    body('category')
+      .optional()
+      .isString().withMessage('Category must be a string')
+      .isLength({ max: 50 }).withMessage('Category must be less than 50 characters'),
+    
+    body('location')
+      .optional()
+      .isString().withMessage('Location must be a string')
+      .isLength({ max: 100 }).withMessage('Location must be less than 100 characters'),
+    
+    body('image')
+      .optional()
+      .isString().withMessage('Image must be a string')
+      .isLength({ max: 500 }).withMessage('Image URL must be less than 500 characters'),
+    
+    body('videoUrl')
+      .optional()
+      .isString().withMessage('Video URL must be a string')
+      .isLength({ max: 500 }).withMessage('Video URL must be less than 500 characters'),
+    
+    body('tags')
+      .optional()
+      .isArray().withMessage('Tags must be an array'),
+    
+    body('tags.*')
+      .if(body('tags').exists())
+      .isString().withMessage('Each tag must be a string')
+      .isLength({ min: 2, max: 30 }).withMessage('Each tag must be between 2 and 30 characters'),
+    
+    body('isPublished')
+      .optional()
+      .isBoolean().withMessage('isPublished must be a boolean'),
+    
+    // Accept mediaType but don't store it
+    body('mediaType')
+      .optional()
+      .isString().withMessage('mediaType must be a string')
+      .isIn(['image', 'video']).withMessage('mediaType must be either "image" or "video"'),
   ],
   async (req, res) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
-        return res.status(400).json({ success: false, errors: errors.array() });
+        console.error('❌ Validation errors:', errors.array());
+        return res.status(400).json({
+          success: false,
+          errors: errors.array().map(e => ({ 
+            field: e.param, 
+            message: e.msg,
+            value: e.value 
+          }))
+        });
       }
 
       const { 
@@ -204,11 +441,43 @@ router.post('/',
         category,
         location,
         tags,
-        isPublished 
+        isPublished,
+        // mediaType is destructured but not used in DB
       } = req.body;
 
+      console.log('📝 Creating blog post with data:', { 
+        title, 
+        contentLength: content?.length,
+        author,
+        category,
+        location,
+        tagsCount: tags?.length,
+        isPublished 
+      });
+
+      // Validate data
+      let validatedData = {};
+      try {
+        validatedData.title = validateTitle(title);
+        validatedData.content = validateContent(content);
+        validatedData.excerpt = validateExcerpt(excerpt) || content.substring(0, 200);
+        validatedData.author = validateAuthor(author);
+        validatedData.category = validateCategory(category);
+        validatedData.location = validateLocation(location);
+        validatedData.tags = validateTags(tags);
+        validatedData.image = validateImage(image);
+        validatedData.videoUrl = validateVideoUrl(videoUrl);
+        validatedData.isPublished = validateIsPublished(isPublished);
+      } catch (validationError) {
+        console.error('❌ Validation error:', validationError.message);
+        return res.status(400).json({
+          success: false,
+          error: validationError.message,
+        });
+      }
+
       // Generate unique slug
-      let slug = generateSlug(title);
+      let slug = generateSlug(validatedData.title);
       let existing = await prisma.news.findUnique({ where: { slug } });
       
       if (existing) {
@@ -217,37 +486,42 @@ router.post('/',
 
       const post = await prisma.news.create({
         data: {
-          title,
+          title: validatedData.title,
           slug,
-          content,
-          excerpt: excerpt || content.substring(0, 200),
-          image: image || '',
-          videoUrl: videoUrl || '',
-          author,
+          content: validatedData.content,
+          excerpt: validatedData.excerpt,
+          image: validatedData.image,
+          videoUrl: validatedData.videoUrl,
+          author: validatedData.author,
           authorId: authorId || '',
-          category: category || 'General',
-          location: location || 'Afilas General Hospital',
-          tags: tags || [],
-          isPublished: isPublished || false,
-          publishedAt: isPublished ? new Date() : null,
+          category: validatedData.category,
+          location: validatedData.location,
+          tags: validatedData.tags,
+          isPublished: validatedData.isPublished,
+          publishedAt: validatedData.isPublished ? new Date() : null,
           views: 0,
           likes: 0,
           comments: 0,
         },
       });
 
-      console.log(`✅ Blog post created: ${post.title}`);
+      console.log(`✅ Blog post created: ${post.title} (ID: ${post.id})`);
       res.status(201).json({
         success: true,
-        data: post,
+        data: {
+          ...post,
+          image: buildImageUrl(post.image)
+        },
         message: 'Blog post created successfully',
       });
     } catch (error) {
       console.error('❌ Create blog post error:', error);
+      console.error('Request body:', req.body);
+      console.error('Error stack:', error.stack);
       res.status(500).json({
         success: false,
         error: 'Failed to create blog post',
-        details: error.message,
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
       });
     }
   }
@@ -257,8 +531,72 @@ router.post('/',
 router.put('/:id',
   auth,
   authorize('SUPER_ADMIN', 'ADMIN'),
+  [
+    param('id').isString().withMessage('Invalid post ID'),
+    
+    body('title')
+      .optional()
+      .isString().withMessage('Title must be a string')
+      .isLength({ min: 5, max: 200 }).withMessage('Title must be between 5 and 200 characters'),
+    
+    body('content')
+      .optional()
+      .isString().withMessage('Content must be a string')
+      .isLength({ min: 20, max: 10000 }).withMessage('Content must be between 20 and 10,000 characters'),
+    
+    body('excerpt')
+      .optional()
+      .isString().withMessage('Excerpt must be a string')
+      .isLength({ min: 10, max: 500 }).withMessage('Excerpt must be between 10 and 500 characters'),
+    
+    body('author')
+      .optional()
+      .isString().withMessage('Author must be a string')
+      .isLength({ min: 2, max: 100 }).withMessage('Author must be between 2 and 100 characters'),
+    
+    body('category')
+      .optional()
+      .isString().withMessage('Category must be a string')
+      .isLength({ max: 50 }).withMessage('Category must be less than 50 characters'),
+    
+    body('location')
+      .optional()
+      .isString().withMessage('Location must be a string')
+      .isLength({ max: 100 }).withMessage('Location must be less than 100 characters'),
+    
+    body('image')
+      .optional()
+      .isString().withMessage('Image must be a string')
+      .isLength({ max: 500 }).withMessage('Image URL must be less than 500 characters'),
+    
+    body('videoUrl')
+      .optional()
+      .isString().withMessage('Video URL must be a string')
+      .isLength({ max: 500 }).withMessage('Video URL must be less than 500 characters'),
+    
+    body('tags')
+      .optional()
+      .isArray().withMessage('Tags must be an array'),
+    
+    body('tags.*')
+      .if(body('tags').exists())
+      .isString().withMessage('Each tag must be a string')
+      .isLength({ min: 2, max: 30 }).withMessage('Each tag must be between 2 and 30 characters'),
+    
+    body('isPublished')
+      .optional()
+      .isBoolean().withMessage('isPublished must be a boolean'),
+  ],
   async (req, res) => {
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
+        });
+      }
+
       const { id } = req.params;
       const { 
         title, 
@@ -285,46 +623,70 @@ router.put('/:id',
         });
       }
 
-      let data = {
-        title: title || existing.title,
-        content: content || existing.content,
-        excerpt: excerpt !== undefined ? excerpt : existing.excerpt,
-        image: image !== undefined ? image : existing.image,
-        videoUrl: videoUrl !== undefined ? videoUrl : existing.videoUrl,
-        author: author || existing.author,
-        authorId: authorId !== undefined ? authorId : existing.authorId,
-        category: category || existing.category,
-        location: location || existing.location,
-        tags: tags !== undefined ? tags : existing.tags,
-      };
+      // Validate data
+      let validatedData = {};
+      try {
+        if (title !== undefined) validatedData.title = validateTitle(title);
+        if (content !== undefined) validatedData.content = validateContent(content);
+        if (excerpt !== undefined) validatedData.excerpt = validateExcerpt(excerpt);
+        if (author !== undefined) validatedData.author = validateAuthor(author);
+        if (category !== undefined) validatedData.category = validateCategory(category);
+        if (location !== undefined) validatedData.location = validateLocation(location);
+        if (tags !== undefined) validatedData.tags = validateTags(tags);
+        if (image !== undefined) validatedData.image = validateImage(image);
+        if (videoUrl !== undefined) validatedData.videoUrl = validateVideoUrl(videoUrl);
+        if (isPublished !== undefined) validatedData.isPublished = validateIsPublished(isPublished);
+      } catch (validationError) {
+        return res.status(400).json({
+          success: false,
+          error: validationError.message,
+        });
+      }
 
-      // Update slug if title changed
-      if (title && title !== existing.title) {
-        let slug = generateSlug(title);
+      let updateData = {};
+
+      // Update fields
+      if (validatedData.title !== undefined) {
+        updateData.title = validatedData.title;
+        // Update slug if title changed
+        let slug = generateSlug(validatedData.title);
         let slugExists = await prisma.news.findFirst({
           where: { slug, id: { not: id } },
         });
         if (slugExists) {
           slug = `${slug}-${Date.now()}`;
         }
-        data.slug = slug;
+        updateData.slug = slug;
       }
+      
+      if (validatedData.content !== undefined) updateData.content = validatedData.content;
+      if (validatedData.excerpt !== undefined) updateData.excerpt = validatedData.excerpt;
+      if (validatedData.author !== undefined) updateData.author = validatedData.author;
+      if (authorId !== undefined) updateData.authorId = authorId;
+      if (validatedData.category !== undefined) updateData.category = validatedData.category;
+      if (validatedData.location !== undefined) updateData.location = validatedData.location;
+      if (validatedData.tags !== undefined) updateData.tags = validatedData.tags;
+      if (validatedData.image !== undefined) updateData.image = validatedData.image;
+      if (validatedData.videoUrl !== undefined) updateData.videoUrl = validatedData.videoUrl;
 
       // Handle publication status
-      if (isPublished !== undefined && isPublished !== existing.isPublished) {
-        data.isPublished = isPublished;
-        data.publishedAt = isPublished ? new Date() : null;
+      if (validatedData.isPublished !== undefined && validatedData.isPublished !== existing.isPublished) {
+        updateData.isPublished = validatedData.isPublished;
+        updateData.publishedAt = validatedData.isPublished ? new Date() : null;
       }
 
       const updated = await prisma.news.update({
         where: { id },
-        data,
+        data: updateData,
       });
 
       console.log(`✅ Blog post updated: ${updated.title}`);
       res.json({
         success: true,
-        data: updated,
+        data: {
+          ...updated,
+          image: buildImageUrl(updated.image)
+        },
         message: 'Blog post updated successfully',
       });
     } catch (error) {
@@ -332,6 +694,7 @@ router.put('/:id',
       res.status(500).json({
         success: false,
         error: 'Failed to update blog post',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
       });
     }
   }
@@ -341,8 +704,23 @@ router.put('/:id',
 router.patch('/:id',
   auth,
   authorize('SUPER_ADMIN', 'ADMIN'),
+  [
+    param('id').isString().withMessage('Invalid post ID'),
+    body('isPublished').optional().isBoolean().withMessage('isPublished must be a boolean'),
+    body('title').optional().isString().withMessage('Title must be a string'),
+    body('content').optional().isString().withMessage('Content must be a string'),
+    body('excerpt').optional().isString().withMessage('Excerpt must be a string'),
+  ],
   async (req, res) => {
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
+        });
+      }
+
       const { id } = req.params;
       const updates = req.body;
 
@@ -369,7 +747,10 @@ router.patch('/:id',
 
       res.json({
         success: true,
-        data: updated,
+        data: {
+          ...updated,
+          image: buildImageUrl(updated.image)
+        },
         message: 'Blog post updated successfully',
       });
     } catch (error) {
@@ -386,8 +767,19 @@ router.patch('/:id',
 router.delete('/:id',
   auth,
   authorize('SUPER_ADMIN', 'ADMIN'),
+  [
+    param('id').isString().withMessage('Invalid post ID'),
+  ],
   async (req, res) => {
     try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
+        });
+      }
+
       const { id } = req.params;
 
       const existing = await prisma.news.findUnique({
@@ -421,8 +813,18 @@ router.delete('/:id',
 );
 
 // ===== LIKE A BLOG POST =====
-router.post('/:id/like', async (req, res) => {
+router.post('/:id/like', [
+  param('id').isString().withMessage('Invalid post ID'),
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
+      });
+    }
+
     const { id } = req.params;
 
     const post = await prisma.news.findUnique({
@@ -455,8 +857,20 @@ router.post('/:id/like', async (req, res) => {
 });
 
 // ===== GET BLOG POSTS BY LOCATION =====
-router.get('/location/:location', async (req, res) => {
+router.get('/location/:location', [
+  param('location').isString().withMessage('Invalid location'),
+  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('limit must be between 1 and 100'),
+  query('page').optional().isInt({ min: 1 }).withMessage('page must be a positive integer'),
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
+      });
+    }
+
     const { location } = req.params;
     const { limit, page } = req.query;
 
@@ -495,9 +909,14 @@ router.get('/location/:location', async (req, res) => {
       prisma.news.count({ where }),
     ]);
 
+    const mappedPosts = posts.map(post => ({
+      ...post,
+      image: buildImageUrl(post.image)
+    }));
+
     res.json({
       success: true,
-      data: posts,
+      data: mappedPosts,
       pagination: {
         total,
         page: pageNum,
@@ -515,8 +934,20 @@ router.get('/location/:location', async (req, res) => {
 });
 
 // ===== GET BLOG POSTS BY CATEGORY =====
-router.get('/category/:category', async (req, res) => {
+router.get('/category/:category', [
+  param('category').isString().withMessage('Invalid category'),
+  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('limit must be between 1 and 100'),
+  query('page').optional().isInt({ min: 1 }).withMessage('page must be a positive integer'),
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
+      });
+    }
+
     const { category } = req.params;
     const { limit, page } = req.query;
 
@@ -555,9 +986,14 @@ router.get('/category/:category', async (req, res) => {
       prisma.news.count({ where }),
     ]);
 
+    const mappedPosts = posts.map(post => ({
+      ...post,
+      image: buildImageUrl(post.image)
+    }));
+
     res.json({
       success: true,
-      data: posts,
+      data: mappedPosts,
       pagination: {
         total,
         page: pageNum,

@@ -56,6 +56,7 @@ async function main() {
       icon: 'heart-pulse',
       order: 1,
     },
+    
     {
       name: 'Neurology',
       description: 'Expert care for nervous system disorders including brain, spinal cord, and nerve conditions.',
@@ -259,7 +260,7 @@ async function main() {
           },
         });
       }
-      console.log(`✅ Created 30 appointments for ${location}`);
+      console.log(` Created 30 appointments for ${location}`);
     }
   }
 
@@ -279,7 +280,7 @@ async function main() {
         },
       });
     }
-    console.log(`✅ Created ${galleryTitles.length} gallery items for ${location}`);
+    console.log(` Created ${galleryTitles.length} gallery items for ${location}`);
   }
 
   // Create News for each location
@@ -307,7 +308,7 @@ async function main() {
         },
       });
     }
-    console.log(`✅ Created ${newsData.length} news articles for ${location}`);
+    console.log(` Created ${newsData.length} news articles for ${location}`);
   }
 
   // Create Contacts for each location
@@ -325,11 +326,11 @@ async function main() {
         },
       });
     }
-    console.log(`✅ Created 3 contacts for ${location}`);
+    console.log(` Created 3 contacts for ${location}`);
   }
 
-  console.log('✅ Seeding completed successfully!');
-  console.log(`📊 Summary:`);
+  console.log(' Seeding completed successfully!');
+  console.log(` Summary:`);
   console.log(`   - ${admins.length} admins created`);
   console.log(`   - ${allDepartments.length} departments created`);
   console.log(`   - ${allServices.length} services created`);

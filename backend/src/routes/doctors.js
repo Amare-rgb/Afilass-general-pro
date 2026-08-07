@@ -1,5 +1,5 @@
 const express = require('express');
-const { body, validationResult } = require('express-validator');
+const { body, validationResult, query, param } = require('express-validator');
 const prisma = require('../lib/prisma');
 const { auth, authorize } = require('../middleware/auth');
 
@@ -13,7 +13,6 @@ function buildImageUrl(imagePath) {
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     return imagePath;
   }
-  // Ensure there's exactly one leading slash and handle /public/ paths
   let cleanPath = imagePath;
   if (!cleanPath.startsWith('/')) {
     cleanPath = `/${cleanPath}`;
@@ -22,12 +21,212 @@ function buildImageUrl(imagePath) {
 }
 
 // ============================================================
+// VALIDATION HELPERS
+// ============================================================
+
+const validateName = (value) => {
+  if (!value || value.trim().length === 0) {
+    throw new Error('Name is required');
+  }
+  if (value.trim().length < 2) {
+    throw new Error('Name must be at least 2 characters');
+  }
+  if (value.trim().length > 100) {
+    throw new Error('Name must be less than 100 characters');
+  }
+  if (!/^[a-zA-Z\s\-'.]+$/.test(value.trim())) {
+    throw new Error('Name contains invalid characters (only letters, spaces, hyphens, apostrophes, and periods allowed)');
+  }
+  return value.trim();
+};
+
+const validateEmail = (value) => {
+  if (!value || value.trim().length === 0) {
+    throw new Error('Email is required');
+  }
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  if (!emailRegex.test(value.trim())) {
+    throw new Error('Please enter a valid email address');
+  }
+  if (value.trim().length > 255) {
+    throw new Error('Email must be less than 255 characters');
+  }
+  return value.trim().toLowerCase();
+};
+
+const validatePhone = (value) => {
+  if (!value || value.trim().length === 0) {
+    return null; // Phone is optional
+  }
+  // International phone number format
+  const phoneRegex = /^[\+\d\s\-\(\)]{7,20}$/;
+  if (!phoneRegex.test(value.trim())) {
+    throw new Error('Please enter a valid phone number (7-20 characters, numbers, spaces, +, -, (), allowed)');
+  }
+  return value.trim();
+};
+
+const validateSpecialization = (value) => {
+  if (!value || value.trim().length === 0) {
+    throw new Error('Specialization is required');
+  }
+  if (value.trim().length < 2) {
+    throw new Error('Specialization must be at least 2 characters');
+  }
+  if (value.trim().length > 100) {
+    throw new Error('Specialization must be less than 100 characters');
+  }
+  if (!/^[a-zA-Z\s\-',.&]+$/.test(value.trim())) {
+    throw new Error('Specialization contains invalid characters');
+  }
+  return value.trim();
+};
+
+const validateExperience = (value) => {
+  if (value === undefined || value === null || value === '') {
+    return 0;
+  }
+  const num = parseInt(value);
+  if (isNaN(num)) {
+    throw new Error('Experience must be a valid number');
+  }
+  if (num < 0) {
+    throw new Error('Experience cannot be negative');
+  }
+  if (num > 100) {
+    throw new Error('Experience cannot exceed 100 years');
+  }
+  return num;
+};
+
+const validateBio = (value) => {
+  if (!value || value.trim().length === 0) {
+    return null; // Bio is optional
+  }
+  if (value.trim().length > 500) {
+    throw new Error('Bio must be less than 500 characters');
+  }
+  return value.trim();
+};
+
+const validateConsultationFee = (value) => {
+  if (value === undefined || value === null || value === '') {
+    return 0;
+  }
+  const num = parseFloat(value);
+  if (isNaN(num)) {
+    throw new Error('Consultation fee must be a valid number');
+  }
+  if (num < 0) {
+    throw new Error('Consultation fee cannot be negative');
+  }
+  if (num > 999999) {
+    throw new Error('Consultation fee cannot exceed 999,999');
+  }
+  return num;
+};
+
+const validateLocation = (value) => {
+  if (!value || value.trim().length === 0) {
+    return 'Afilas General Hospital';
+  }
+  if (value.trim().length > 100) {
+    throw new Error('Location must be less than 100 characters');
+  }
+  return value.trim();
+};
+
+const validateWorkingHours = (workingHours) => {
+  if (!workingHours || !Array.isArray(workingHours)) {
+    return null; // No working hours provided
+  }
+  
+  if (workingHours.length === 0) {
+    throw new Error('Please provide at least one working day');
+  }
+  
+  const validDays = [];
+  const errors = [];
+  
+  workingHours.forEach((slot, index) => {
+    // Validate dayOfWeek
+    if (slot.dayOfWeek === undefined || slot.dayOfWeek === null) {
+      errors.push(`Slot ${index + 1}: Day of week is required`);
+      return;
+    }
+    if (typeof slot.dayOfWeek !== 'number' || slot.dayOfWeek < 0 || slot.dayOfWeek > 6) {
+      errors.push(`Slot ${index + 1}: Invalid day of week (must be 0-6)`);
+      return;
+    }
+    
+    // Check for duplicate days
+    if (validDays.includes(slot.dayOfWeek)) {
+      errors.push(`Slot ${index + 1}: Duplicate day of week (${slot.dayOfWeek})`);
+      return;
+    }
+    validDays.push(slot.dayOfWeek);
+    
+    // Validate times
+    if (!slot.startTime || slot.startTime.trim() === '') {
+      errors.push(`Slot ${index + 1}: Start time is required`);
+      return;
+    }
+    if (!slot.endTime || slot.endTime.trim() === '') {
+      errors.push(`Slot ${index + 1}: End time is required`);
+      return;
+    }
+    
+    // Validate time format (HH:MM)
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(slot.startTime.trim())) {
+      errors.push(`Slot ${index + 1}: Invalid start time format (use HH:MM)`);
+      return;
+    }
+    if (!timeRegex.test(slot.endTime.trim())) {
+      errors.push(`Slot ${index + 1}: Invalid end time format (use HH:MM)`);
+      return;
+    }
+    
+    // Validate time range
+    if (slot.startTime >= slot.endTime) {
+      errors.push(`Slot ${index + 1}: Start time must be before end time`);
+      return;
+    }
+    
+    // Validate isAvailable
+    if (slot.isAvailable !== undefined && typeof slot.isAvailable !== 'boolean') {
+      errors.push(`Slot ${index + 1}: isAvailable must be a boolean`);
+      return;
+    }
+  });
+  
+  if (errors.length > 0) {
+    throw new Error(errors.join('; '));
+  }
+  
+  return workingHours;
+};
+
+// ============================================================
 // ROUTES
 // ============================================================
 
 // Get all doctors with filters
-router.get('/', async (req, res) => {
+router.get('/', [
+  query('specialization').optional().isString().withMessage('Specialization must be a string'),
+  query('isAvailable').optional().isBoolean().withMessage('isAvailable must be a boolean'),
+  query('search').optional().isString().withMessage('Search must be a string'),
+  query('location').optional().isString().withMessage('Location must be a string'),
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false, 
+        errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
+      });
+    }
+
     const { specialization, isAvailable, search, location } = req.query;
     
     const where = {};
@@ -37,7 +236,7 @@ router.get('/', async (req, res) => {
     if (location && location !== 'all' && location !== 'undefined' && location !== 'null') {
       where.location = location;
     }
-    if (search) {
+    if (search && search.trim().length > 0) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
         { specialization: { contains: search, mode: 'insensitive' } },
@@ -62,7 +261,6 @@ router.get('/', async (req, res) => {
       name: doc.name,
       title: doc.specialization,
       bio: doc.bio || '',
-      // 🔥 FIX: Use the helper to send a valid full URL to the frontend
       photoUrl: buildImageUrl(doc.image),
       active: doc.isAvailable,
       email: doc.email,
@@ -81,6 +279,7 @@ router.get('/', async (req, res) => {
     res.json({
       success: true,
       data: mappedDoctors,
+      count: mappedDoctors.length,
     });
   } catch (error) {
     console.error('Get doctors error:', error);
@@ -92,8 +291,18 @@ router.get('/', async (req, res) => {
 });
 
 // Get single doctor
-router.get('/:id', async (req, res) => {
+router.get('/:id', [
+  param('id').isString().withMessage('Invalid doctor ID'),
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false, 
+        errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
+      });
+    }
+
     const { id } = req.params;
 
     const doctor = await prisma.doctor.findUnique({
@@ -117,7 +326,6 @@ router.get('/:id', async (req, res) => {
       name: doctor.name,
       title: doctor.specialization,
       bio: doctor.bio || '',
-      // 🔥 FIX: Use the helper to send a valid full URL to the frontend
       photoUrl: buildImageUrl(doctor.image),
       active: doctor.isAvailable,
       email: doctor.email,
@@ -147,17 +355,21 @@ router.get('/:id', async (req, res) => {
 });
 
 // Get available doctors for appointment
-router.get('/available', async (req, res) => {
+router.get('/available', [
+  query('date').isISO8601().withMessage('Date must be a valid ISO date'),
+  query('location').optional().isString().withMessage('Location must be a string'),
+], async (req, res) => {
   try {
-    const { date, location } = req.query;
-    
-    if (!date) {
-      return res.status(400).json({
-        success: false,
-        error: 'Date is required',
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false, 
+        errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
       });
     }
 
+    const { date, location } = req.query;
+    
     const selectedDate = new Date(date);
     const dayOfWeek = selectedDate.getDay();
 
@@ -222,16 +434,102 @@ router.get('/available', async (req, res) => {
 
 // Create doctor (Admin only)
 router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
-  body('name').trim().notEmpty().withMessage('Name is required'),
-  body('title').trim().notEmpty().withMessage('Title is required'),
-  body('email').isEmail().withMessage('Valid email is required'),
+  body('name')
+    .notEmpty().withMessage('Name is required')
+    .isString().withMessage('Name must be a string')
+    .isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters')
+    .matches(/^[a-zA-Z\s\-'.]+$/).withMessage('Name contains invalid characters'),
+  
+  body('title')
+    .notEmpty().withMessage('Title is required')
+    .isString().withMessage('Title must be a string')
+    .isLength({ min: 2, max: 100 }).withMessage('Title must be between 2 and 100 characters'),
+  
+  body('email')
+    .notEmpty().withMessage('Email is required')
+    .isEmail().withMessage('Valid email is required')
+    .isLength({ max: 255 }).withMessage('Email must be less than 255 characters')
+    .normalizeEmail(),
+  
+  body('phone')
+    .optional()
+    .isString().withMessage('Phone must be a string')
+    .matches(/^[\+\d\s\-\(\)]{7,20}$/).withMessage('Invalid phone number format'),
+  
+  body('specialization')
+    .notEmpty().withMessage('Specialization is required')
+    .isString().withMessage('Specialization must be a string')
+    .isLength({ min: 2, max: 100 }).withMessage('Specialization must be between 2 and 100 characters')
+    .matches(/^[a-zA-Z\s\-',.&]+$/).withMessage('Specialization contains invalid characters'),
+  
+  body('experience')
+    .optional()
+    .isInt({ min: 0, max: 100 }).withMessage('Experience must be between 0 and 100 years'),
+  
+  body('bio')
+    .optional()
+    .isString().withMessage('Bio must be a string')
+    .isLength({ max: 500 }).withMessage('Bio must be less than 500 characters'),
+  
+  body('consultationFee')
+    .optional()
+    .isFloat({ min: 0, max: 999999 }).withMessage('Consultation fee must be between 0 and 999,999'),
+  
+  body('location')
+    .optional()
+    .isString().withMessage('Location must be a string')
+    .isLength({ max: 100 }).withMessage('Location must be less than 100 characters'),
+  
+  body('photoUrl')
+    .optional()
+    .isString().withMessage('Photo URL must be a string')
+    .isURL().withMessage('Photo URL must be a valid URL')
+    .isLength({ max: 500 }).withMessage('Photo URL must be less than 500 characters'),
+  
+  body('workingHours')
+    .optional()
+    .isArray().withMessage('Working hours must be an array')
+    .custom((value) => {
+      if (!value || value.length === 0) {
+        throw new Error('At least one working day is required');
+      }
+      return true;
+    }),
+  
+  body('workingHours.*.dayOfWeek')
+    .if(body('workingHours').exists())
+    .isInt({ min: 0, max: 6 }).withMessage('Day of week must be between 0 (Sunday) and 6 (Saturday)'),
+  
+  body('workingHours.*.startTime')
+    .if(body('workingHours').exists())
+    .notEmpty().withMessage('Start time is required')
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Invalid start time format (use HH:MM)'),
+  
+  body('workingHours.*.endTime')
+    .if(body('workingHours').exists())
+    .notEmpty().withMessage('End time is required')
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Invalid end time format (use HH:MM)')
+    .custom((value, { req }) => {
+      const index = req.body.workingHours.findIndex(slot => slot.endTime === value);
+      if (index !== -1 && req.body.workingHours[index]) {
+        const startTime = req.body.workingHours[index].startTime;
+        if (startTime && startTime >= value) {
+          throw new Error('End time must be after start time');
+        }
+      }
+      return true;
+    }),
+  
+  body('workingHours.*.isAvailable')
+    .optional()
+    .isBoolean().withMessage('isAvailable must be a boolean'),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ 
         success: false, 
-        errors: errors.array() 
+        errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
       });
     }
 
@@ -241,44 +539,63 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
       consultationFee, location, workingHours
     } = req.body;
 
+    // Validate and clean data
+    let validatedData = {};
+    try {
+      validatedData.name = validateName(name);
+      validatedData.email = validateEmail(email);
+      validatedData.phone = validatePhone(phone);
+      validatedData.specialization = validateSpecialization(specialization);
+      validatedData.experience = validateExperience(experience);
+      validatedData.bio = validateBio(bio);
+      validatedData.consultationFee = validateConsultationFee(consultationFee);
+      validatedData.location = validateLocation(location);
+      
+      if (workingHours) {
+        validatedData.workingHours = validateWorkingHours(workingHours);
+      }
+    } catch (validationError) {
+      return res.status(400).json({
+        success: false,
+        error: validationError.message,
+      });
+    }
+
     // Check if email already exists
-    if (email) {
+    if (validatedData.email) {
       const existing = await prisma.doctor.findUnique({
-        where: { email: email },
+        where: { email: validatedData.email },
       });
       if (existing) {
-        console.log(`❌ Email already exists: ${email}`);
+        console.log(`❌ Email already exists: ${validatedData.email}`);
         return res.status(400).json({
           success: false,
-          error: `Doctor with email "${email}" already exists. Please use a different email.`,
+          error: `Doctor with email "${validatedData.email}" already exists. Please use a different email.`,
         });
       }
     }
 
     // Prepare working hours data
     let workingHoursData = undefined;
-    if (workingHours && Array.isArray(workingHours) && workingHours.length > 0) {
-      // Filter out invalid slots
-      const validSlots = workingHours.filter(function(slot) {
-        return slot.dayOfWeek !== undefined && 
-               slot.dayOfWeek >= 0 && 
-               slot.dayOfWeek <= 6 &&
-               slot.startTime && 
-               slot.endTime && 
-               slot.startTime.trim() !== '' && 
-               slot.endTime.trim() !== '';
-      });
+    if (validatedData.workingHours && Array.isArray(validatedData.workingHours) && validatedData.workingHours.length > 0) {
+      const validSlots = validatedData.workingHours.filter(slot => 
+        slot.dayOfWeek !== undefined && 
+        slot.dayOfWeek >= 0 && 
+        slot.dayOfWeek <= 6 &&
+        slot.startTime && 
+        slot.endTime && 
+        slot.startTime.trim() !== '' && 
+        slot.endTime.trim() !== ''
+      );
 
       if (validSlots.length > 0) {
         workingHoursData = {
-          create: validSlots.map(function(slot) {
-            return {
-              dayOfWeek: slot.dayOfWeek,
-              startTime: slot.startTime,
-              endTime: slot.endTime,
-              isAvailable: slot.isAvailable !== undefined ? slot.isAvailable : true
-            };
-          })
+          create: validSlots.map(slot => ({
+            dayOfWeek: slot.dayOfWeek,
+            startTime: slot.startTime,
+            endTime: slot.endTime,
+            isAvailable: slot.isAvailable !== undefined ? slot.isAvailable : true
+          }))
         };
       }
     }
@@ -286,17 +603,17 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
     // Create doctor with working hours
     const doctor = await prisma.doctor.create({
       data: {
-        name: name,
-        email: email || '',
-        phone: phone || '',
-        specialization: specialization || title,
-        bio: bio || '',
+        name: validatedData.name,
+        email: validatedData.email,
+        phone: validatedData.phone || '',
+        specialization: validatedData.specialization,
+        bio: validatedData.bio || '',
         education: education || '',
-        experience: experience ? parseInt(experience) : 0,
+        experience: validatedData.experience,
         image: photoUrl || '', // This stores the database path
         isAvailable: true,
-        consultationFee: consultationFee ? parseFloat(consultationFee) : 0,
-        location: location || 'Afilas General Hospital',
+        consultationFee: validatedData.consultationFee,
+        location: validatedData.location,
         workingHours: workingHoursData
       },
       include: {
@@ -311,7 +628,6 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
       name: doctor.name,
       title: doctor.specialization,
       bio: doctor.bio || '',
-      // 🔥 Ensure we send the frontend-ready URL on creation
       photoUrl: buildImageUrl(doctor.image),
       active: doctor.isAvailable,
       email: doctor.email,
@@ -354,8 +670,90 @@ router.post('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
 });
 
 // Update doctor (Admin only)
-router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
+router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
+  param('id').isString().withMessage('Invalid doctor ID'),
+  
+  body('name')
+    .optional()
+    .isString().withMessage('Name must be a string')
+    .isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters')
+    .matches(/^[a-zA-Z\s\-'.]+$/).withMessage('Name contains invalid characters'),
+  
+  body('email')
+    .optional()
+    .isEmail().withMessage('Valid email is required')
+    .isLength({ max: 255 }).withMessage('Email must be less than 255 characters')
+    .normalizeEmail(),
+  
+  body('phone')
+    .optional()
+    .isString().withMessage('Phone must be a string')
+    .matches(/^[\+\d\s\-\(\)]{7,20}$/).withMessage('Invalid phone number format'),
+  
+  body('specialization')
+    .optional()
+    .isString().withMessage('Specialization must be a string')
+    .isLength({ min: 2, max: 100 }).withMessage('Specialization must be between 2 and 100 characters')
+    .matches(/^[a-zA-Z\s\-',.&]+$/).withMessage('Specialization contains invalid characters'),
+  
+  body('experience')
+    .optional()
+    .isInt({ min: 0, max: 100 }).withMessage('Experience must be between 0 and 100 years'),
+  
+  body('bio')
+    .optional()
+    .isString().withMessage('Bio must be a string')
+    .isLength({ max: 500 }).withMessage('Bio must be less than 500 characters'),
+  
+  body('consultationFee')
+    .optional()
+    .isFloat({ min: 0, max: 999999 }).withMessage('Consultation fee must be between 0 and 999,999'),
+  
+  body('location')
+    .optional()
+    .isString().withMessage('Location must be a string')
+    .isLength({ max: 100 }).withMessage('Location must be less than 100 characters'),
+  
+  body('active')
+    .optional()
+    .isBoolean().withMessage('Active must be a boolean'),
+  
+  body('photoUrl')
+    .optional()
+    .isString().withMessage('Photo URL must be a string')
+    .isLength({ max: 500 }).withMessage('Photo URL must be less than 500 characters'),
+  
+  body('workingHours')
+    .optional()
+    .isArray().withMessage('Working hours must be an array'),
+  
+  body('workingHours.*.dayOfWeek')
+    .if(body('workingHours').exists())
+    .isInt({ min: 0, max: 6 }).withMessage('Day of week must be between 0 (Sunday) and 6 (Saturday)'),
+  
+  body('workingHours.*.startTime')
+    .if(body('workingHours').exists())
+    .notEmpty().withMessage('Start time is required')
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Invalid start time format (use HH:MM)'),
+  
+  body('workingHours.*.endTime')
+    .if(body('workingHours').exists())
+    .notEmpty().withMessage('End time is required')
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Invalid end time format (use HH:MM)'),
+  
+  body('workingHours.*.isAvailable')
+    .optional()
+    .isBoolean().withMessage('isAvailable must be a boolean'),
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false, 
+        errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
+      });
+    }
+
     const { id } = req.params;
     const { 
       name, title, bio, photoUrl,
@@ -377,10 +775,32 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
       });
     }
 
+    // Validate and clean data
+    let validatedData = {};
+    try {
+      if (name) validatedData.name = validateName(name);
+      if (email) validatedData.email = validateEmail(email);
+      if (phone !== undefined) validatedData.phone = validatePhone(phone);
+      if (specialization) validatedData.specialization = validateSpecialization(specialization);
+      if (experience !== undefined) validatedData.experience = validateExperience(experience);
+      if (bio !== undefined) validatedData.bio = validateBio(bio);
+      if (consultationFee !== undefined) validatedData.consultationFee = validateConsultationFee(consultationFee);
+      if (location !== undefined) validatedData.location = validateLocation(location);
+      
+      if (workingHours !== undefined) {
+        validatedData.workingHours = validateWorkingHours(workingHours);
+      }
+    } catch (validationError) {
+      return res.status(400).json({
+        success: false,
+        error: validationError.message,
+      });
+    }
+
     // Check email if changed
-    if (email && email !== doctor.email) {
+    if (validatedData.email && validatedData.email !== doctor.email) {
       const existing = await prisma.doctor.findUnique({
-        where: { email: email },
+        where: { email: validatedData.email },
       });
       if (existing) {
         return res.status(400).json({
@@ -390,22 +810,24 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
       }
     }
 
+    // Prepare update data
+    const updateData = {};
+    if (validatedData.name) updateData.name = validatedData.name;
+    if (validatedData.email) updateData.email = validatedData.email;
+    if (validatedData.phone !== undefined) updateData.phone = validatedData.phone;
+    if (validatedData.specialization) updateData.specialization = validatedData.specialization;
+    if (validatedData.bio !== undefined) updateData.bio = validatedData.bio;
+    if (education !== undefined) updateData.education = education;
+    if (validatedData.experience !== undefined) updateData.experience = validatedData.experience;
+    if (photoUrl !== undefined) updateData.image = photoUrl;
+    if (active !== undefined) updateData.isAvailable = active;
+    if (validatedData.consultationFee !== undefined) updateData.consultationFee = validatedData.consultationFee;
+    if (validatedData.location !== undefined) updateData.location = validatedData.location;
+
     // First update the doctor
     const updatedDoctor = await prisma.doctor.update({
       where: { id: id },
-      data: {
-        name: name || doctor.name,
-        email: email || doctor.email,
-        phone: phone || doctor.phone,
-        specialization: specialization || doctor.specialization,
-        bio: bio !== undefined ? bio : doctor.bio,
-        education: education !== undefined ? education : doctor.education,
-        experience: experience !== undefined ? parseInt(experience) : doctor.experience,
-        image: photoUrl !== undefined ? photoUrl : doctor.image,
-        isAvailable: active !== undefined ? active : doctor.isAvailable,
-        consultationFee: consultationFee !== undefined ? parseFloat(consultationFee) : doctor.consultationFee,
-        location: location || doctor.location || 'Afilas General Hospital',
-      },
+      data: updateData,
     });
 
     // Handle working hours update
@@ -417,28 +839,25 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
 
       // Create new working hours if provided
       if (Array.isArray(workingHours) && workingHours.length > 0) {
-        // Filter out invalid slots
-        const validSlots = workingHours.filter(function(slot) {
-          return slot.dayOfWeek !== undefined && 
-                 slot.dayOfWeek >= 0 && 
-                 slot.dayOfWeek <= 6 &&
-                 slot.startTime && 
-                 slot.endTime && 
-                 slot.startTime.trim() !== '' && 
-                 slot.endTime.trim() !== '';
-        });
+        const validSlots = workingHours.filter(slot => 
+          slot.dayOfWeek !== undefined && 
+          slot.dayOfWeek >= 0 && 
+          slot.dayOfWeek <= 6 &&
+          slot.startTime && 
+          slot.endTime && 
+          slot.startTime.trim() !== '' && 
+          slot.endTime.trim() !== ''
+        );
 
         if (validSlots.length > 0) {
           await prisma.workingHour.createMany({
-            data: validSlots.map(function(slot) {
-              return {
-                doctorId: id,
-                dayOfWeek: slot.dayOfWeek,
-                startTime: slot.startTime,
-                endTime: slot.endTime,
-                isAvailable: slot.isAvailable !== undefined ? slot.isAvailable : true
-              };
-            })
+            data: validSlots.map(slot => ({
+              doctorId: id,
+              dayOfWeek: slot.dayOfWeek,
+              startTime: slot.startTime,
+              endTime: slot.endTime,
+              isAvailable: slot.isAvailable !== undefined ? slot.isAvailable : true
+            }))
           });
         }
       }
@@ -459,7 +878,6 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
       name: finalDoctor.name,
       title: finalDoctor.specialization,
       bio: finalDoctor.bio || '',
-      // 🔥 Send the absolute URL to the frontend
       photoUrl: buildImageUrl(finalDoctor.image),
       active: finalDoctor.isAvailable,
       email: finalDoctor.email,
@@ -493,8 +911,30 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
 });
 
 // Bulk update working hours (Admin only)
-router.put('/:id/working-hours', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
+router.put('/:id/working-hours', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
+  param('id').isString().withMessage('Invalid doctor ID'),
+  body('workingHours').isArray().withMessage('Working hours must be an array'),
+  body('workingHours.*.dayOfWeek')
+    .isInt({ min: 0, max: 6 }).withMessage('Day of week must be between 0 (Sunday) and 6 (Saturday)'),
+  body('workingHours.*.startTime')
+    .notEmpty().withMessage('Start time is required')
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Invalid start time format (use HH:MM)'),
+  body('workingHours.*.endTime')
+    .notEmpty().withMessage('End time is required')
+    .matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Invalid end time format (use HH:MM)'),
+  body('workingHours.*.isAvailable')
+    .optional()
+    .isBoolean().withMessage('isAvailable must be a boolean'),
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false, 
+        errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
+      });
+    }
+
     const { id } = req.params;
     const { workingHours } = req.body;
 
@@ -509,10 +949,13 @@ router.put('/:id/working-hours', auth, authorize('SUPER_ADMIN', 'ADMIN'), async 
       });
     }
 
-    if (!workingHours || !Array.isArray(workingHours)) {
+    // Validate working hours
+    try {
+      validateWorkingHours(workingHours);
+    } catch (validationError) {
       return res.status(400).json({
         success: false,
-        error: 'Working hours must be an array',
+        error: validationError.message,
       });
     }
 
@@ -522,28 +965,26 @@ router.put('/:id/working-hours', auth, authorize('SUPER_ADMIN', 'ADMIN'), async 
     });
 
     // Filter valid slots
-    const validSlots = workingHours.filter(function(slot) {
-      return slot.dayOfWeek !== undefined && 
-             slot.dayOfWeek >= 0 && 
-             slot.dayOfWeek <= 6 &&
-             slot.startTime && 
-             slot.endTime && 
-             slot.startTime.trim() !== '' && 
-             slot.endTime.trim() !== '';
-    });
+    const validSlots = workingHours.filter(slot => 
+      slot.dayOfWeek !== undefined && 
+      slot.dayOfWeek >= 0 && 
+      slot.dayOfWeek <= 6 &&
+      slot.startTime && 
+      slot.endTime && 
+      slot.startTime.trim() !== '' && 
+      slot.endTime.trim() !== ''
+    );
 
     // Create new working hours if any valid slots
     if (validSlots.length > 0) {
       await prisma.workingHour.createMany({
-        data: validSlots.map(function(slot) {
-          return {
-            doctorId: id,
-            dayOfWeek: slot.dayOfWeek,
-            startTime: slot.startTime,
-            endTime: slot.endTime,
-            isAvailable: slot.isAvailable !== undefined ? slot.isAvailable : true
-          };
-        })
+        data: validSlots.map(slot => ({
+          doctorId: id,
+          dayOfWeek: slot.dayOfWeek,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          isAvailable: slot.isAvailable !== undefined ? slot.isAvailable : true
+        }))
       });
     }
 
@@ -576,8 +1017,18 @@ router.put('/:id/working-hours', auth, authorize('SUPER_ADMIN', 'ADMIN'), async 
 });
 
 // Toggle doctor availability (Admin only)
-router.patch('/:id/toggle-status', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
+router.patch('/:id/toggle-status', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
+  param('id').isString().withMessage('Invalid doctor ID'),
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false, 
+        errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
+      });
+    }
+
     const { id } = req.params;
 
     const doctor = await prisma.doctor.findUnique({
@@ -638,8 +1089,18 @@ router.patch('/:id/toggle-status', auth, authorize('SUPER_ADMIN', 'ADMIN'), asyn
 });
 
 // Delete doctor (Admin only)
-router.delete('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
+router.delete('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
+  param('id').isString().withMessage('Invalid doctor ID'),
+], async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false, 
+        errors: errors.array().map(e => ({ field: e.param, message: e.msg }))
+      });
+    }
+
     const { id } = req.params;
 
     // Check if doctor exists

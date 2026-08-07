@@ -1,8 +1,8 @@
-// app/admin/blog/afilas-general/page.tsx
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { api } from '@/lib/api';
+import { getToken, clearSession } from '@/lib/auth';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Plus, 
@@ -13,12 +13,10 @@ import {
   CheckCircle,
   XCircle,
   X,
-  Hospital,
   Clock,
   User,
   Tag,
   Eye,
-  Edit,
   Save,
   AlertCircle,
   Image as ImageIcon,
@@ -30,9 +28,15 @@ import {
   Search,
   ChevronDown,
   Upload,
-  Play
+  Play,
+  FileText,
+  Globe
 } from 'lucide-react';
 import Image from 'next/image';
+
+// ============================================================
+// TYPES
+// ============================================================
 
 interface BlogPost {
   id: string;
@@ -46,7 +50,6 @@ interface BlogPost {
   tags: string[];
   image?: string;
   videoUrl?: string;
-  mediaType: 'image' | 'video';
   isPublished: boolean;
   views: number;
   likes: number;
@@ -68,8 +71,23 @@ interface BlogFormData {
   isPublished: boolean;
 }
 
+interface FormErrors {
+  title?: string;
+  content?: string;
+  excerpt?: string;
+  category?: string;
+  media?: string;
+  image?: string;
+  videoUrl?: string;
+  tags?: string;
+}
+
+// ============================================================
+// CONSTANTS
+// ============================================================
+
 const LOCATION = 'Afilas General Hospital';
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   'Medical News',
   'Health Tips',
   'Research',
@@ -82,17 +100,107 @@ const CATEGORIES = [
   'Community'
 ];
 
+const IMAGE_MAX_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+
+// ============================================================
+// VALIDATION FUNCTIONS
+// ============================================================
+
+const validateTitle = (value: string): string | null => {
+  const trimmed = value?.trim();
+  if (!trimmed) return 'Title is required';
+  if (trimmed.length < 5) return 'Title must be at least 5 characters';
+  if (trimmed.length > 200) return 'Title must be less than 200 characters';
+  return null;
+};
+
+const validateContent = (value: string): string | null => {
+  const trimmed = value?.trim();
+  if (!trimmed) return 'Content is required';
+  if (trimmed.length < 20) return 'Content must be at least 20 characters';
+  if (trimmed.length > 10000) return 'Content must be less than 10,000 characters';
+  return null;
+};
+
+const validateExcerpt = (value: string): string | null => {
+  const trimmed = value?.trim();
+  if (!trimmed) return 'Excerpt is required';
+  if (trimmed.length < 10) return 'Excerpt must be at least 10 characters';
+  if (trimmed.length > 500) return 'Excerpt must be less than 500 characters';
+  return null;
+};
+
+const validateCategory = (value: string): string | null => {
+  if (!value?.trim()) return 'Category is required';
+  return null;
+};
+
+const validateMedia = (mediaType: string, image: string, videoUrl: string, imageFile: File | null): string | null => {
+  if (!mediaType) return 'Please select a media type (Image or Video)';
+  
+  if (mediaType === 'image') {
+    if (!image && !imageFile) return 'Please upload an image';
+    if (imageFile) {
+      if (!ALLOWED_IMAGE_TYPES.includes(imageFile.type)) {
+        return 'Please upload a valid image file (JPEG, PNG, GIF, or WebP)';
+      }
+      if (imageFile.size > IMAGE_MAX_SIZE) {
+        return 'Image size must be less than 10MB';
+      }
+    }
+  }
+  
+  if (mediaType === 'video') {
+    if (!videoUrl?.trim()) return 'Please enter a video URL';
+    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+    if (!urlPattern.test(videoUrl.trim())) {
+      return 'Please enter a valid video URL';
+    }
+  }
+  
+  return null;
+};
+
+const validateTags = (tags: string[]): string | null => {
+  if (tags.length === 0) return null; // Tags are optional
+  if (tags.length > 20) return 'Maximum 20 tags allowed';
+  for (const tag of tags) {
+    if (tag.length < 2) return 'Each tag must be at least 2 characters';
+    if (tag.length > 30) return 'Each tag must be less than 30 characters';
+  }
+  return null;
+};
+
+// ============================================================
+// COMPONENT
+// ============================================================
+
 export default function AdminBlogAfilasGeneralPage() {
   const { t } = useLanguage();
+  
+  // State
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
-  const [success, setSuccess] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingPost, setEditingPost] = useState<BlogPost | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [tagInput, setTagInput] = useState('');
+  const [previewImage, setPreviewImage] = useState('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [videoPreview, setVideoPreview] = useState('');
+  const [videoUrlInput, setVideoUrlInput] = useState('');
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [formData, setFormData] = useState<BlogFormData>({
     title: '',
     content: '',
@@ -105,118 +213,193 @@ export default function AdminBlogAfilasGeneralPage() {
     mediaType: 'image',
     isPublished: false
   });
-  const [tagInput, setTagInput] = useState('');
-  const [previewImage, setPreviewImage] = useState<string>('');
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [videoPreview, setVideoPreview] = useState<string>('');
-  const [videoUrlInput, setVideoUrlInput] = useState('');
-  const [uploadingMedia, setUploadingMedia] = useState(false);
-  
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  async function loadPosts() {
+  // ============================================================
+  // API CALLS
+  // ============================================================
+
+  const loadPosts = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       const response = await api.get<any>(`/blog?location=${encodeURIComponent(LOCATION)}`, true);
       
       let postsData: BlogPost[] = [];
-      if (response) {
-        if (Array.isArray(response)) {
-          postsData = response;
-        } else if (response.data && Array.isArray(response.data)) {
-          postsData = response.data;
-        } else if (response.posts && Array.isArray(response.posts)) {
-          postsData = response.posts;
-        }
+      if (Array.isArray(response)) {
+        postsData = response;
+      } else if (response?.data && Array.isArray(response.data)) {
+        postsData = response.data;
+      } else if (response?.posts && Array.isArray(response.posts)) {
+        postsData = response.posts;
       }
       
       setPosts(postsData);
-      console.log(`✅ Loaded ${postsData.length} blog posts for ${LOCATION}`);
     } catch (error: any) {
-      console.error('❌ Failed to load blog posts:', error);
+      console.error('Failed to load blog posts:', error);
       setError(error.message || 'Failed to load blog posts');
       setPosts([]);
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     loadPosts();
-  }, []);
+  }, [loadPosts]);
+
+  // ============================================================
+  // VALIDATION
+  // ============================================================
+
+  const validateField = useCallback((field: keyof FormErrors, value: any): string | null => {
+    switch (field) {
+      case 'title': return validateTitle(value);
+      case 'content': return validateContent(value);
+      case 'excerpt': return validateExcerpt(value);
+      case 'category': return validateCategory(value);
+      case 'media': return validateMedia(formData.mediaType, formData.image, formData.videoUrl, imageFile);
+      case 'image': return validateMedia('image', formData.image, '', imageFile);
+      case 'videoUrl': return validateMedia('video', '', value, null);
+      case 'tags': return validateTags(formData.tags);
+      default: return null;
+    }
+  }, [formData.mediaType, formData.image, formData.videoUrl, imageFile, formData.tags]);
+
+  const validateForm = useCallback((): boolean => {
+    const errors: FormErrors = {};
+    
+    const titleError = validateTitle(formData.title);
+    if (titleError) errors.title = titleError;
+    
+    const contentError = validateContent(formData.content);
+    if (contentError) errors.content = contentError;
+    
+    const excerptError = validateExcerpt(formData.excerpt);
+    if (excerptError) errors.excerpt = excerptError;
+    
+    const categoryError = validateCategory(formData.category);
+    if (categoryError) errors.category = categoryError;
+    
+    const mediaError = validateMedia(formData.mediaType, formData.image, formData.videoUrl, imageFile);
+    if (mediaError) errors.media = mediaError;
+    
+    const tagsError = validateTags(formData.tags);
+    if (tagsError) errors.tags = tagsError;
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  }, [formData, imageFile]);
+
+  const handleFieldChange = (field: keyof FormErrors, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    setTouched(prev => ({ ...prev, [field]: true }));
+    const error = validateField(field, value);
+    setFormErrors(prev => ({ ...prev, [field]: error || undefined }));
+  };
+
+  const hasError = (field: keyof FormErrors) => {
+    return formErrors[field] && touched[field];
+  };
+
+  // ============================================================
+  // FILTERED POSTS
+  // ============================================================
+
+  const filteredPosts = useMemo(() => {
+    return posts.filter(post => {
+      const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = categoryFilter ? post.category === categoryFilter : true;
+      const matchesStatus = statusFilter ? 
+        (statusFilter === 'published' ? post.isPublished : !post.isPublished) : true;
+      return matchesSearch && matchesCategory && matchesStatus;
+    });
+  }, [posts, searchTerm, categoryFilter, statusFilter]);
+
+  // ============================================================
+  // IMAGE HANDLING
+  // ============================================================
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviewImage(reader.result as string);
-        setFormData({ 
-          ...formData, 
-          mediaType: 'image', 
-          videoUrl: '' 
-        });
-        setVideoPreview('');
-        setVideoUrlInput('');
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+    
+    const imageError = validateMedia('image', '', '', file);
+    if (imageError) {
+      setFormErrors(prev => ({ ...prev, image: imageError }));
+      setError(imageError);
+      return;
     }
+    
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewImage(reader.result as string);
+      setFormData(prev => ({ 
+        ...prev, 
+        mediaType: 'image', 
+        videoUrl: '' 
+      }));
+      setVideoPreview('');
+      setVideoUrlInput('');
+    };
+    reader.readAsDataURL(file);
+    setFormErrors(prev => ({ ...prev, image: undefined }));
+    setError('');
   };
 
   const handleVideoUrlChange = (url: string) => {
     setVideoUrlInput(url);
     if (url.trim()) {
+      const videoError = validateMedia('video', '', url, null);
+      if (videoError) {
+        setFormErrors(prev => ({ ...prev, videoUrl: videoError }));
+        return;
+      }
       setVideoPreview(url);
-      setFormData({ 
-        ...formData, 
+      setFormData(prev => ({ 
+        ...prev, 
         videoUrl: url, 
         mediaType: 'video' 
-      });
+      }));
       setPreviewImage('');
       setImageFile(null);
+      setFormErrors(prev => ({ ...prev, videoUrl: undefined }));
     } else {
       setVideoPreview('');
-      setFormData({ ...formData, videoUrl: '', mediaType: 'image' });
+      setFormData(prev => ({ ...prev, videoUrl: '', mediaType: 'image' }));
+      setFormErrors(prev => ({ ...prev, videoUrl: undefined }));
     }
   };
 
-  // FIXED: Updated uploadImage function with correct field name
   const uploadImage = async (file: File): Promise<string> => {
     const formData = new FormData();
-    formData.append('image', file); // Must match backend: upload.single('image')
+    formData.append('image', file);
     
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-      
-      const response = await fetch('http://localhost:5000/api/upload?type=blog', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-        body: formData,
-      });
-      
-      const data = await response.json();
-      console.log('📡 Upload response:', data);
-      
-      if (!response.ok) {
-        console.error('Upload error response:', data);
-        throw new Error(data.error || data.message || 'Upload failed');
-      }
-      
-      return data.url;
-    } catch (error) {
-      console.error('❌ Upload error:', error);
-      throw error;
+    const token = getToken();
+    if (!token) throw new Error('No authentication token found');
+    
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/upload?type=blog`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` },
+      body: formData,
+    });
+    
+    const data = await response.json();
+    if (response.status === 401) {
+      clearSession();
+      throw new Error('Session expired. Please login again.');
     }
+    if (!response.ok) throw new Error(data.error || data.message || 'Upload failed');
+    return data.url;
   };
 
-  const handleOpenModal = (post?: BlogPost) => {
+  // ============================================================
+  // MODAL HANDLING
+  // ============================================================
+
+  const handleOpenModal = useCallback((post?: BlogPost) => {
     if (post) {
       setEditingPost(post);
       setFormData({
@@ -228,7 +411,7 @@ export default function AdminBlogAfilasGeneralPage() {
         tags: post.tags || [],
         image: post.image || '',
         videoUrl: post.videoUrl || '',
-        mediaType: post.mediaType || 'image',
+        mediaType: post.videoUrl ? 'video' : 'image',
         isPublished: post.isPublished
       });
       setPreviewImage(post.image || '');
@@ -255,75 +438,80 @@ export default function AdminBlogAfilasGeneralPage() {
       setImageFile(null);
       setTagInput('');
     }
+    setFormErrors({});
+    setTouched({});
     setShowModal(true);
-  };
+  }, []);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setShowModal(false);
     setEditingPost(null);
     setError('');
+    setFormErrors({});
+    setTouched({});
     setTagInput('');
     setImageFile(null);
     setPreviewImage('');
     setVideoPreview('');
     setVideoUrlInput('');
-  };
+    setIsSubmitting(false);
+    setUploadingMedia(false);
+  }, []);
+
+  // ============================================================
+  // TAG HANDLING
+  // ============================================================
 
   const handleAddTag = () => {
-    if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
-      setFormData({
-        ...formData,
-        tags: [...formData.tags, tagInput.trim()]
-      });
+    const trimmedTag = tagInput.trim();
+    if (!trimmedTag) return;
+    
+    const tagsError = validateTags([...formData.tags, trimmedTag]);
+    if (tagsError) {
+      setFormErrors(prev => ({ ...prev, tags: tagsError }));
+      return;
+    }
+    
+    if (!formData.tags.includes(trimmedTag)) {
+      setFormData(prev => ({
+        ...prev,
+        tags: [...prev.tags, trimmedTag]
+      }));
       setTagInput('');
+      setFormErrors(prev => ({ ...prev, tags: undefined }));
     }
   };
 
   const handleRemoveTag = (tag: string) => {
-    setFormData({
-      ...formData,
-      tags: formData.tags.filter(t => t !== tag)
-    });
+    setFormData(prev => ({
+      ...prev,
+      tags: prev.tags.filter(t => t !== tag)
+    }));
   };
+
+  // ============================================================
+  // SUBMIT HANDLING
+  // ============================================================
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setUploadingMedia(true);
+    setIsSubmitting(true);
     
-    if (!formData.title.trim()) {
-      setError('Title is required');
-      setUploadingMedia(false);
-      return;
-    }
-    if (!formData.content.trim()) {
-      setError('Content is required');
-      setUploadingMedia(false);
-      return;
-    }
-    if (!formData.excerpt.trim()) {
-      setError('Excerpt is required');
-      setUploadingMedia(false);
-      return;
-    }
-    if (!formData.category) {
-      setError('Category is required');
-      setUploadingMedia(false);
-      return;
-    }
-    if (!formData.mediaType) {
-      setError('Please select either Image or Video');
-      setUploadingMedia(false);
-      return;
-    }
-    if (formData.mediaType === 'image' && !formData.image && !imageFile) {
-      setError('Please upload an image');
-      setUploadingMedia(false);
-      return;
-    }
-    if (formData.mediaType === 'video' && !formData.videoUrl) {
-      setError('Please enter a video URL');
-      setUploadingMedia(false);
+    // Mark all fields as touched
+    const allTouched: Record<string, boolean> = {};
+    Object.keys(formData).forEach(key => {
+      allTouched[key] = true;
+    });
+    allTouched.media = true;
+    setTouched(allTouched);
+    
+    if (!validateForm()) {
+      setIsSubmitting(false);
+      const firstError = document.querySelector('[data-error="true"]');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
 
@@ -333,15 +521,17 @@ export default function AdminBlogAfilasGeneralPage() {
       let mediaType = formData.mediaType;
 
       if (imageFile && formData.mediaType === 'image') {
+        setUploadingMedia(true);
         try {
-          const uploadedUrl = await uploadImage(imageFile);
-          imageUrl = uploadedUrl;
+          imageUrl = await uploadImage(imageFile);
           mediaType = 'image';
         } catch (uploadError) {
-          setError('Failed to upload image. Please try again.');
+          setError(uploadError instanceof Error ? uploadError.message : 'Failed to upload image');
+          setIsSubmitting(false);
           setUploadingMedia(false);
           return;
         }
+        setUploadingMedia(false);
       }
 
       if (formData.mediaType === 'video') {
@@ -349,18 +539,22 @@ export default function AdminBlogAfilasGeneralPage() {
         mediaType = 'video';
       }
 
+      // IMPORTANT: Create the submit data without mediaType
+      // The backend doesn't store mediaType in the database
       const submitData = {
-        title: formData.title,
-        content: formData.content,
-        excerpt: formData.excerpt,
+        title: formData.title.trim(),
+        content: formData.content.trim(),
+        excerpt: formData.excerpt.trim(),
         category: formData.category,
-        location: formData.location,
+        location: formData.location || 'Afilas General Hospital',
         tags: formData.tags,
         image: mediaType === 'image' ? imageUrl : '',
         videoUrl: mediaType === 'video' ? videoUrl : '',
-        author: 'Admin',
-        authorId: 'admin-id'
+        isPublished: formData.isPublished,
+        author: 'Admin', // You should get this from the user context
       };
+
+      console.log('📤 Submitting data:', submitData);
 
       if (editingPost) {
         await api.put(`/blog/${editingPost.id}`, submitData, true);
@@ -375,9 +569,14 @@ export default function AdminBlogAfilasGeneralPage() {
       console.error('❌ Failed to save blog post:', error);
       setError(error.message || 'Failed to save blog post');
     } finally {
+      setIsSubmitting(false);
       setUploadingMedia(false);
     }
   };
+
+  // ============================================================
+  // DELETE HANDLING
+  // ============================================================
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this blog post?')) return;
@@ -387,7 +586,7 @@ export default function AdminBlogAfilasGeneralPage() {
       setSuccess('Blog post deleted successfully!');
       await loadPosts();
     } catch (error: any) {
-      console.error('❌ Failed to delete blog post:', error);
+      console.error('Failed to delete blog post:', error);
       setError(error.message || 'Failed to delete blog post');
     }
   };
@@ -398,27 +597,21 @@ export default function AdminBlogAfilasGeneralPage() {
       setSuccess(`Blog post ${!currentStatus ? 'published' : 'unpublished'} successfully!`);
       await loadPosts();
     } catch (error: any) {
-      console.error('❌ Failed to toggle publish status:', error);
+      console.error('Failed to toggle publish status:', error);
       setError(error.message || 'Failed to update blog post status');
     }
   };
 
-  const filteredPosts = posts.filter(post => {
-    const matchesSearch = post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          post.excerpt.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter ? post.category === categoryFilter : true;
-    const matchesStatus = statusFilter ? 
-      (statusFilter === 'published' ? post.isPublished : !post.isPublished) : true;
-    return matchesSearch && matchesCategory && matchesStatus;
-  });
+  // ============================================================
+  // UTILITY FUNCTIONS
+  // ============================================================
 
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
       return date.toLocaleDateString('en-US', {
         year: 'numeric',
-        month: 'long',
+        month: 'short',
         day: 'numeric'
       });
     } catch {
@@ -427,7 +620,7 @@ export default function AdminBlogAfilasGeneralPage() {
   };
 
   const getCategoryColor = (category: string) => {
-    const colors: { [key: string]: string } = {
+    const colors: Record<string, string> = {
       'Medical News': 'bg-blue-100 text-blue-700',
       'Health Tips': 'bg-green-100 text-green-700',
       'Research': 'bg-purple-100 text-purple-700',
@@ -447,37 +640,34 @@ export default function AdminBlogAfilasGeneralPage() {
     return text.substring(0, maxLength) + '...';
   };
 
+  // ============================================================
+  // RENDER
+  // ============================================================
+
   return (
     <>
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-        <div>
-          <h1 className="font-display text-3xl text-clinical-900 flex items-center gap-3">
-            <Hospital className="w-8 h-8 text-blue-600" />
-            Blog - {LOCATION}
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage all blog posts and articles for {LOCATION}
-          </p>
-        </div>
+      {/* Header */}
+      <div className="flex items-center justify-end mb-6 flex-wrap gap-4">
         <div className="flex gap-3 flex-wrap">
           <button
             onClick={loadPosts}
-            className="rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 text-sm transition-colors flex items-center gap-2"
+            disabled={loading}
+            className="rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 px-4 py-2 text-sm transition-colors flex items-center gap-2 disabled:opacity-50"
           >
-            <RefreshCw className="w-4 h-4" />
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </button>
           <button
             onClick={() => handleOpenModal()}
-            className="rounded-lg bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm transition-colors flex items-center gap-2"
+            className="rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 px-4 py-2 text-sm transition-colors flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            New Blog Post
+            New Post
           </button>
         </div>
       </div>
 
-      {/* Filters and Search */}
+      {/* Filters */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex-1 min-w-[200px]">
@@ -488,7 +678,8 @@ export default function AdminBlogAfilasGeneralPage() {
                 placeholder="Search blog posts..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                aria-label="Search blog posts"
               />
             </div>
           </div>
@@ -496,10 +687,11 @@ export default function AdminBlogAfilasGeneralPage() {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+              className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white text-sm"
+              aria-label="Filter by category"
             >
               <option value="">All Categories</option>
-              {CATEGORIES.map(cat => (
+              {DEFAULT_CATEGORIES.map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
@@ -509,7 +701,8 @@ export default function AdminBlogAfilasGeneralPage() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white"
+              className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white text-sm"
+              aria-label="Filter by status"
             >
               <option value="">All Status</option>
               <option value="published">Published</option>
@@ -518,443 +711,453 @@ export default function AdminBlogAfilasGeneralPage() {
             <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
           <div className="text-sm text-gray-500">
-            {filteredPosts.length} post{filteredPosts.length !== 1 ? 's' : ''} found
+            {filteredPosts.length} post{filteredPosts.length !== 1 ? 's' : ''}
           </div>
         </div>
       </div>
 
+      {/* Alerts */}
       {success && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
-          <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+        <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2" role="alert">
+          <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
           <p className="text-sm text-green-600">{success}</p>
-          <button onClick={() => setSuccess('')} className="ml-auto">
+          <button onClick={() => setSuccess('')} className="ml-auto" aria-label="Dismiss">
             <X className="w-4 h-4 text-green-600" />
           </button>
         </div>
       )}
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
-          <XCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+        <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2" role="alert">
+          <XCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
           <p className="text-sm text-red-600">{error}</p>
-          <button onClick={() => setError('')} className="ml-auto">
+          <button onClick={() => setError('')} className="ml-auto" aria-label="Dismiss">
             <X className="w-4 h-4 text-red-600" />
           </button>
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-        {loading ? (
-          <div className="flex items-center justify-center p-12">
-            <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
-              <p className="text-sm text-gray-500">Loading blog posts...</p>
-            </div>
-          </div>
-        ) : filteredPosts.length === 0 ? (
-          <div className="text-center p-12">
-            <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-sm text-gray-500">No blog posts found</p>
-            <p className="text-xs text-gray-400 mt-1">
-              {searchTerm || categoryFilter || statusFilter ? 
-                'Try adjusting your filters' : 
-                'Click "New Blog Post" to create your first post'}
-            </p>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-100">
-            {filteredPosts.map((post) => (
-              <div key={post.id} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex flex-wrap gap-6">
-                  {post.image && (
-                    <div className="w-48 h-32 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100 relative">
-                      <Image
-                        src={post.image}
-                        alt={post.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  )}
-                  {post.videoUrl && !post.image && (
-                    <div className="w-48 h-32 rounded-lg overflow-hidden flex-shrink-0 bg-black relative flex items-center justify-center">
-                      <Play className="w-12 h-12 text-white/50" />
-                    </div>
-                  )}
-                  
-                  <div className="flex-1 min-w-[200px]">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-3 mb-2 flex-wrap">
-                          <span className={`text-xs px-2 py-1 rounded-full ${getCategoryColor(post.category)}`}>
-                            {post.category}
-                          </span>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            post.isPublished ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                          }`}>
-                            {post.isPublished ? 'Published' : 'Draft'}
-                          </span>
-                          {post.videoUrl && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-700 flex items-center gap-1">
-                              <Video className="w-3 h-3" />
-                              Video
-                            </span>
-                          )}
-                          {post.image && !post.videoUrl && (
-                            <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 flex items-center gap-1">
-                              <ImageIcon className="w-3 h-3" />
-                              Image
-                            </span>
-                          )}
-                        </div>
-                        
-                        <h3 className="text-lg font-semibold text-gray-800 hover:text-blue-600 transition-colors">
-                          {post.title}
-                        </h3>
-                        
-                        <p className="text-sm text-gray-600 mt-1">{truncateText(post.excerpt, 150)}</p>
-                        
-                        <div className="flex items-center gap-4 mt-3 text-xs text-gray-500 flex-wrap">
-                          <span className="flex items-center gap-1">
-                            <User className="w-3 h-3" />
-                            {post.author}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            {formatDate(post.createdAt)}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Eye className="w-3 h-3" />
-                            {post.views || 0} views
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <Heart className="w-3 h-3" />
-                            {post.likes || 0}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <MessageSquare className="w-3 h-3" />
-                            {post.comments || 0}
-                          </span>
-                        </div>
-                        
-                        {post.tags && post.tags.length > 0 && (
-                          <div className="flex items-center gap-2 mt-2 flex-wrap">
-                            <Tag className="w-3 h-3 text-gray-400" />
-                            {post.tags.map(tag => (
-                              <span key={tag} className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full">
-                                #{tag}
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <button
-                          onClick={() => handleTogglePublish(post.id, post.isPublished)}
-                          className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
-                            post.isPublished
-                              ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                              : 'bg-green-100 text-green-700 hover:bg-green-200'
-                          }`}
-                        >
-                          {post.isPublished ? 'Unpublish' : 'Publish'}
-                        </button>
-                        <button
-                          onClick={() => handleOpenModal(post)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Edit"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(post.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
+      {/* Posts Grid */}
+      {loading ? (
+        <div className="flex items-center justify-center p-12" aria-label="Loading">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+        </div>
+      ) : filteredPosts.length === 0 ? (
+        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+          <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">No Blog Posts Found</h3>
+          <p className="text-sm text-gray-500 mb-4">
+            {searchTerm || categoryFilter || statusFilter ? 
+              'Try adjusting your filters' : 
+              'Click "New Post" to create your first blog post'}
+          </p>
+          {!searchTerm && !categoryFilter && !statusFilter && (
+            <button
+              onClick={() => handleOpenModal()}
+              className="rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 px-5 py-2 text-sm transition-colors"
+            >
+              + New Post
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredPosts.map((post) => (
+            <div key={post.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              {/* Post Image/Video */}
+              <div className="relative h-48 bg-gray-100">
+                {post.image ? (
+                  <Image
+                    src={post.image}
+                    alt={post.title}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                  />
+                ) : post.videoUrl ? (
+                  <div className="flex items-center justify-center h-full bg-black">
+                    <Play className="w-12 h-12 text-white/30" />
                   </div>
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <FileText className="w-12 h-12 text-gray-300" />
+                  </div>
+                )}
+                
+                {/* Status Badge */}
+                <div className="absolute top-2 right-2">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                    post.isPublished 
+                      ? 'bg-green-500 text-white' 
+                      : 'bg-gray-500 text-white'
+                  }`}>
+                    {post.isPublished ? 'Published' : 'Draft'}
+                  </span>
+                </div>
+                
+                {/* Media Type Badge */}
+                <div className="absolute bottom-2 left-2">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${
+                    post.videoUrl ? 'bg-white-500 text-white' : 'bg-white-blue-500 text-white'
+                  }`}>
+                    {post.videoUrl ? ' Video' : ' Image'}
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              
+              <div className="p-4">
+                <h4 className="text-sm font-semibold text-gray-800 line-clamp-2" title={post.title}>
+                  {post.title}
+                </h4>
+                
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${getCategoryColor(post.category)}`}>
+                    {post.category}
+                  </span>
+                </div>
+                
+                <p className="text-xs text-gray-500 mt-2 line-clamp-2">{post.excerpt}</p>
+                
+                <div className="flex items-center gap-3 mt-3 pt-3 border-t border-gray-100 text-[10px] text-gray-400 flex-wrap">
+                  <span className="flex items-center gap-0.5">
+                    <Calendar className="w-3 h-3" />
+                    {formatDate(post.createdAt)}
+                  </span>
+                  <span className="flex items-center gap-0.5">
+                    <Eye className="w-3 h-3" />
+                    {post.views || 0}
+                  </span>
+                  <span className="flex items-center gap-0.5">
+                    <Heart className="w-3 h-3" />
+                    {post.likes || 0}
+                  </span>
+                </div>
+                
+                {post.tags && post.tags.length > 0 && (
+                  <div className="flex items-center gap-1 mt-2 flex-wrap">
+                    <Tag className="w-3 h-3 text-gray-400" />
+                    {post.tags.slice(0, 2).map(tag => (
+                      <span key={tag} className="text-[9px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded-full">
+                        #{tag}
+                      </span>
+                    ))}
+                    {post.tags.length > 2 && (
+                      <span className="text-[9px] text-gray-400">+{post.tags.length - 2}</span>
+                    )}
+                  </div>
+                )}
+                
+                <div className="flex gap-1 mt-3 pt-3 border-t border-gray-100">
+                  <button
+                    onClick={() => handleTogglePublish(post.id, post.isPublished)}
+                    className={`flex-1 text-[10px] font-medium px-2 py-1 rounded transition-colors ${
+                      post.isPublished
+                        ? 'text-gray-500 hover:bg-gray-100'
+                        : 'text-green-600 hover:bg-green-50'
+                    }`}
+                  >
+                    {post.isPublished ? 'Unpublish' : 'Publish'}
+                  </button>
+                  <button
+                    onClick={() => handleOpenModal(post)}
+                    className="flex-1 text-[10px] text-gray-600 hover:text-blue-600 font-medium hover:bg-blue-50 px-2 py-1 rounded transition-colors"
+                  >
+                     Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(post.id)}
+                    className="flex-1 text-[10px] text-gray-500 hover:text-red-600 font-medium hover:bg-red-50 px-2 py-1 rounded transition-colors"
+                  >
+                     Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {!loading && filteredPosts.length > 0 && (
-        <div className="mt-4 text-xs text-gray-400">
-          Showing {filteredPosts.length} blog post{filteredPosts.length !== 1 ? 's' : ''} from {LOCATION}
+        <div className="mt-4 text-xs text-gray-400 flex items-center justify-end">
+          {filteredPosts.length} post{filteredPosts.length !== 1 ? 's' : ''} in {LOCATION}
         </div>
       )}
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-800">
-                {editingPost ? 'Edit Blog Post' : 'Create New Blog Post'}
-              </h2>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between rounded-t-xl">
+              <h3 className="text-sm font-semibold text-gray-800">
+                {editingPost ? ' Edit Post' : ' New Post'}
+              </h3>
               <button
                 onClick={handleCloseModal}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-gray-600"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-600 text-sm">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  {error}
-                </div>
-              )}
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Title *
+            <form onSubmit={handleSubmit} className="p-4 space-y-3">
+              {/* Title */}
+              <div data-error={!!formErrors.title && touched.title}>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                  Title <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter blog post title"
-                  required
+                  onChange={(e) => handleFieldChange('title', e.target.value)}
+                  onBlur={() => setTouched(prev => ({ ...prev, title: true }))}
+                  className={`w-full rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none ${
+                    hasError('title')
+                      ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                      : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                  }`}
+                  placeholder="Enter blog title"
+                  maxLength={200}
                 />
+                {hasError('title') && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.title}</p>
+                )}
+                <p className="text-[10px] text-gray-400 mt-0.5">{formData.title.length}/200</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category *
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="">Select category</option>
-                    {CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.location}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
-                  />
-                </div>
+              {/* Category */}
+              <div data-error={!!formErrors.category && touched.category}>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                  Category <span className="text-red-400">*</span>
+                </label>
+                <select
+                  value={formData.category}
+                  onChange={(e) => handleFieldChange('category', e.target.value)}
+                  onBlur={() => setTouched(prev => ({ ...prev, category: true }))}
+                  className={`w-full rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none ${
+                    hasError('category')
+                      ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                      : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                  }`}
+                >
+                  <option value="">Select category</option>
+                  {DEFAULT_CATEGORIES.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+                {hasError('category') && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.category}</p>
+                )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Excerpt *
+              {/* Excerpt */}
+              <div data-error={!!formErrors.excerpt && touched.excerpt}>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                  Excerpt <span className="text-red-400">*</span>
                 </label>
                 <textarea
                   value={formData.excerpt}
-                  onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  onChange={(e) => handleFieldChange('excerpt', e.target.value)}
+                  onBlur={() => setTouched(prev => ({ ...prev, excerpt: true }))}
+                  className={`w-full rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none ${
+                    hasError('excerpt')
+                      ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                      : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                  }`}
                   rows={2}
-                  placeholder="Brief summary of the blog post"
-                  required
+                  placeholder="Brief summary"
+                  maxLength={500}
                 />
+                {hasError('excerpt') && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.excerpt}</p>
+                )}
+                <p className="text-[10px] text-gray-400 mt-0.5">{formData.excerpt.length}/500</p>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Content *
+              {/* Content */}
+              <div data-error={!!formErrors.content && touched.content}>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                  Content <span className="text-red-400">*</span>
                 </label>
                 <textarea
                   value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono"
-                  rows={8}
-                  placeholder="Write your blog post content here... (supports HTML)"
-                  required
+                  onChange={(e) => handleFieldChange('content', e.target.value)}
+                  onBlur={() => setTouched(prev => ({ ...prev, content: true }))}
+                  className={`w-full rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none font-mono ${
+                    hasError('content')
+                      ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                      : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                  }`}
+                  rows={6}
+                  placeholder="Write your content here..."
+                  maxLength={10000}
                 />
+                {hasError('content') && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.content}</p>
+                )}
+                <p className="text-[10px] text-gray-400 mt-0.5">{formData.content.length}/10000</p>
               </div>
 
-              {/* Media Selection - Required */}
-              <div className="border border-gray-200 rounded-lg p-4">
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Media Type * <span className="text-xs text-red-500">(Required)</span>
+              {/* Media Type */}
+              <div data-error={!!formErrors.media && touched.media}>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Media Type <span className="text-red-400">*</span>
                 </label>
-                
-                <div className="flex gap-2 mb-4 flex-wrap">
+                <div className="flex gap-2 flex-wrap">
                   <button
                     type="button"
                     onClick={() => {
-                      setFormData({ ...formData, mediaType: 'image', videoUrl: '' });
+                      setFormData(prev => ({ ...prev, mediaType: 'image', videoUrl: '' }));
                       setVideoPreview('');
                       setVideoUrlInput('');
                       if (fileInputRef.current) {
                         fileInputRef.current.click();
                       }
                     }}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
                       formData.mediaType === 'image'
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
-                    <ImageIcon className="w-4 h-4" />
+                    <ImageIcon className="w-3.5 h-3.5" />
                     Image
                   </button>
                   <button
                     type="button"
                     onClick={() => {
-                      setFormData({ ...formData, mediaType: 'video' });
+                      setFormData(prev => ({ ...prev, mediaType: 'video' }));
                       setPreviewImage('');
                       setImageFile(null);
                     }}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center gap-1.5 ${
                       formData.mediaType === 'video'
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                     }`}
                   >
-                    <Video className="w-4 h-4" />
+                    <Video className="w-3.5 h-3.5" />
                     Video
                   </button>
                 </div>
-
-                {/* Image Upload */}
-                {formData.mediaType === 'image' && (
-                  <div>
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="hidden"
-                    />
-                    <div
-                      onClick={() => fileInputRef.current?.click()}
-                      className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-500 transition-colors"
-                    >
-                      {previewImage ? (
-                        <div className="relative">
-                          <div className="relative w-full h-48 rounded-lg overflow-hidden bg-gray-100">
-                            <Image
-                              src={previewImage}
-                              alt="Image preview"
-                              fill
-                              className="object-contain"
-                            />
-                          </div>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setPreviewImage('');
-                              setImageFile(null);
-                            }}
-                            className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                          <p className="text-sm text-gray-500 mt-2">Click to change image</p>
-                        </div>
-                      ) : (
-                        <div>
-                          <Upload className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-                          <p className="text-sm text-gray-600">
-                            Click to upload an image
-                          </p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            JPG, PNG, GIF, WEBP (max 10MB)
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                {hasError('media') && (
+                  <p className="text-xs text-red-500 mt-1">{formErrors.media}</p>
                 )}
+              </div>
 
-                {/* Video URL Only */}
-                {formData.mediaType === 'video' && (
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                        Video URL (YouTube, Vimeo, or direct link) *
-                      </label>
-                      <input
-                        type="url"
-                        value={videoUrlInput}
-                        onChange={(e) => handleVideoUrlChange(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="https://www.youtube.com/watch?v=..."
-                        required={formData.mediaType === 'video'}
-                      />
-                    </div>
-
-                    {videoPreview && (
-                      <div className="border border-gray-200 rounded-lg p-3">
-                        <p className="text-sm font-medium text-gray-700 mb-2">Video Preview</p>
-                        <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
-                          <video
-                            src={videoPreview}
-                            controls
-                            className="w-full h-full"
+              {/* Image Upload */}
+              {formData.mediaType === 'image' && (
+                <div data-error={!!formErrors.image && touched.image}>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="hidden"
+                  />
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+                      previewImage ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-blue-400'
+                    }`}
+                  >
+                    {previewImage ? (
+                      <div className="relative">
+                        <div className="relative w-full h-36 rounded-lg overflow-hidden bg-gray-100">
+                          <Image
+                            src={previewImage}
+                            alt="Preview"
+                            fill
+                            className="object-contain"
                           />
                         </div>
                         <button
                           type="button"
-                          onClick={() => {
-                            setVideoPreview('');
-                            setVideoUrlInput('');
-                            setFormData({ ...formData, videoUrl: '', mediaType: 'image' });
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewImage('');
+                            setImageFile(null);
                           }}
-                          className="mt-2 text-sm text-red-600 hover:text-red-800 flex items-center gap-1"
+                          className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
                         >
-                          <X className="w-4 h-4" />
-                          Remove video
+                          <X className="w-3 h-3" />
                         </button>
+                        <p className="text-xs text-green-600 mt-1">✓ Image uploaded</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <Upload className="w-8 h-8 text-gray-400 mx-auto mb-1" />
+                        <p className="text-xs text-gray-600">Click to upload image</p>
+                        <p className="text-[10px] text-gray-400">JPG, PNG, GIF, WebP (max 10MB)</p>
                       </div>
                     )}
                   </div>
-                )}
-              </div>
+                  {hasError('image') && (
+                    <p className="text-xs text-red-500 mt-1">{formErrors.image}</p>
+                  )}
+                </div>
+              )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+              {/* Video URL */}
+              {formData.mediaType === 'video' && (
+                <div data-error={!!formErrors.videoUrl && touched.videoUrl}>
+                  <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                    Video URL <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="url"
+                    value={videoUrlInput}
+                    onChange={(e) => handleVideoUrlChange(e.target.value)}
+                    onBlur={() => setTouched(prev => ({ ...prev, videoUrl: true }))}
+                    className={`w-full rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none ${
+                      hasError('videoUrl')
+                        ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                        : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                    }`}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                  />
+                  {hasError('videoUrl') && (
+                    <p className="text-xs text-red-500 mt-0.5">{formErrors.videoUrl}</p>
+                  )}
+                  {videoPreview && (
+                    <div className="mt-2 relative w-full aspect-video rounded-lg overflow-hidden bg-black">
+                      <video
+                        src={videoPreview}
+                        controls
+                        className="w-full h-full"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Tags */}
+              <div data-error={!!formErrors.tags && touched.tags}>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
                   Tags
                 </label>
-                <div className="flex gap-2">
+                <div className="flex gap-1.5">
                   <input
                     type="text"
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Add tag and press Enter"
+                    className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-gray-400 focus:ring-1 focus:ring-gray-400 outline-none transition-colors"
+                    placeholder="Add tag"
                   />
                   <button
                     type="button"
                     onClick={handleAddTag}
-                    className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                    className="px-3 py-1.5 bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 rounded-lg transition-colors text-sm"
                   >
                     Add
                   </button>
                 </div>
                 {formData.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
+                  <div className="flex flex-wrap gap-1 mt-1.5">
                     {formData.tags.map(tag => (
                       <span
                         key={tag}
-                        className="inline-flex items-center gap-1 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm"
+                        className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-xs"
                       >
                         #{tag}
                         <button
@@ -962,50 +1165,69 @@ export default function AdminBlogAfilasGeneralPage() {
                           onClick={() => handleRemoveTag(tag)}
                           className="hover:text-blue-900"
                         >
-                          <X className="w-3 h-3" />
+                          <X className="w-2.5 h-2.5" />
                         </button>
                       </span>
                     ))}
                   </div>
                 )}
+                {hasError('tags') && (
+                  <p className="text-xs text-red-500 mt-1">{formErrors.tags}</p>
+                )}
+                <p className="text-[10px] text-gray-400 mt-0.5">{formData.tags.length} tags</p>
               </div>
 
+              {/* Location */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={formData.location}
+                  disabled
+                  className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+
+              {/* Publish */}
               <div>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.isPublished}
-                    onChange={(e) => setFormData({ ...formData, isPublished: e.target.checked })}
+                    onChange={(e) => setFormData(prev => ({ ...prev, isPublished: e.target.checked }))}
                     className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                   />
-                  <span className="text-sm font-medium text-gray-700">Publish immediately</span>
+                  <span className="text-xs font-medium text-gray-700">Publish immediately</span>
                 </label>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  Cancel
-                </button>
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-2 border-t border-gray-100">
                 <button
                   type="submit"
-                  disabled={uploadingMedia}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+                  disabled={uploadingMedia || isSubmitting}
+                  className="flex-1 rounded-lg bg-white-600 text-black hover:bg-white-700 disabled:opacity-50 text-sm font-medium px-4 py-1.5 transition-colors flex items-center justify-center gap-2"
                 >
-                  {uploadingMedia ? (
+                  {uploadingMedia || isSubmitting ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Uploading...
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      {uploadingMedia ? 'Uploading...' : 'Saving...'}
                     </>
                   ) : (
                     <>
-                      <Save className="w-4 h-4" />
-                      {editingPost ? 'Update Post' : 'Create Post'}
+                      <Save className="w-3.5 h-3.5" />
+                      {editingPost ? 'Update' : 'Add'}
                     </>
                   )}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCloseModal}
+                  className="flex-1 rounded-lg bg-white border border-gray-200 text-gray-500 text-sm font-medium px-4 py-1.5 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                >
+                  Cancel
                 </button>
               </div>
             </form>

@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 
+  ========================================
+  FIX: Override Tailwind's base styles
+  ========================================
+*/
+
+/* Fix for -webkit-text-size-adjust warning */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+    -moz-text-size-adjust: 100% !important;
+    -ms-text-size-adjust: 100% !important;
+  }
+}
+
 :root {
   --font-display: "Newsreader", serif;
   --font-body: "Inter", sans-serif;
@@ -17,9 +33,9 @@
   --card-foreground: #0f172a;
   --popover: #ffffff;
   --popover-foreground: #0f172a;
-  --primary: #0f6e5f; /* Matches your clinical-700 */
+  --primary: #0f6e5f;
   --primary-foreground: #f8fafc;
-  --secondary: #8dc4b1; /* Matches your clinical-300 */
+  --secondary: #8dc4b1;
   --secondary-foreground: #0f172a;
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
@@ -49,7 +65,7 @@
   --card-foreground: #f8fafc;
   --popover: #1e293b;
   --popover-foreground: #f8fafc;
-  --primary: #14b8a6; /* Brighter teal for dark mode */
+  --primary: #14b8a6;
   --primary-foreground: #0f172a;
   --secondary: #334155;
   --secondary-foreground: #f8fafc;
@@ -79,17 +95,16 @@
 html {
   background-color: var(--background);
   scroll-behavior: smooth;
-  /* dynamic header offset (set by Header component) */
   --header-offset: 11rem;
   scroll-padding-top: var(--header-offset);
   /* Standard property */
-  text-size-adjust: 100%;
+  text-size-adjust: 100% !important;
   /* Safari/iOS support */
-  -webkit-text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100% !important;
   /* Firefox support */
-  -moz-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100% !important;
   /* IE/Edge support */
-  -ms-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100% !important;
 }
 
 body {
@@ -108,76 +123,35 @@ section[id] {
   ========================================
 */
 
-/* WebKit browsers (Safari, iOS Safari, Chrome, Edge) */
-@supports (-webkit-backdrop-filter: blur(1px)) {
-  .backdrop-blur-sm {
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
-  }
-
-  .backdrop-blur {
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-  }
-
-  .backdrop-blur-md {
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-  }
-
-  .backdrop-blur-lg {
-    -webkit-backdrop-filter: blur(16px);
-    backdrop-filter: blur(16px);
-  }
-
-  .backdrop-blur-xl {
-    -webkit-backdrop-filter: blur(24px);
-    backdrop-filter: blur(24px);
-  }
-
-  .backdrop-blur-2xl {
-    -webkit-backdrop-filter: blur(40px);
-    backdrop-filter: blur(40px);
-  }
+/* Base backdrop-filter classes with both prefixes */
+.backdrop-blur-sm {
+  -webkit-backdrop-filter: blur(4px) !important;
+  backdrop-filter: blur(4px) !important;
 }
 
-/* All modern browsers with backdrop-filter support */
-@supports (backdrop-filter: blur(1px)) {
-  .backdrop-blur-sm {
-    backdrop-filter: blur(4px);
-  }
-
-  .backdrop-blur {
-    backdrop-filter: blur(8px);
-  }
-
-  .backdrop-blur-md {
-    backdrop-filter: blur(12px);
-  }
-
-  .backdrop-blur-lg {
-    backdrop-filter: blur(16px);
-  }
-
-  .backdrop-blur-xl {
-    backdrop-filter: blur(24px);
-  }
-
-  .backdrop-blur-2xl {
-    backdrop-filter: blur(40px);
-  }
+.backdrop-blur {
+  -webkit-backdrop-filter: blur(8px) !important;
+  backdrop-filter: blur(8px) !important;
 }
 
-/* Fallback for browsers with NO backdrop-filter support */
-@supports not (backdrop-filter: blur(1px)) {
-  .backdrop-blur-sm,
-  .backdrop-blur,
-  .backdrop-blur-md,
-  .backdrop-blur-lg,
-  .backdrop-blur-xl,
-  .backdrop-blur-2xl {
-    background-color: rgba(255, 255, 255, 0.85);
-  }
+.backdrop-blur-md {
+  -webkit-backdrop-filter: blur(12px) !important;
+  backdrop-filter: blur(12px) !important;
+}
+
+.backdrop-blur-lg {
+  -webkit-backdrop-filter: blur(16px) !important;
+  backdrop-filter: blur(16px) !important;
+}
+
+.backdrop-blur-xl {
+  -webkit-backdrop-filter: blur(24px) !important;
+  backdrop-filter: blur(24px) !important;
+}
+
+.backdrop-blur-2xl {
+  -webkit-backdrop-filter: blur(40px) !important;
+  backdrop-filter: blur(40px) !important;
 }
 
 /* 
@@ -206,30 +180,28 @@ section[id] {
 
 /* Additional text-size-adjust utility */
 .text-size-auto {
-  text-size-adjust: auto;
-  -webkit-text-size-adjust: auto;
-  -moz-text-size-adjust: auto;
-  -ms-text-size-adjust: auto;
+  text-size-adjust: auto !important;
+  -webkit-text-size-adjust: auto !important;
+  -moz-text-size-adjust: auto !important;
+  -ms-text-size-adjust: auto !important;
 }
 
 .text-size-100 {
-  text-size-adjust: 100%;
-  -webkit-text-size-adjust: 100%;
-  -moz-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100% !important;
+  -webkit-text-size-adjust: 100% !important;
+  -moz-text-size-adjust: 100% !important;
+  -ms-text-size-adjust: 100% !important;
 }
 
 .text-size-none {
-  text-size-adjust: none;
-  -webkit-text-size-adjust: none;
-  -moz-text-size-adjust: none;
-  -ms-text-size-adjust: none;
+  text-size-adjust: none !important;
+  -webkit-text-size-adjust: none !important;
+  -moz-text-size-adjust: none !important;
+  -ms-text-size-adjust: none !important;
 }
 
-/* ============================ Hopital Division =================================================== */
-/* ========================================
-   HOSPITAL HERO ANIMATIONS
-   ======================================== */
+/* ============================ Hospital Division Animations ======================================== */
+
 @keyframes gradientMove {
   0% {
     background-position: 0% 50%;
@@ -306,9 +278,6 @@ section[id] {
   animation-delay: 4s;
 }
 
-/* ========================================
-   HERO ZOOM PARALLAX ANIMATIONS
-   ======================================== */
 @keyframes heroZoomOut {
   from {
     transform: scale(1) translateY(0);
@@ -326,7 +295,6 @@ section[id] {
   animation-range: 0vh 50vh;
 }
 
-/* Fallback for browsers that don't support animation-timeline */
 @supports not (animation-timeline: scroll()) {
   .hero-content-zoom {
     animation: heroZoomOut 1.5s ease forwards;
@@ -334,7 +302,6 @@ section[id] {
   }
 }
 
-/* ---- Parallax Wrapper ---- */
 .parallax-wrapper {
   overflow-x: hidden;
   overflow-y: auto;
@@ -342,7 +309,6 @@ section[id] {
   transform-style: preserve-3d;
 }
 
-/* ---- Each Parallax Section ---- */
 .parallax-section {
   position: relative;
   transform-style: inherit;
@@ -350,9 +316,6 @@ section[id] {
   width: 100%;
 }
 
-/* ========================================
-   DIVISION HERO – PARALLAX BACKGROUND IMAGE
-   ======================================== */
 .division-hero-bg {
   position: absolute;
   inset: 0;
@@ -363,16 +326,12 @@ section[id] {
   will-change: transform;
 }
 
-/* Safari fallback – fixed attachment not supported on mobile */
 @supports (-webkit-touch-callout: none) {
   .division-hero-bg {
     background-attachment: scroll;
   }
 }
 
-/* ========================================
-   TEXT ROLLER ANIMATION (Hospital Hero)
-   ======================================== */
 @keyframes textRollerSlide {
   0% {
     top: 0;
@@ -435,9 +394,6 @@ section[id] {
   }
 }
 
-/* ========================================
-   HERO TEXT REVEAL – Slide in on enter, out on exit
-   ======================================== */
 @keyframes heroTextSlideIn {
   from {
     opacity: 0;
@@ -468,7 +424,6 @@ section[id] {
   animation: heroTextSlideOut 0.5s ease-in forwards;
 }
 
-/* Staggered delays for child elements */
 .hero-text-enter-d1 {
   animation: heroTextSlideIn 0.8s ease-out 0.15s forwards;
   opacity: 0;
@@ -486,9 +441,6 @@ section[id] {
   opacity: 0;
 }
 
-/* ========================================
-   PHARMA SECTION – SCROLL ANIMATIONS
-   ======================================== */
 @keyframes pharmaScaleIn {
   from {
     opacity: 0;
@@ -593,3 +545,4 @@ section[id] {
   }
 }
 
+}

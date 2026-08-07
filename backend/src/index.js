@@ -363,11 +363,11 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
-  console.log(`📋 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🔐 JWT: ${process.env.JWT_SECRET ? '✅ Configured' : '❌ Missing!'}`);
-  console.log(`🌐 CORS enabled for: http://localhost:3000`);
-  console.log(`\n📡 Available API endpoints:`);
+  console.log(` Server running on http://localhost:${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`JWT: ${process.env.JWT_SECRET ? '✅ Configured' : '❌ Missing!'}`);
+  console.log(`CORS enabled for: http://localhost:3000`);
+  console.log(`\n Available API endpoints:`);
   console.log(`   - GET  /health`);
   console.log(`   - GET  /`);
   console.log(`   - POST /api/auth/login`);

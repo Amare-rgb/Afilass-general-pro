@@ -1,8 +1,10 @@
 // app/admin/services/afilas-general/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import Image from 'next/image';
 import { api } from '@/lib/api';
+import { getToken, clearSession } from '@/lib/auth';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Plus, 
@@ -21,7 +23,10 @@ import {
   Edit,
   Save,
   AlertCircle,
-  Building2
+  Building2,
+  Upload,
+  Image as ImageIcon,
+  PlusCircle
 } from 'lucide-react';
 
 interface Service {
@@ -32,6 +37,7 @@ interface Service {
   duration: number;
   category: string;
   location: string;
+  image: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -44,11 +50,21 @@ interface ServiceFormData {
   duration: number;
   category: string;
   location: string;
+  image: string;
   isActive: boolean;
 }
 
+interface FormErrors {
+  name?: string;
+  description?: string;
+  price?: string;
+  duration?: string;
+  category?: string;
+  image?: string;
+}
+
 const LOCATION = 'Afilas General Hospital';
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   'Consultation',
   'Diagnostic',
   'Surgery',
@@ -61,6 +77,91 @@ const CATEGORIES = [
   'Specialist'
 ];
 
+// ============================================================
+// VALIDATION FUNCTIONS
+// ============================================================
+
+const validateName = (value: string): string | null => {
+  if (!value || value.trim().length === 0) {
+    return 'Service name is required';
+  }
+  if (value.trim().length < 3) {
+    return 'Service name must be at least 3 characters';
+  }
+  if (value.trim().length > 100) {
+    return 'Service name must be less than 100 characters';
+  }
+  return null;
+};
+
+const validateDescription = (value: string): string | null => {
+  if (!value || value.trim().length === 0) {
+    return 'Description is required';
+  }
+  if (value.trim().length < 10) {
+    return 'Description must be at least 10 characters';
+  }
+  if (value.trim().length > 500) {
+    return 'Description must be less than 500 characters';
+  }
+  return null;
+};
+
+const validatePrice = (value: number): string | null => {
+  if (value === undefined || value === null || value === 0) {
+    return 'Price is required and must be greater than 0';
+  }
+  if (value < 0) {
+    return 'Price cannot be negative';
+  }
+  if (value > 999999) {
+    return 'Price cannot exceed 999,999';
+  }
+  if (!Number.isFinite(value)) {
+    return 'Please enter a valid price';
+  }
+  return null;
+};
+
+const validateDuration = (value: number): string | null => {
+  if (value === undefined || value === null || value === 0) {
+    return 'Duration is required';
+  }
+  if (value < 5) {
+    return 'Duration must be at least 5 minutes';
+  }
+  if (value > 480) {
+    return 'Duration cannot exceed 480 minutes (8 hours)';
+  }
+  if (!Number.isInteger(value)) {
+    return 'Duration must be a whole number';
+  }
+  return null;
+};
+
+const validateCategory = (value: string): string | null => {
+  if (!value || value.trim().length === 0) {
+    return 'Category is required';
+  }
+  return null;
+};
+
+const validateImage = (file: File | null, currentImage?: string): string | null => {
+  if (!file && !currentImage) {
+    return 'Image is required';
+  }
+  if (file) {
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      return 'Please upload a valid image file (JPEG, PNG, GIF, or WebP)';
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      return 'Image size must be less than 5MB';
+    }
+  }
+  return null;
+};
+
 export default function AdminServicesAfilasGeneralPage() {
   const { t } = useLanguage();
   const [services, setServices] = useState<Service[]>([]);
@@ -71,6 +172,16 @@ export default function AdminServicesAfilasGeneralPage() {
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [showNewCategory, setShowNewCategory] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
+  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [formData, setFormData] = useState<ServiceFormData>({
     name: '',
     description: '',
@@ -78,6 +189,7 @@ export default function AdminServicesAfilasGeneralPage() {
     duration: 30,
     category: '',
     location: LOCATION,
+    image: '',
     isActive: true
   });
 
@@ -113,6 +225,105 @@ export default function AdminServicesAfilasGeneralPage() {
     loadServices();
   }, []);
 
+  const validateField = (field: keyof FormErrors, value: any): string | null => {
+    switch (field) {
+      case 'name':
+        return validateName(value);
+      case 'description':
+        return validateDescription(value);
+      case 'price':
+        return validatePrice(value);
+      case 'duration':
+        return validateDuration(value);
+      case 'category':
+        return validateCategory(value);
+      case 'image':
+        return validateImage(imageFile, formData.image);
+      default:
+        return null;
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: FormErrors = {};
+    
+    const nameError = validateName(formData.name);
+    if (nameError) errors.name = nameError;
+    
+    const descriptionError = validateDescription(formData.description);
+    if (descriptionError) errors.description = descriptionError;
+    
+    const priceError = validatePrice(formData.price);
+    if (priceError) errors.price = priceError;
+    
+    const durationError = validateDuration(formData.duration);
+    if (durationError) errors.duration = durationError;
+    
+    const categoryError = validateCategory(formData.category);
+    if (categoryError) errors.category = categoryError;
+    
+    const imageError = validateImage(imageFile, formData.image);
+    if (imageError) errors.image = imageError;
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleFieldChange = (field: keyof FormErrors, value: any) => {
+    setFormData({ ...formData, [field]: value });
+    setTouched({ ...touched, [field]: true });
+    const error = validateField(field, value);
+    setFormErrors({ ...formErrors, [field]: error || undefined });
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const imageError = validateImage(file, '');
+      if (imageError) {
+        setFormErrors({ ...formErrors, image: imageError });
+        setError(imageError);
+        return;
+      }
+      
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      setFormErrors({ ...formErrors, image: undefined });
+      setError('');
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string> => {
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    try {
+      const token = getToken();
+      if (!token) throw new Error('No authentication token found');
+      
+      const response = await fetch('http://localhost:5000/api/upload?type=services', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData,
+      });
+      
+      const data = await response.json();
+      if (response.status === 401) {
+        clearSession();
+        throw new Error('Session expired. Please login again.');
+      }
+      if (!response.ok) throw new Error(data.error || data.message || 'Upload failed');
+      return data.url;
+    } catch (error) {
+      console.error('❌ Upload error:', error);
+      throw error;
+    }
+  };
+
   const handleOpenModal = (service?: Service) => {
     if (service) {
       setEditingService(service);
@@ -123,8 +334,12 @@ export default function AdminServicesAfilasGeneralPage() {
         duration: service.duration,
         category: service.category,
         location: service.location,
+        image: service.image || '',
         isActive: service.isActive
       });
+      setImagePreview(service.image || '');
+      setShowNewCategory(false);
+      setNewCategory('');
     } else {
       setEditingService(null);
       setFormData({
@@ -134,9 +349,16 @@ export default function AdminServicesAfilasGeneralPage() {
         duration: 30,
         category: '',
         location: LOCATION,
+        image: '',
         isActive: true
       });
+      setImagePreview('');
+      setImageFile(null);
+      setShowNewCategory(false);
+      setNewCategory('');
     }
+    setFormErrors({});
+    setTouched({});
     setShowModal(true);
   };
 
@@ -144,39 +366,86 @@ export default function AdminServicesAfilasGeneralPage() {
     setShowModal(false);
     setEditingService(null);
     setError('');
+    setFormErrors({});
+    setTouched({});
+    setImageFile(null);
+    setImagePreview('');
+    setShowNewCategory(false);
+    setNewCategory('');
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value;
+    if (value === 'new') {
+      setShowNewCategory(true);
+      setFormData({ ...formData, category: '' });
+    } else {
+      setShowNewCategory(false);
+      setNewCategory('');
+      setFormData({ ...formData, category: value });
+    }
+  };
+
+  const handleAddNewCategory = () => {
+    if (newCategory.trim()) {
+      const trimmedCategory = newCategory.trim();
+      if (!categories.includes(trimmedCategory)) {
+        setCategories([...categories, trimmedCategory]);
+        setFormData({ ...formData, category: trimmedCategory });
+        setNewCategory('');
+        setShowNewCategory(false);
+        setTouched({ ...touched, category: true });
+        setFormErrors({ ...formErrors, category: undefined });
+      } else {
+        setError(`Category "${trimmedCategory}" already exists`);
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
-    if (!formData.name.trim()) {
-      setError('Service name is required');
-      return;
-    }
-    if (!formData.description.trim()) {
-      setError('Description is required');
-      return;
-    }
-    if (formData.price <= 0) {
-      setError('Price must be greater than 0');
-      return;
-    }
-    if (formData.duration <= 0) {
-      setError('Duration must be greater than 0');
-      return;
-    }
-    if (!formData.category) {
-      setError('Category is required');
+    const allTouched: Record<string, boolean> = {};
+    Object.keys(formData).forEach(key => {
+      allTouched[key] = true;
+    });
+    setTouched(allTouched);
+    
+    if (!validateForm()) {
+      const firstError = document.querySelector('[data-error="true"]');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     }
 
     try {
+      let imageUrl = formData.image;
+      if (imageFile) {
+        setUploadingImage(true);
+        try {
+          imageUrl = await uploadImage(imageFile);
+        } catch (uploadError) {
+          setError(uploadError instanceof Error ? uploadError.message : 'Failed to upload image');
+          setUploadingImage(false);
+          return;
+        }
+        setUploadingImage(false);
+      }
+      
+      const serviceData = {
+        ...formData,
+        image: imageUrl,
+        price: Number(formData.price),
+        duration: Number(formData.duration)
+      };
+
       if (editingService) {
-        await api.patch(`/services/${editingService.id}`, formData, true);
+        await api.put(`/services/${editingService.id}`, serviceData, true);
         setSuccess('Service updated successfully!');
       } else {
-        await api.post('/services', formData, true);
+        await api.post('/services', serviceData, true);
         setSuccess('Service created successfully!');
       }
       handleCloseModal();
@@ -197,17 +466,6 @@ export default function AdminServicesAfilasGeneralPage() {
     } catch (error: any) {
       console.error('❌ Failed to delete service:', error);
       setError(error.message || 'Failed to delete service');
-    }
-  };
-
-  const handleToggleStatus = async (id: string, currentStatus: boolean) => {
-    try {
-      await api.patch(`/services/${id}`, { isActive: !currentStatus }, true);
-      setSuccess(`Service ${!currentStatus ? 'activated' : 'deactivated'} successfully!`);
-      await loadServices();
-    } catch (error: any) {
-      console.error('❌ Failed to toggle status:', error);
-      setError(error.message || 'Failed to update service status');
     }
   };
 
@@ -241,36 +499,33 @@ export default function AdminServicesAfilasGeneralPage() {
     return colors[category] || 'bg-gray-100 text-gray-700';
   };
 
+  const hasError = (field: keyof FormErrors) => {
+    return formErrors[field] && touched[field];
+  };
+
   return (
     <>
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-        <div>
-          <h1 className="font-display text-3xl text-clinical-900 flex items-center gap-3">
-            <Hospital className="w-8 h-8 text-green-600" />
-            Services - {LOCATION}
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Manage all medical services offered at {LOCATION}
-          </p>
-        </div>
+      {/* Header */}
+      <div className="flex items-center justify-end mb-6 flex-wrap gap-4">
         <div className="flex gap-3 flex-wrap">
           <button
             onClick={loadServices}
-            className="rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 text-sm transition-colors flex items-center gap-2"
+            className="rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 px-4 py-2 text-sm transition-colors flex items-center gap-2"
           >
             <RefreshCw className="w-4 h-4" />
             Refresh
           </button>
           <button
             onClick={() => handleOpenModal()}
-            className="rounded-lg bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm transition-colors flex items-center gap-2"
+            className="rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 px-4 py-2 text-sm transition-colors flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Add New Service
+            Add Service
           </button>
         </div>
       </div>
 
+      {/* Filters */}
       <div className="bg-white rounded-xl border border-gray-200 p-4 mb-6">
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex-1 min-w-[200px]">
@@ -281,7 +536,7 @@ export default function AdminServicesAfilasGeneralPage() {
                 placeholder="Search services..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
               />
             </div>
           </div>
@@ -289,24 +544,24 @@ export default function AdminServicesAfilasGeneralPage() {
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none bg-white"
+              className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none bg-white text-sm"
             >
               <option value="">All Categories</option>
-              {CATEGORIES.map(cat => (
+              {categories.map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
             </select>
             <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
           </div>
           <div className="text-sm text-gray-500">
-            {filteredServices.length} service{filteredServices.length !== 1 ? 's' : ''} found
+            {filteredServices.length} service{filteredServices.length !== 1 ? 's' : ''}
           </div>
         </div>
       </div>
 
       {success && (
-        <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
-          <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+        <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
+          <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
           <p className="text-sm text-green-600">{success}</p>
           <button onClick={() => setSuccess('')} className="ml-auto">
             <X className="w-4 h-4 text-green-600" />
@@ -315,8 +570,8 @@ export default function AdminServicesAfilasGeneralPage() {
       )}
 
       {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
-          <XCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+        <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+          <XCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
           <p className="text-sm text-red-600">{error}</p>
           <button onClick={() => setError('')} className="ml-auto">
             <X className="w-4 h-4 text-red-600" />
@@ -324,223 +579,336 @@ export default function AdminServicesAfilasGeneralPage() {
         </div>
       )}
 
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
-        {loading ? (
-          <div className="flex items-center justify-center p-12">
-            <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
-              <p className="text-sm text-gray-500">Loading services...</p>
+      {/* Services Grid */}
+      {loading ? (
+        <div className="flex items-center justify-center p-12">
+          <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
+        </div>
+      ) : filteredServices.length === 0 ? (
+        <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
+          <Building2 className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">No Services Found</h3>
+          <p className="text-sm text-gray-500 mb-4">
+            {searchTerm || categoryFilter ? 'Try adjusting your filters' : 'Click "Add Service" to create one'}
+          </p>
+          {!searchTerm && !categoryFilter && (
+            <button
+              onClick={() => handleOpenModal()}
+              className="rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 px-5 py-2 text-sm transition-colors"
+            >
+              + Add Service
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filteredServices.map((service) => (
+            <div key={service.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              {/* Service Image */}
+              <div className="relative h-40 bg-gray-100">
+                {service.image ? (
+                  <Image
+                    src={service.image}
+                    alt={service.name}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full">
+                    <ImageIcon className="w-12 h-12 text-gray-300" />
+                  </div>
+                )}
+                {/* Removed Active/Inactive button */}
+              </div>
+              
+              <div className="p-4">
+                <h4 className="text-sm font-semibold text-gray-800 truncate">{service.name}</h4>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full inline-block mt-1 ${getCategoryColor(service.category)}`}>
+                  {service.category}
+                </span>
+                
+                <p className="text-xs text-gray-500 mt-2 line-clamp-2">{service.description}</p>
+                
+                <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                  <div>
+                    <p className="text-sm font-bold text-gray-800">{formatCurrency(service.price)}</p>
+                    <p className="text-[10px] text-gray-400 flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {service.duration} min
+                    </p>
+                  </div>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => handleOpenModal(service)}
+                      className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                      title="Edit"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(service.id)}
+                      className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        ) : filteredServices.length === 0 ? (
-          <div className="text-center p-12">
-            <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-sm text-gray-500">No services found</p>
-            <p className="text-xs text-gray-400 mt-1">
-              {searchTerm || categoryFilter ? 'Try adjusting your filters' : 'Click "Add New Service" to create one'}
-            </p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-500 border-b border-gray-200 bg-gray-50">
-                  <th className="py-3 px-5 font-semibold">Name</th>
-                  <th className="py-3 px-5 font-semibold">Category</th>
-                  <th className="py-3 px-5 font-semibold">Description</th>
-                  <th className="py-3 px-5 font-semibold text-right">Price</th>
-                  <th className="py-3 px-5 font-semibold text-center">Duration</th>
-                  <th className="py-3 px-5 font-semibold text-center">Status</th>
-                  <th className="py-3 px-5 font-semibold text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredServices.map((service) => (
-                  <tr key={service.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-0">
-                    <td className="py-3 px-5">
-                      <div className="font-medium text-gray-800">{service.name}</div>
-                    </td>
-                    <td className="py-3 px-5">
-                      <span className={`text-xs px-2 py-1 rounded-full ${getCategoryColor(service.category)}`}>
-                        {service.category}
-                      </span>
-                    </td>
-                    <td className="py-3 px-5">
-                      <div className="text-gray-600 max-w-xs truncate">{service.description}</div>
-                    </td>
-                    <td className="py-3 px-5 text-right font-medium text-gray-800">
-                      {formatCurrency(service.price)}
-                    </td>
-                    <td className="py-3 px-5 text-center">
-                      <span className="flex items-center justify-center gap-1 text-gray-600">
-                        <Clock className="w-3.5 h-3.5" />
-                        {service.duration} min
-                      </span>
-                    </td>
-                    <td className="py-3 px-5 text-center">
-                      <button
-                        onClick={() => handleToggleStatus(service.id, service.isActive)}
-                        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                          service.isActive
-                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                            : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-                        }`}
-                      >
-                        {service.isActive ? 'Active' : 'Inactive'}
-                      </button>
-                    </td>
-                    <td className="py-3 px-5">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => handleOpenModal(service)}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          title="Edit"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(service.id)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {!loading && filteredServices.length > 0 && (
-        <div className="mt-4 text-xs text-gray-400">
-          Showing {filteredServices.length} service{filteredServices.length !== 1 ? 's' : ''} from {LOCATION}
+          ))}
         </div>
       )}
 
+      {!loading && filteredServices.length > 0 && (
+        <div className="mt-4 text-xs text-gray-400 flex items-center justify-end">
+          {filteredServices.length} service{filteredServices.length !== 1 ? 's' : ''} in {LOCATION}
+        </div>
+      )}
+
+      {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-800">
-                {editingService ? 'Edit Service' : 'Add New Service'}
-              </h2>
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between rounded-t-xl">
+              <h3 className="text-sm font-semibold text-gray-800">
+                {editingService ? ' Edit Service' : '➕ New Service'}
+              </h3>
               <button
                 onClick={handleCloseModal}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-gray-600"
               >
-                <X className="w-5 h-5 text-gray-500" />
+                <X className="w-4 h-4" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-600 text-sm">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                  {error}
+            <form onSubmit={handleSubmit} className="p-4 space-y-3">
+              {/* Image Upload - Always Visible */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-gray-400 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="relative flex-shrink-0">
+                    <div className="w-20 h-20 rounded-lg overflow-hidden bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
+                      {imagePreview ? (
+                        <Image
+                          src={imagePreview}
+                          alt="Service preview"
+                          width={80}
+                          height={80}
+                          unoptimized
+                          className="object-cover w-full h-full"
+                        />
+                      ) : (
+                        <ImageIcon className="w-8 h-8 text-gray-400" />
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleImageChange}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="absolute -bottom-2 -right-2 bg-white border border-gray-300 text-gray-600 p-1.5 rounded-full hover:bg-gray-50 hover:border-gray-400 transition-colors shadow-sm"
+                    >
+                      <Upload className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-gray-700">Service Image</p>
+                    <p className="text-xs text-gray-400">Click the upload button to add an image</p>
+                    <p className="text-[10px] text-gray-400 mt-1">JPG, PNG, GIF, WebP (max 5MB)</p>
+                    {formData.image && !imageFile && !imagePreview && (
+                      <p className="text-xs text-green-600 mt-1">✓ Image uploaded</p>
+                    )}
+                  </div>
                 </div>
+              </div>
+              {hasError('image') && (
+                <p className="text-xs text-red-500 -mt-2">{formErrors.image}</p>
               )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Service Name *
+              {/* Service Name */}
+              <div data-error={!!formErrors.name && touched.name}>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                  Service Name <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  onChange={(e) => handleFieldChange('name', e.target.value)}
+                  onBlur={() => setTouched({ ...touched, name: true })}
+                  className={`w-full rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none ${
+                    hasError('name')
+                      ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                      : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                  }`}
                   placeholder="Enter service name"
-                  required
+                  maxLength={100}
                 />
+                {hasError('name') && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.name}</p>
+                )}
+                <p className="text-[10px] text-gray-400 mt-0.5">{formData.name.length}/100</p>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description *
+              {/* Category with New Category Option */}
+              <div data-error={!!formErrors.category && touched.category}>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                  Category <span className="text-red-400">*</span>
+                </label>
+                <select
+                  value={formData.category}
+                  onChange={handleCategoryChange}
+                  onBlur={() => setTouched({ ...touched, category: true })}
+                  className={`w-full rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none ${
+                    hasError('category')
+                      ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                      : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                  }`}
+                >
+                  <option value="">Select category</option>
+                  {categories.map(cat => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                  <option value="new" className="text-green-600 font-medium">+ Add New Category</option>
+                </select>
+                {hasError('category') && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.category}</p>
+                )}
+              </div>
+
+              {/* New Category Input */}
+              {showNewCategory && (
+                <div className="flex gap-2 items-center bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={newCategory}
+                      onChange={(e) => setNewCategory(e.target.value)}
+                      placeholder="Enter new category name..."
+                      className="w-full rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-green-500 focus:ring-1 focus:ring-green-500 outline-none"
+                      autoFocus
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddNewCategory}
+                    className="px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Add
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowNewCategory(false);
+                      setNewCategory('');
+                      setFormData({ ...formData, category: '' });
+                    }}
+                    className="px-3 py-1.5 bg-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-300 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+
+              {/* Description */}
+              <div data-error={!!formErrors.description && touched.description}>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                  Description <span className="text-red-400">*</span>
                 </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                  rows={3}
+                  onChange={(e) => handleFieldChange('description', e.target.value)}
+                  onBlur={() => setTouched({ ...touched, description: true })}
+                  className={`w-full rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none ${
+                    hasError('description')
+                      ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                      : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                  }`}
+                  rows={2}
                   placeholder="Enter service description"
-                  required
+                  maxLength={500}
                 />
+                {hasError('description') && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.description}</p>
+                )}
+                <p className="text-[10px] text-gray-400 mt-0.5">{formData.description.length}/500</p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Category *
-                  </label>
-                  <select
-                    value={formData.category}
-                    onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="">Select category</option>
-                    {CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.location}
-                    disabled
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-500"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Price (USD) *
+              {/* Price and Duration */}
+              <div className="grid grid-cols-2 gap-3">
+                <div data-error={!!formErrors.price && touched.price}>
+                  <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                    Price (USD) <span className="text-red-400">*</span>
                   </label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <DollarSign className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                     <input
                       type="number"
                       value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: parseFloat(e.target.value) || 0 })}
-                      className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      onChange={(e) => handleFieldChange('price', parseFloat(e.target.value) || 0)}
+                      onBlur={() => setTouched({ ...touched, price: true })}
+                      className={`w-full rounded-lg border pl-8 pr-3 py-1.5 text-sm transition-colors outline-none ${
+                        hasError('price')
+                          ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                          : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                      }`}
                       min="0"
                       step="0.01"
-                      required
+                      placeholder="0.00"
                     />
                   </div>
+                  {hasError('price') && (
+                    <p className="text-xs text-red-500 mt-0.5">{formErrors.price}</p>
+                  )}
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Duration (minutes) *
+                <div data-error={!!formErrors.duration && touched.duration}>
+                  <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                    Duration (min) <span className="text-red-400">*</span>
                   </label>
                   <div className="relative">
-                    <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Clock className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
                     <input
                       type="number"
                       value={formData.duration}
-                      onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 0 })}
-                      className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      onChange={(e) => handleFieldChange('duration', parseInt(e.target.value) || 0)}
+                      onBlur={() => setTouched({ ...touched, duration: true })}
+                      className={`w-full rounded-lg border pl-8 pr-3 py-1.5 text-sm transition-colors outline-none ${
+                        hasError('duration')
+                          ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                          : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                      }`}
                       min="5"
                       step="5"
-                      required
+                      placeholder="30"
                     />
                   </div>
+                  {hasError('duration') && (
+                    <p className="text-xs text-red-500 mt-0.5">{formErrors.duration}</p>
+                  )}
                 </div>
               </div>
 
+              {/* Location */}
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={formData.location}
+                  disabled
+                  className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
+                />
+              </div>
+
+              {/* Active Status - Only in form */}
               <div>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -549,24 +917,35 @@ export default function AdminServicesAfilasGeneralPage() {
                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                     className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
                   />
-                  <span className="text-sm font-medium text-gray-700">Active</span>
+                  <span className="text-xs font-medium text-gray-700">Active</span>
                 </label>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-2 border-t border-gray-100">
+                <button
+                  type="submit"
+                  disabled={uploadingImage}
+                  className="flex-1 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 text-sm font-medium px-4 py-1.5 transition-colors flex items-center justify-center gap-2"
+                >
+                  {uploadingImage ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      Uploading...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-3.5 h-3.5" />
+                      {editingService ? 'Update' : 'Add'}
+                    </>
+                  )}
+                </button>
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="flex-1 rounded-lg bg-white border border-gray-200 text-gray-500 text-sm font-medium px-4 py-1.5 hover:bg-gray-50 hover:border-gray-300 transition-colors"
                 >
                   Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-2"
-                >
-                  <Save className="w-4 h-4" />
-                  {editingService ? 'Update Service' : 'Create Service'}
                 </button>
               </div>
             </form>
