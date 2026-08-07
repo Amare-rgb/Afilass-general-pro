@@ -117,10 +117,10 @@ const amenities = [
 ];
 
 const trustLogos = [
-  { name: "JCI ACCREDITED", badge: "Gold Standard" },
-  { name: "MINISTRY OF HEALTH", badge: "Certified" },
-  { name: "WORLD HEALTH ORG", badge: "Partner" },
-  { name: "ISO 9001:2015", badge: "Certified Quality" },
+  { name: "24/7 Emergency Care", badge: "Always Available" },
+  { name: "ISO/GMP Compliant", badge: "Certified Quality" },
+  { name: "Advanced Automated Lab", badge: "Best In Class" },
+  { name: "Maternal & Child Health Care ", badge: "Quality Care" },
 ];
 
 export default function HospitalPage() {
@@ -158,52 +158,49 @@ export default function HospitalPage() {
       <Header />
 
       <main className="pt-20 sm:pt-28 bg-background text-foreground transition-colors duration-300">
-        {/* ==========================================================================
-           1. HERO SECTION (Template Landing Page Layout)
-           ========================================================================== */}
-        <section className="hero-wrapper container mx-auto px-4 sm:px-6 lg:px-8 text-center pt-6 pb-12 relative">
-          <div className="hero-content reveal-up max-w-4xl mx-auto">
-            <p className="sub-headline text-xs sm:text-sm font-semibold uppercase tracking-widest text-primary mb-3">
-              {t("hospital.sub_headline") || "Afilas General Hospital & Healthcare Network"}
-            </p>
-            <h1 className="headline text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-6 text-foreground">
-              Turn Health Concerns into <br className="hidden sm:block" />
-              <span className="text-primary">Lifelong Wellness</span>
-            </h1>
+     
+{/* ==========================================================================
+   1. HERO SECTION – Hourglass Shape, Full Width, Thin Border
+   ========================================================================== */}
+<section className="hero-wrapper container mx-auto px-4 sm:px-6 lg:px-8 text-center pt-6 pb-12 relative">
+  <div className="hero-content reveal-up max-w-4xl mx-auto">
+    
+    <h1 className="headline text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-6 text-foreground">
+      Afilas General Hospital & <br className="hidden sm:block" />
+      <span className="text-primary"> Healthcare Network</span>
+    </h1>
 
-            <div className="hero-ctas flex flex-wrap justify-center items-center gap-4 mb-4">
-              <a
-                href="#doctors"
-                className="btn btn-primary px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-lg shadow-lg hover:bg-primary/90 hover:scale-105 transition-all duration-200"
-              >
-                Book Appointment
-              </a>
-              <div className="glow-container">
-                <a
-                  href="#services"
-                  className="btn btn-secondary px-8 py-3.5 bg-card text-foreground font-bold rounded-lg border border-border hover:bg-accent/10 transition-all duration-200 block"
-                >
-                  View Medical Services
-                </a>
-              </div>
-            </div>
+    <div className="hero-ctas flex flex-wrap justify-center items-center gap-4 mb-4">
+      <a
+        href="#doctors"
+        className="btn btn-primary px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-lg shadow-lg hover:bg-primary/90 hover:scale-105 transition-all duration-200"
+      >
+        Book Appointment
+      </a>
+      <a
+        href="#services"
+        className="btn btn-secondary px-8 py-3.5 bg-card text-foreground font-bold rounded-lg border border-border hover:bg-accent/10 transition-all duration-200 block"
+      >
+        View Medical Services
+      </a>
+    </div>
 
-            <p className="pricing-note text-xs text-muted-foreground mb-10">
-              24/7 Emergency Care • JCI Accredited • 50+ Senior Medical Specialists
-            </p>
+    <p className="pricing-note text-xs text-muted-foreground mb-10">
+      24/7 Emergency Care • JCI Accredited • 50+ Senior Medical Specialists
+    </p>
 
-            {/* Hero Dashboard / Facility Showcase Mockup */}
-            <div className="mockup-container hero-video-mockup reveal-up delay-1 max-w-4xl mx-auto h-[260px] sm:h-[420px] relative rounded-2xl overflow-hidden border border-border shadow-2xl group">
-              <Image
-                src="/afilas.jpg"
-                alt="Afilas General Hospital Facility"
-                fill
-                priority
-                className="object-cover group-hover:scale-105 transition-transform duration-700"
-              />
-            </div>
-          </div>
-        </section>
+    {/* Hero Facility Showcase Mockup */}
+    <div className="mockup-container reveal-up delay-1 max-w-4xl mx-auto h-[260px] sm:h-[420px] relative rounded-2xl overflow-hidden border border-border shadow-2xl group">
+      <Image
+        src="/afilas.jpg"
+        alt="Afilas General Hospital Facility"
+        fill
+        priority
+        className="object-cover group-hover:scale-105 transition-transform duration-700"
+      />
+    </div>
+  </div>
+</section>
 
         {/* ==========================================================================
            2. LOGOS / TRUST SECTION (Template Section 4)
@@ -236,7 +233,7 @@ export default function HospitalPage() {
           id="about"
           className="how-it-works-wrapper container mx-auto px-4 sm:px-6 lg:px-8 text-center py-12 sm:py-16"
         >
-          <div className="step-card-wrapper step-with-glow reveal-up max-w-4xl mx-auto">
+          <div className="step-card-wrapper reveal-up max-w-4xl mx-auto">
             <div className="step-card bg-card border border-border rounded-2xl p-8 sm:p-12 text-center shadow-lg">
               <h2 className="section-title text-2xl sm:text-4xl font-extrabold text-foreground mb-4">
                 Welcome to Afilas General Hospital
@@ -248,64 +245,68 @@ export default function HospitalPage() {
           </div>
         </section>
 
-        {/* ==========================================================================
-           4. FEATURE 1: DEPARTMENTS SHOWCASE (Template Section 6)
-           ========================================================================== */}
-        <section className="feature-wrapper feature-1 container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 flex flex-col lg:flex-row items-center gap-12">
-          <div className="feature-mockup mockup-container w-full lg:w-1/2 h-[320px] sm:h-[400px] rounded-2xl border border-border shadow-lg relative overflow-hidden reveal-left">
-            <Image
-              src="/diagnostics-bg.jpg"
-              alt="Medical Department Facility"
-              fill
-              className="object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-6">
-              <div className="text-white">
-                <span className="text-xs font-bold uppercase tracking-wider text-primary-foreground bg-primary px-3 py-1 rounded-md">
-                  Clinical Excellence
-                </span>
-                <h4 className="text-xl font-bold mt-2">Comprehensive Medical Departments</h4>
-              </div>
-            </div>
-          </div>
+ {/* ==========================================================================
+   4. SPECIALIZED MEDICAL DEPARTMENTS (REDESIGNED)
+   ========================================================================== */}
+<section className="feature-wrapper feature-1 container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 flex flex-col lg:flex-row items-start gap-10 lg:gap-14">
+  {/* LEFT – Image */}
+  <div className="feature-mockup mockup-container w-full lg:w-[42%] h-[300px] sm:h-[380px] lg:h-[480px] rounded-none border border-border shadow-xl relative overflow-hidden reveal-left shrink-0">
+    <Image
+      src="/Afilas-Logo.jfif"
+      alt="Afilas General Hospital medical facility"
+      fill
+      className="object-cover"
+      priority
+    />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-6 sm:p-8">
+      <span className="inline-block text-xs font-bold uppercase tracking-wider text-white bg-primary/90 px-4 py-1.5 w-fit mb-2">
+        Clinical Excellence
+      </span>
+      <h4 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+        World-Class Medical<br />Departments
+      </h4>
+    </div>
+  </div>
 
-          <div className="feature-content w-full lg:w-1/2 text-left reveal-right">
-            <h2 className="section-title text-2xl sm:text-4xl font-extrabold text-foreground mb-4">
-              Specialized Medical Departments
-            </h2>
-            <p className="feature-text text-sm sm:text-base text-muted-foreground mb-6 leading-relaxed">
-              Our multidisciplinary teams of specialized physicians, surgeons, and healthcare practitioners deliver world-class medical outcomes using cutting-edge technologies.
-            </p>
+  {/* RIGHT – Content + Cards */}
+  <div className="feature-content w-full lg:flex-1 text-left reveal-right">
+    <h2 className="section-title text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground mb-3">
+      Specialized Medical Departments
+    </h2>
+    <p className="feature-text text-sm sm:text-base text-muted-foreground mb-8 leading-relaxed max-w-xl">
+      Our multidisciplinary teams of specialized physicians, surgeons, and
+      healthcare practitioners deliver world-class medical outcomes using
+      cutting-edge technologies.
+    </p>
 
-            <div className="grid sm:grid-cols-2 gap-4">
-              {departments.map((dept) => {
-                const Icon = dept.icon;
-                return (
-                  <Link
-                    key={dept.slug}
-                    href={`/hospital/departments/${dept.slug}`}
-                    className="p-4 rounded-xl bg-card border border-border hover:border-primary/50 hover:shadow-md transition-all duration-300 group flex items-start gap-3"
-                  >
-                    <div
-                      className={`w-10 h-10 ${dept.bgColor} rounded-lg flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}
-                    >
-                      <Icon className={`w-5 h-5 ${dept.color}`} />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-1">
-                        {dept.name}
-                        <ArrowRight className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                      </h3>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                        {dept.description}
-                      </p>
-                    </div>
-                  </Link>
-                );
-              })}
+    {/* 3-column grid for departments with larger cards and row gap */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 gap-y-6">
+      {departments.map((dept) => {
+        const Icon = dept.icon;
+        return (
+          <Link
+            key={dept.slug}
+            href={`/hospital/departments/${dept.slug}`}
+            className="group flex flex-col items-start gap-3 p-5 border border-border/70 hover:border-primary/60 transition-all duration-300 hover:shadow-md"
+          >
+            <div className="w-12 h-12 bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+              <Icon className="w-6 h-6 text-primary" strokeWidth={1.8} />
             </div>
-          </div>
-        </section>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-1">
+                {dept.name}
+                <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                {dept.description}
+              </p>
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  </div>
+</section>
 
         {/* ==========================================================================
            5. FEATURE 2: HOSPITAL AMENITIES (Template Section 7)
@@ -319,7 +320,7 @@ export default function HospitalPage() {
               Designed around patient dignity, safety, and rapid recovery. From 24/7 emergency response to advanced imaging labs and modern surgical suites.
             </p>
 
-            <div className="glow-container">
+            <div>
               <a
                 href="#services"
                 className="btn btn-secondary px-6 py-3 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary/90 transition-all inline-flex items-center gap-2"
@@ -356,53 +357,7 @@ export default function HospitalPage() {
         </section>
 
         {/* ==========================================================================
-           6. STATS SECTION WITH GLOW CARD (Template Section 8)
-           ========================================================================== */}
-        <section className="stats-wrapper container mx-auto px-4 sm:px-6 lg:px-8 text-center py-16 sm:py-24">
-          <h2 className="stats-title section-title text-2xl sm:text-4xl font-extrabold text-foreground mb-4 reveal-up max-w-3xl mx-auto">
-            Excellence in Healthcare & Clinical Outcomes
-          </h2>
-          
-          <div className="stats-card-container reveal-up delay-1 max-w-4xl mx-auto">
-            <div className="stats-card bg-card border border-border rounded-2xl p-8 grid grid-cols-2 md:grid-cols-4 gap-6 shadow-xl">
-              <div className="stat-item p-2">
-                <p className="stat-label text-xs font-bold tracking-widest text-muted-foreground uppercase mb-2">
-                  DEPARTMENTS
-                </p>
-                <p className="stat-number text-3xl sm:text-4xl font-black text-primary">
-                  6+
-                </p>
-              </div>
-              <div className="stat-item p-2">
-                <p className="stat-label text-xs font-bold tracking-widest text-muted-foreground uppercase mb-2">
-                  SPECIALISTS
-                </p>
-                <p className="stat-number text-3xl sm:text-4xl font-black text-primary">
-                  50+
-                </p>
-              </div>
-              <div className="stat-item p-2">
-                <p className="stat-label text-xs font-bold tracking-widest text-muted-foreground uppercase mb-2">
-                  BED CAPACITY
-                </p>
-                <p className="stat-number text-3xl sm:text-4xl font-black text-primary">
-                  200+
-                </p>
-              </div>
-              <div className="stat-item p-2">
-                <p className="stat-label text-xs font-bold tracking-widest text-muted-foreground uppercase mb-2">
-                  PATIENTS SERVED
-                </p>
-                <p className="stat-number text-3xl sm:text-4xl font-black text-primary">
-                  50,000+
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ==========================================================================
-           7. PRICING & PACKAGES SECTION (Template Section 9)
+           6. PRICING & PACKAGES SECTION (Template Section 9)
            ========================================================================== */}
         <section
           id="pricing"
@@ -412,7 +367,7 @@ export default function HospitalPage() {
             Comprehensive Health Packages & Transparent Pricing
           </h2>
 
-          <div className="pricing-card-container reveal-up delay-1 max-w-4xl mx-auto">
+          <div className="reveal-up delay-1 max-w-4xl mx-auto">
             <div className="pricing-card bg-card text-foreground rounded-2xl p-8 sm:p-12 flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl border border-border">
               <div className="pricing-left text-left w-full md:w-2/3">
                 <ul className="features-list grid sm:grid-cols-2 gap-3 text-sm">

@@ -519,34 +519,8 @@ section[id] {
 }
 
 /* ========================================
-   LANDING PAGE TEMPLATE & GLOW EFFECTS
+   LANDING PAGE TEMPLATE UTILITIES
    ======================================== */
-:root {
-  --glow-1: #0f6e5f; /* Clinical Primary Teal */
-  --glow-2: #14b8a6; /* Bright Teal */
-  --glow-3: #10b981; /* Emerald Mint */
-  --glow-4: #0284c7; /* Clinical Cyan/Blue */
-}
-
-.dark {
-  --glow-1: #14b8a6;
-  --glow-2: #2dd4bf;
-  --glow-3: #34d399;
-  --glow-4: #38bdf8;
-}
-
-.gradient-text {
-  background: linear-gradient(135deg, var(--primary) 0%, #10b981 50%, #0284c7 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.dark .gradient-text {
-  background: linear-gradient(135deg, var(--primary) 0%, #34d399 50%, #38bdf8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
 .mockup-container {
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
@@ -559,48 +533,6 @@ section[id] {
   height: 100%;
   object-fit: cover;
   object-position: top center;
-}
-
-/* Glowing gradient background generators using project theme colors */
-.glow-container,
-.step-with-glow,
-.stats-card-container,
-.pricing-card-container,
-.hero-video-mockup {
-  position: relative;
-}
-
-.glow-container::before,
-.step-with-glow::before,
-.stats-card-container::before,
-.pricing-card-container::before,
-.hero-video-mockup::before {
-  content: "";
-  position: absolute;
-  top: -2px;
-  left: -2px;
-  right: -2px;
-  bottom: -2px;
-  background: linear-gradient(
-    135deg,
-    var(--glow-1),
-    var(--glow-2),
-    var(--glow-3),
-    var(--glow-4)
-  );
-  border-radius: 14px;
-  filter: blur(16px);
-  opacity: 0.55;
-  z-index: 0;
-}
-
-.glow-container > *,
-.step-with-glow > *,
-.stats-card-container > *,
-.pricing-card-container > *,
-.hero-video-mockup > * {
-  position: relative;
-  z-index: 2;
 }
 
 .circle-icon {
