@@ -17,103 +17,89 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
 
 const translations: Record<Language, Record<string, string>> = {
   en: {
+    // Navigation & Topbar
     "nav.home": "Home",
     "nav.hospital": "Hospital",
     "nav.diagnostics": "Diagnostics",
     "nav.pharma": "Pharmacy",
     "nav.about": "About",
     "nav.contact": "Contact",
-
     "nav.service": "Services",
     "nav.blog": "Blog",
-    "nav.group_dropdown_title": "The pillars of Afilas healthcare business",
-    "nav.division.hospital_desc":
-      "Compassionate, specialized patient care available 24/7.",
-    "nav.division.diagnostics_desc":
-      "High-precision imaging and automated laboratory testing.",
-    "nav.division.pharma_desc":
-      "Quality-driven, accessible pharmaceutical production meeting international standards.",
     "nav.group": "Afilas Group",
+    "nav.group_dropdown_title": "Explore Our Divisions",
     "nav.about_us": "About Us",
     "nav.contact_emergency": "Contact & Emergency",
     "nav.select_division": "Select Division",
     "nav.division.group": "Afilas Group",
     "nav.division.hospital": "Afilas General Hospital",
+    "nav.division.hospital_desc": "Compassionate, specialized patient care available 24/7.",
     "nav.division.diagnostics": "Afilas Diagnosis Center",
+    "nav.division.diagnostics_desc": "High-precision imaging and automated laboratory testing.",
     "nav.division.pharma": "Afilas Drug Manufacturing",
+    "nav.division.pharma_desc": "Quality-driven, accessible pharmaceutical production meeting international standards.",
+    "nav.toggle_menu": "Toggle navigation",
     "topbar.emergency_available": "Emergency Care Available 24/7",
     "topbar.call": "Call:",
     "cta.emergency_call": "Emergency Call",
     "cta.book_appointment": "Book Appointment",
     "cta.get_lab_results": "Get Lab Results",
 
+    // Hero Section
+    "hero.company_subtitle": "Afilas Share Company",
     "hero.headline": "Complete Healthcare Solutions Under One Umbrella.",
-    "hero.subheadline":
-      "From advanced clinical care and precision diagnostics to local pharmaceutical manufacturing, Afilas is dedicated to elevating health standards across the region.",
-    "hero.badge_lab": "Advanced Automated Lab",
+    "hero.subheadline": "From advanced clinical care and precision diagnostics to local pharmaceutical manufacturing, Afilas is dedicated to elevating health standards across the region.",
+    "hero.find_doctor": "Find a Doctor",
+    "hero.book_test": "Book Diagnostic Test",
+    "hero.explore_pharma": "Explore Pharma Division",
+    "hero.hospital_subtitle": "24/7 Patient Care",
+    "hero.diagnostic_subtitle": "Precision Testing",
+    "hero.pharma_subtitle": "GMP Certified",
 
+    // Three Pillars / Shared Essential Section
+    "pillars.header_badge": "Our Divisions",
+    "pillars.header_title": "Three Pillars of Afilas",
+    "pillars.header_subtitle": "Integrated healthcare solutions across hospital, diagnostic, and pharmaceutical services.",
     "pillars.title": "Integrated Excellence Across Healthcare",
-    "pillars.subtitle":
-      "Discover how our three dedicated divisions work together to deliver comprehensive care and reliable pharmaceutical solutions.",
-    "pillars.hospital_tagline":
-      "Compassionate, specialized patient care available 24/7.",
-    "pillars.hospital_desc":
-      "Delivering patient-centered care with state-of-the-art medical technology and highly qualified specialists.",
-    "pillars.hospital_highlights_1": "Inpatient & Outpatient Care",
-    "pillars.hospital_highlights_2": "24/7 Emergency & Surgical Suites",
-    "pillars.hospital_highlights_3": "Maternal & Child Health Care",
-    "pillars.hospital_cta": "Explore Hospital Services",
-    "pillars.diagnostics_tagline":
-      "High-precision imaging and automated laboratory testing.",
-    "pillars.diagnostics_desc":
-      "Equipping clinicians and patients with accurate, timely diagnostic insights to ensure early detection and targeted treatments.",
-    "pillars.diagnostics_highlights_1":
-      "Advanced Imaging (CT Scan, MRI, Digital X-Ray)",
-    "pillars.diagnostics_highlights_2": "Automated Pathology & Hematology",
-    "pillars.diagnostics_highlights_3":
-      "Molecular Diagnostics & Special Lab Tests",
-    "pillars.diagnostics_cta": "Book a Test / View Services",
-    "pillars.pharma_tagline":
-      "Quality-driven, accessible pharmaceutical production meeting international standards.",
-    "pillars.pharma_desc":
-      "Strengthening healthcare resilience by producing safe, effective, and affordable essential medicines locally.",
-    "pillars.pharma_highlights_1": "High-Standard Formulation & Packaging",
-    "pillars.pharma_highlights_2": "Strict Quality Control & GMP Adherence",
-    "pillars.pharma_highlights_3": "B2B & Institutional Wholesale Distribution",
-    "pillars.pharma_cta": "View Products & Capabilities",
-
+    "pillars.subtitle": "Discover how our three dedicated divisions work together to deliver comprehensive care and reliable pharmaceutical solutions.",
     "pillars.card1_title": "Afilas General Hospital",
-    "pillars.card1_desc": "Afilas General Hospital is a multi-specialty healthcare facility near Felege Hiwot Hospital, offering breathtaking views of Lake Tana. With 10+ specialty centers, it provides compassionate, patient-centered care 24/7, combining advanced medical technology with expert clinical staff.",
+    "pillars.card1_tag": "24/7 Care",
+    "pillars.card1_desc": "Afilas General Hospital is a multi-specialty healthcare facility near Felege Hiwot Hospital, offering breathtaking views of Lake Tana. With 10+ specialty centers, it provides compassionate, patient-centered care 24/7.",
     "pillars.card1_highlight1": "Inpatient/Outpatient",
     "pillars.card1_highlight2": "Emergency & Surgery",
     "pillars.card1_highlight3": "Maternal & Child Health",
     "pillars.card1_cta": "Explore Hospital",
     "pillars.card2_title": "Afilas Diagnostic Center",
-    "pillars.card2_desc": "Afilas Diagnostic Center is a state-of-the-art facility delivering fast, precise, and reliable diagnostic results. Equipped with advanced laboratory and imaging technologies, it supports accurate medical decisions through comprehensive testing and digital result access.",
+    "pillars.card2_tag": "Precision",
+    "pillars.card2_desc": "Afilas Diagnostic Center is a state-of-the-art facility delivering fast, precise, and reliable diagnostic results through advanced lab testing and digital access.",
     "pillars.card2_highlight1": "Lab Services",
     "pillars.card2_highlight2": "Imaging & Radiology",
     "pillars.card2_highlight3": "Digital Results",
     "pillars.card2_cta": "Book a Test",
     "pillars.card3_title": "Afilas Drug Manufacturing",
-    "pillars.card3_desc": "Afilas Drug Manufacturing is committed to producing high-quality, affordable pharmaceutical products meeting international standards. With GMP-certified facilities and strict quality control, it safeguards community health by manufacturing essential medicines locally.",
+    "pillars.card3_tag": "GMP Certified",
+    "pillars.card3_desc": "Afilas Drug Manufacturing is committed to producing high-quality, affordable pharmaceutical products meeting international standards with GMP certification.",
     "pillars.card3_highlight1": "Quality Assurance",
     "pillars.card3_highlight2": "Product Catalog",
     "pillars.card3_highlight3": "B2B Partnership",
     "pillars.card3_cta": "View Products",
 
-    "pillars.header_badge": "All Page Descriptions",
-    "pillars.header_title": "Shared Essential Pages",
-    "pillars.header_subtitle": "Integrated healthcare solutions across hospital, diagnostic, and pharmaceutical services.",
-
+    // General Hospital Section
     "general.title": "Afilas General Hospital",
     "general.subtitle": "Compassionate, specialized patient care available 24/7.",
-    "general.description": "Afilas hospital is a multi-specialty hospital located around Felege Hiwot Hospital, in front of Amhara public health institute, offshore Lake Tana with breathtaking view. It is one of the private hospitals in the city, with over 10 specialty centers. Afilas offers state-of-the-art diagnostic and therapeutic care in a one-stop medical center.",
-    "general.location": "Location",
+  "general.intro": "Afilas hospital is a multi-specialty hospital located around Felege Hiwot Hospital, in front of Amhara public health institute, with a breathtaking view of Lake Tana.",
+  "general.feature1": "Over 10 specialty centers under one roof",
+  "general.feature2": "State-of-the-art diagnostic and therapeutic care",
+  "general.feature3": "Convenient one-stop medical center",
+  "general.feature4": "Private hospital with high-quality standards",
+  "general.feature5": "Experienced medical professionals",
+   "general.location": "Location",
     "general.location_address": "Felege Hiwot Area, Amhara Public Health Institute, Lake Tana Shore",
     "general.emergency_services": "Emergency Services",
     "general.emergency_desc": "24/7 Emergency Care & Ambulance Services",
     "general.cta": "Explore Hospital Services",
 
+    // Diagnostic Center Section
     "diagnostic.title": "Afilas Diagnostic Center",
     "diagnostic.subtitle": "Fast, precise, and reliable diagnostic results driving accurate medical decisions.",
     "diagnostic.about_title": "About Afilas Diagnostic Center",
@@ -136,6 +122,7 @@ const translations: Record<Language, Record<string, string>> = {
     "diagnostic.package3_name": "Women's / Men's Health",
     "diagnostic.package3_desc": "Comprehensive screening built around the checks that matter most at each life stage.",
 
+    // Drug Manufacturing Section
     "pharma.title": "Afilas Drug Manufacturing",
     "pharma.subtitle": "Safeguarding community health through local, high-quality, and compliant medicine production.",
     "pharma.description": "Afilas Drug Manufacturing is committed to producing high-quality pharmaceutical products that meet international standards. With state-of-the-art manufacturing facilities and strict adherence to GMP guidelines, we ensure every product is safe, effective, and reliable for patient use.",
@@ -153,6 +140,22 @@ const translations: Record<Language, Record<string, string>> = {
     "pharma.card4_tag": "Contact",
     "pharma.cta": "Go to Pharma Page",
 
+    // Doctor Finder Section
+    "doctors.headline": "Find a Doctor",
+    "doctors.subtitle": "Connect with experienced specialists across key medical disciplines.",
+    "doctors.filter_specialty": "Select Specialty",
+    "doctors.filter_availability": "Select Availability",
+    "doctors.filter_search": "Search Doctor by Name...",
+    "doctors.view_all": "View All Specialists & Schedule",
+    "doctors.book": "Book Appointment",
+    "doctors.email": "Email",
+    "doctors.available": "Available",
+    "doctors.status_loading": "Loading...",
+    "doctors.status_offline": "Offline Mode",
+    "doctors.status_live": "Live Data",
+    "doctors.no_doctors": "No doctors found matching your criteria.",
+
+    // About Us Section
     "about.title": "About Afilas",
     "about.subtitle": "Unifying clinical expertise, technology, and local manufacturing for accessible healthcare.",
     "about.vision_title": "Vision",
@@ -179,12 +182,11 @@ const translations: Record<Language, Record<string, string>> = {
     "about.quality_1": "Infection Control",
     "about.quality_2": "Standard Operating Procedures",
     "about.quality_3": "Regulatory Certifications",
-
     "about.page_title": "About Afilas Hospital",
     "about.toc_title": "On This Page",
     "about.what_is_afilas": "What is Afilas",
-    "about.what_is_afilas_p1": "Afilas Pharmaceuticals Manufacturing and Medical Services S.C. was established in June 2017 by a group of committed, visionary, team-oriented, and considerate health science and related scholars who have lived the experiences of the community that we stand to serve. Because of the above-mentioned motive, the word \"AFILAS\" was selected from the Saban language, which means \"the voice of scholars is heard.\" (In Amharic, \"የእውቀት ድምጽ ተሰማ ወይም የአዋቂዎች ድምጽ ተሰማ\" ማለት ነው።) We strongly believe that professional experts should address every professional practice.",
-    "about.what_is_afilas_p2": "The first business firm of Afilas, which opened in January 2018, was Afilas Health Center, which grew into Afilas General Hospital (AGH). The hospital is now one of the best healthcare destinations in the Amhara National Regional State (ANRS).",
+    "about.what_is_afilas_p1": "Afilas Pharmaceuticals Manufacturing and Medical Services S.C. was established in June 2017 by a group of committed, visionary, team-oriented, and considerate health science and related scholars.",
+    "about.what_is_afilas_p2": "The first business firm of Afilas, which opened in January 2018, was Afilas Health Center, which grew into Afilas General Hospital (AGH).",
     "about.what_is_afilas_p3": "In 2022, we opened our second business firm, Afilas Pharmaceuticals Wholesale (APW) and we have opened Afilas diagnostics center in 2026.",
     "about.board_title": "Afilas PMMS S.C. Board of Directors",
     "about.inspectors_title": "Inspectors / Internal Auditors",
@@ -195,36 +197,27 @@ const translations: Record<Language, Record<string, string>> = {
     "about.meaning": "Name Meaning",
     "about.meaning_text": "The voice of scholars is heard",
 
-    "doctors.headline": "Find a Doctor",
-    "doctors.subtitle":
-      "Connect with experienced specialists across key medical disciplines.",
-    "doctors.filter_specialty": "Select Specialty",
-    "doctors.filter_availability": "Select Availability",
-    "doctors.filter_search": "Search Doctor by Name...",
-    "doctors.view_all": "View All Specialists & Schedule",
-    "doctors.book": "Book Appointment",
-
-    "footer.tagline":
-      "Elevating health through care, precision, and production.",
-    "footer.address": "Address: [Insert Facility Address]",
-    "footer.phone": "Phone: [Insert Main Desk Number]",
-    "footer.email": "Email: [Insert Info Email]",
+    // Footer
+    "footer.tagline": "Elevating health through care, precision, and production.",
+    "footer.address": "Address: Felege Hiwot Area, Lake Tana Shore, Bahir Dar",
+    "footer.phone": "Phone: +251 98 320 1998",
+    "footer.email": "Email: info@afilas.com",
     "footer.quick_links": "Quick Links",
     "footer.hospital_departments": "Hospital Departments",
     "footer.diagnostic_packages": "Diagnostic Packages",
     "footer.pharma_catalog": "Pharma Catalog",
     "footer.careers_news": "Careers & News",
     "footer.emergency_support": "Emergency & Support",
-    "footer.emergency_hotline": "Emergency Hotline: [Insert Phone]",
+    "footer.emergency_hotline": "Emergency Hotline: +251 98 320 1998",
     "footer.lab_results": "Lab Results Portal",
     "footer.lab_results_link": "Login / Access Link",
     "footer.pharma_inquiries": "Pharma Commercial Inquiries",
-    "footer.pharma_inquiries_contact": "[Contact B2B Team]",
+    "footer.pharma_inquiries_contact": "Contact B2B Team",
     "footer.rights_reserved": "All Rights Reserved.",
 
+    // Division Specific Pages
     "hospital.hero.title": "Afilas Hospital Division",
-    "hospital.hero.subtitle":
-      "State-of-the-art facilities and expert medical care across multiple specialties. Our hospital division provides comprehensive inpatient and outpatient services with compassionate, patient-centered care.",
+    "hospital.hero.subtitle": "State-of-the-art facilities and expert medical care across multiple specialties.",
     "hospital.hero.cta1": "Explore Departments",
     "hospital.hero.cta2": "Book Appointment",
     "hospital.hero.scroll": "Scroll to explore",
@@ -233,24 +226,20 @@ const translations: Record<Language, Record<string, string>> = {
     "hospital.hero.roller_2": "Expert Specialists",
     "hospital.hero.roller_3": "24/7 Emergency",
     "hospital.hero.roller_4": "Your Health, Our Priority",
-
     "hospital.services.title": "Our Medical Services",
-    "hospital.services.subtitle":
-      "Comprehensive care tailored to your health needs",
+    "hospital.services.subtitle": "Comprehensive care tailored to your health needs",
     "hospital.services.per_visit": "per visit",
     "hospital.services.book": "Book Now",
 
     "diagnostics.hero.title": "Afilas Diagnostics Center",
-    "diagnostics.hero.subtitle":
-      "High-precision imaging and fully automated laboratory testing. Our diagnostics center delivers accurate, timely results to empower clinicians and patients with actionable health insights.",
+    "diagnostics.hero.subtitle": "High-precision imaging and fully automated laboratory testing.",
     "diagnostics.hero.cta1": "View Services",
     "diagnostics.hero.cta2": "Book a Test",
     "diagnostics.hero.scroll": "Scroll to explore",
     "diagnostics.hero.social_proof": "Over 10,000 tests processed monthly",
 
     "pharma.hero.title": "Afilas Drug Manufacturing",
-    "pharma.hero.subtitle":
-      "Quality-driven, accessible pharmaceutical production meeting international standards. Strengthening healthcare resilience by producing safe, effective, and affordable essential medicines locally.",
+    "pharma.hero.subtitle": "Quality-driven, accessible pharmaceutical production meeting international standards.",
     "pharma.hero.cta1": "View Products",
     "pharma.hero.cta2": "B2B Inquiries",
     "pharma.hero.scroll": "Scroll to explore",
@@ -258,27 +247,27 @@ const translations: Record<Language, Record<string, string>> = {
 
     "pharma.why.badge": "Value Proposition",
     "pharma.why.title": "Why Choose Afilas Group?",
-    "pharma.why.subtitle": "From manufacturing to patient care — discover what makes Afilas Drug Manufacturing a trusted partner for hospitals, distributors, and pharmacies across the region.",
+    "pharma.why.subtitle": "From manufacturing to patient care — discover what makes Afilas Drug Manufacturing a trusted partner.",
     "pharma.why.cta": "Request a B2B Quote",
     "pharma.why.card1_title": "End-to-End Healthcare",
-    "pharma.why.card1_desc": "Seamless integration from manufacturing post-treatment pharmaceuticals down to patient care, managing the entire care journey under one umbrella.",
+    "pharma.why.card1_desc": "Seamless integration from manufacturing pharmaceuticals down to patient care.",
     "pharma.why.card1_h1": "From raw material sourcing to finished dosage forms",
     "pharma.why.card1_h2": "Integrated hospital & pharmacy distribution pipeline",
     "pharma.why.card1_h3": "Post-treatment pharmaceutical follow-up support",
     "pharma.why.card2_title": "Cutting-Edge Technology",
-    "pharma.why.card2_desc": "Equipped with automated pharmaceutical machinery and modern formulation facilities to ensure consistent, high-quality production output.",
+    "pharma.why.card2_desc": "Equipped with automated pharmaceutical machinery and modern formulation facilities.",
     "pharma.why.card2_h1": "Fully automated tablet & capsule production lines",
     "pharma.why.card2_h2": "Modern formulation & quality testing laboratories",
     "pharma.why.card2_h3": "Real-time batch tracking & production monitoring",
     "pharma.why.card3_title": "Uncompromising Quality & Safety",
-    "pharma.why.card3_desc": "Full compliance with Good Manufacturing Practice (GMP), ISO standards, and strict quality control protocols at every stage of production.",
+    "pharma.why.card3_desc": "Full compliance with Good Manufacturing Practice (GMP) and ISO standards.",
     "pharma.why.card3_h1": "GMP-certified manufacturing environment",
     "pharma.why.card3_h2": "ISO 9001 quality management system",
     "pharma.why.card3_h3": "Multi-stage quality control & assurance testing",
 
     "pharma.b2b.badge": "B2B Commercial",
     "pharma.b2b.title": "Partner With Afilas Pharma",
-    "pharma.b2b.subtitle": "Whether you're a hospital network, pharmacy chain, or pharmaceutical distributor — get tailored pricing, bulk order quotes, and contract manufacturing proposals.",
+    "pharma.b2b.subtitle": "Whether you're a hospital network, pharmacy chain, or pharmaceutical distributor — get tailored pricing and quotes.",
     "pharma.b2b.phone_label": "B2B Commercial Hotline",
     "pharma.b2b.email_label": "Commercial Email",
     "pharma.b2b.location_label": "Manufacturing Facility",
@@ -315,23 +304,22 @@ const translations: Record<Language, Record<string, string>> = {
     "pharma.b2b.field_volume": "Estimated Volume",
     "pharma.b2b.field_volume_ph": "e.g., 10,000 units/month",
     "pharma.b2b.field_message": "Additional Details",
-    "pharma.b2b.field_message_ph": "Tell us more about your requirements, timeline, or special needs...",
+    "pharma.b2b.field_message_ph": "Tell us more about your requirements...",
     "pharma.b2b.submit": "Submit Inquiry",
     "pharma.b2b.submitting": "Submitting...",
     "pharma.b2b.success_title": "Inquiry Received!",
     "pharma.b2b.success_desc": "Thank you for your interest. Our B2B commercial team will contact you within 24 business hours.",
-    "pharma.b2b.disclaimer": "By submitting this form you agree to be contacted by the Afilas B2B commercial team regarding your inquiry.",
+    "pharma.b2b.disclaimer": "By submitting this form you agree to be contacted by the Afilas B2B commercial team.",
 
     "pharma.catalog.badge": "Our Products",
     "pharma.catalog.title": "Pharmaceutical Products",
-    "pharma.catalog.subtitle": "Quality-assured medicines manufactured locally under GMP standards — available for institutional and retail distribution.",
+    "pharma.catalog.subtitle": "Quality-assured medicines manufactured locally under GMP standards.",
     "pharma.catalog.price": "Price",
     "pharma.catalog.active": "Active",
     "pharma.catalog.days": "days",
 
     "blog.title": "Health & Medical Insights",
-    "blog.subtitle":
-      "Stay informed with the latest medical research, clinical breakthroughs, and healthcare updates from Afilas Group.",
+    "blog.subtitle": "Stay informed with the latest medical research and healthcare updates from Afilas Group.",
     "blog.search_placeholder": "Search articles, research, tags...",
     "blog.filter_all": "All Articles",
     "blog.filter_categories": "Categories",
@@ -353,103 +341,91 @@ const translations: Record<Language, Record<string, string>> = {
     "blog.back_to_blogs": "Back to Articles",
     "blog.featured": "Featured Article",
   },
+
   am: {
+    // Navigation & Topbar
     "nav.home": "መነሻ",
     "nav.hospital": "ሆስፒታል",
     "nav.diagnostics": "ምርመራ",
     "nav.pharma": "ፋርማሲ",
-    "nav.about": "ስለ ኛ",
-    "nav.contact": "ዋስትና",
-    "nav.group": "የአፊላስ ቡድን",
-
-    "nav.group_dropdown_title": "የአፊላስ የጤና እንክብካቤ ንግድ ምሰሶዎች",
-    "nav.division.hospital_desc": "ርህሩህ፣ ልዩ የታካሚ እንክብካቤ በ24 ሰዓት ይገኛል።",
-    "nav.division.diagnostics_desc":
-      "ከፍተኛ ትክክለኛነት ያለው ምስል እና አውቶማቲክ የላብራቶሪ ምርመራ።",
-    "nav.division.pharma_desc":
-      "በጥራት የሚመራ፣ ተደራሽ የሆነ የመድኃኒት ምርት አለም አቀፍ ደረጃዎችን የሚያሟላ።",
-
+    "nav.about": "ስለ እኛ",
+    "nav.contact": "ግንኙነት",
     "nav.service": "አገልግሎቶች",
     "nav.blog": "ብሎግ",
+    "nav.group": "የአፊላስ ቡድን",
+    "nav.group_dropdown_title": "ክፍሎቻችንን ያግኙ",
     "nav.about_us": "ስለ እኛ",
     "nav.contact_emergency": "ግንኙነት & ድንገተኛ",
     "nav.select_division": "ክፍል ይምረጡ",
     "nav.division.group": "የአፊላስ ቡድን",
     "nav.division.hospital": "አፊላስ ጠቅላላ ሆስፒታል",
+    "nav.division.hospital_desc": "ርህሩህ፣ ልዩ የታካሚ እንክብካቤ በ24 ሰዓት ይገኛል።",
     "nav.division.diagnostics": "አፊላስ የምርመራ ማዕከል",
+    "nav.division.diagnostics_desc": "ከፍተኛ ትክክለኛነት ያለው ምስል እና አውቶማቲክ የላብራቶሪ ምርመራ።",
     "nav.division.pharma": "አፊላስ መድሃኒት ማምረቻ",
+    "nav.division.pharma_desc": "በጥራት የሚመራ፣ ተደራሽ የሆነ የመድኃኒት ምርት አለም አቀፍ ደረጃዎችን የሚያሟላ።",
+    "nav.toggle_menu": "ማውጫ ቀይር",
     "topbar.emergency_available": "የድንገተኛ እንክብካቤ 24/7 ይገኛል",
     "topbar.call": "ይደውሉ:",
     "cta.emergency_call": "የድንገተኛ ጥሪ",
     "cta.book_appointment": "ቀጠሮ ይያዙ",
     "cta.get_lab_results": "የላብ ውጤት ይውሰዱ",
 
+    // Hero Section
+    "hero.company_subtitle": "አፊላስ አክሲዮን ማህበር",
     "hero.headline": "አጠቃላይ የጤና አገልግሎቶች በአንድ ጥላ ስር",
-    "hero.subheadline":
-      "ከፍተኛ ደረጃ ካለው የህክምና አገልግሎት እና ትክክለኛ የምርመራ አቅም አንስቶ እስከ አካባቢያዊ የመድኃኒት ምርት ድረስ፣ አፊላስ (Afilas) በክልሉ የጤና አጠባበቅ ደረጃዎችን ከፍ ለማድረግ ቁርጠኛ ነው",
-    "hero.badge_emergency": "የ24 ሰዓት አስቸኳይ የድንገተኛ ህክምና",
-    "hero.badge_iso": "የጥራት ደረጃውን የጠበቀ (ISO/GMP Compliant)",
-    "hero.badge_lab": "ዘመናዊ አውቶማቲክ ላብራቶሪ",
+    "hero.subheadline": "ከፍተኛ ደረጃ ካለው የህክምና አገልግሎት እና ትክክለኛ የምርመራ አቅም አንስቶ እስከ አካባቢያዊ የመድኃኒት ምርት ድረስ፣ አፊላስ በክልሉ የጤና አጠባበቅ ደረጃዎችን ከፍ ለማድረግ ቁርጠኛ ነው",
+    "hero.find_doctor": "ሐኪም ያግኙ",
+    "hero.book_test": "የምርመራ አገልግሎት ያስይዙ",
+    "hero.explore_pharma": "የመድኃኒት ክፍልን ያስሱ",
+    "hero.hospital_subtitle": "የ24 ሰዓት የታካሚ እንክብካቤ",
+    "hero.diagnostic_subtitle": "ትክክለኛ የምርመራ አገልግሎት",
+    "hero.pharma_subtitle": "የGMP ማረጋገጫ ያለው",
 
+    // Three Pillars / Shared Essential Section
+    "pillars.header_badge": "ክፍሎቻችን",
+    "pillars.header_title": "ሶስቱ የአፊላስ ምስሶዎች",
+    "pillars.header_subtitle": "በሆስፒታል፣ በምርመራ እና በመድሃኒት አገልግሎቶች ውስጥ የተቀናጁ የጤና አጠባበቅ መፍትሄዎች።",
     "pillars.title": "በጤናው ዘርፍ የተዋሃደ የብቃት ደረጃ",
-    "pillars.subtitle":
-      "ሁሌ አስተማማኝ እንክብካቤ እና አስተማማኝ የመድኃኒት መፍትሄዎችን ለመስጠት ሶስቱ የተሰጡን ዘርፎች እንዴት አብረው እንደሚሰሩ ይወቁ።",
-    "pillars.hospital_tagline": "ርህራሄ የተሞላበት፣ ልዩ ባለሙያተኛ የታካሚ እንክብካቤ 24/7 ይገኛል።",
-    "pillars.hospital_desc":
-      "ከፍተኛ የህክምና ቴክኖሎጂ እና ብቁ ባለሙያዎች ጋር በታካሚ ዙሪያ ያተኮረ እንክብካቤ መስጠት።",
-    "pillars.hospital_highlights_1": "የውስጥ እና የውጭ ህሙማን እንክብካቤ",
-    "pillars.hospital_highlights_2": "24/7 የድንገተኛ እና የቀዶ ጥገና ክፍሎች",
-    "pillars.hospital_highlights_3": "የእናት እና ህጻናት ጤና አጠባበቅ",
-    "pillars.hospital_cta": "የሆስፒታል አገልግሎቶችን ያስሱ",
-    "pillars.diagnostics_tagline":
-      "ከፍተኛ ትክክለኛነት ያላቸው ምስሎች እና አውቶማቲክ የላብራቶሪ ምርመራዎች።",
-    "pillars.diagnostics_desc":
-      "ቀደም ብሎ ማወቅ እና የታለሙ ሕክምናዎችን ለማረጋገጥ ክሊኒኮችን እና ታካሚዎችን በትክክለኛ እና ወቅታዊ የምርመራ ግንዛቤዎች ማስታጠቅ።",
-    "pillars.diagnostics_highlights_1": "የላቁ ምስሎች (ሲቲ ስካን፣ ኤምአርአይ፣ ዲጂታል ኤክስሬይ)",
-    "pillars.diagnostics_highlights_2": "አውቶማቲክ ፓቶሎጂ እና ሄማቶሎጂ",
-    "pillars.diagnostics_highlights_3": "ሞለኪውላር ምርመራዎች እና ልዩ የላብራቶሪ ምርመራዎች",
-    "pillars.diagnostics_cta": "ምርመራ ያስይዙ / አገልግሎቶችን ይመልከቱ",
-    "pillars.pharma_tagline":
-      "ጥራትን ያማከለ፣ ተደራሽ የሆነ ዓለም አቀፍ ደረጃዎችን የሚያሟላ የመድኃኒት ማምረቻ።",
-    "pillars.pharma_desc":
-      "ደህንነታቸው የተጠበቀ፣ ውጤታማ እና ተመጣጣኝ አስፈላጊ መድኃኒቶችን በአገር ውስጥ በማምረት የጤና እንክብካቤ ጥንካሬን ማጠናከር።",
-    "pillars.pharma_highlights_1": "ከፍተኛ ደረጃ ያላቸው ቅመሞች እና ማሸጊያዎች",
-    "pillars.pharma_highlights_2": "ጥብቅ የጥራት ቁጥጥር እና የጂኤምፒ (GMP) ማክበር",
-    "pillars.pharma_highlights_3": "ቢቱቢ (B2B) እና ተቋማዊ የጅምላ ስርጭት",
-    "pillars.pharma_cta": "ምርቶችን እና አቅሞችን ይመልከቱ",
-
+    "pillars.subtitle": "ሁሌ አስተማማኝ እንክብካቤ እና አስተማማኝ የመድኃኒት መፍትሄዎችን ለመስጠት ሶስቱ የተሰጡን ዘርፎች እንዴት አብረው እንደሚሰሩ ይወቁ።",
     "pillars.card1_title": "አፊላስ ጠቅላላ ሆስፒታል",
-    "pillars.card1_desc": "አፊላስ ጠቅላላ ሆስፒታል በፈለገ ህይወት ሆስፒታል አቅራቢያ የሚገኝ፣ የታና ሀይቅ አስደናቂ እይታ ያለው የተለያዩ የህክምና ዘርፎች ያሉት የጤና ተቋም ነው። ከ10 በላይ ልዩ የህክምና ማዕከላት ጋር፣ ርህራሄ የተሞላበት፣ በታካሚ ዙሪያ ያተኮረ እንክብካቤ በ24 ሰዓት ይሰጣል፣ ዘመናዊ የህክምና ቴክኖሎጂን ከባለሙያ ክሊኒካል ሰራተኞች ጋር በማጣመር።",
+    "pillars.card1_tag": "24/7 እንክብካቤ",
+    "pillars.card1_desc": "አፊላስ ጠቅላላ ሆስፒታል በፈለገ ህይወት ሆስፒታል አቅራቢያ የሚገኝ፣ የታና ሀይቅ አስደናቂ እይታ ያለው የተለያዩ የህክምና ዘርፎች ያሉት የጤና ተቋም ነው። ከ10 በላይ ልዩ የህክምና ማዕከላት ጋር፣ ርህራሄ የተሞላበት፣ በታካሚ ዙሪያ ያተኮረ እንክብካቤ በ24 ሰዓት ይሰጣል።",
     "pillars.card1_highlight1": "የውስጥ እና የውጭ ህሙማን",
     "pillars.card1_highlight2": "ድንገተኛ እና ቀዶ ጥገና",
     "pillars.card1_highlight3": "የእናት እና ህጻናት ጤና",
     "pillars.card1_cta": "ሆስፒታል ያስሱ",
     "pillars.card2_title": "አፊላስ የምርመራ ማዕከል",
-    "pillars.card2_desc": "አፊላስ የምርመራ ማዕከል ፈጣን፣ ትክክለኛ እና አስተማማኝ የምርመራ ውጤቶችን ለማቅረብ የተዘጋጀ ዘመናዊ ተቋም ነው። በላቁ የላብራቶሪ እና የምስል ቴክኖሎጂዎች የታጠቀ፣ አጠቃላይ ምርመራ እና ዲጂታል ውጤት ተደራሽነት በኩል ትክክለኛ የህክምና ውሳኔዎችን ይደግፋል።",
+    "pillars.card2_tag": "ትክክለኛነት",
+    "pillars.card2_desc": "አፊላስ የምርመራ ማዕከል ፈጣን፣ ትክክለኛ እና አስተማማኝ የምርመራ ውጤቶችን ለማቅረብ የተዘጋጀ ዘመናዊ ተቋም ነው።",
     "pillars.card2_highlight1": "የላብራቶሪ አገልግሎቶች",
     "pillars.card2_highlight2": "ምስል እና ራዲዮሎጂ",
     "pillars.card2_highlight3": "ዲጂታል ውጤቶች",
     "pillars.card2_cta": "ምርመራ ያስይዙ",
     "pillars.card3_title": "አፊላስ መድሃኒት ማምረቻ",
-    "pillars.card3_desc": "አፊላስ መድሃኒት ማምረቻ አለም አቀፍ ደረጃዎችን የሚያሟሉ ከፍተኛ ጥራት ያላቸው፣ ተመጣጣኝ የመድኃኒት ምርቶችን ለማምረት ቁርጠኛ ነው። በGMP የተረጋገጡ ተቋማት እና ጥብቅ የጥራት ቁጥጥር ጋር፣ አስፈላጊ መድሃኒቶችን በአገር ውስጥ በማምረት የማህበረሰቡን ጤና ይጠብቃል።",
+    "pillars.card3_tag": "የGMP ማረጋገጫ",
+    "pillars.card3_desc": "አፊላስ መድሃኒት ማምረቻ አለም አቀፍ ደረጃዎችን የሚያሟሉ ከፍተኛ ጥራት ያላቸው፣ ተመጣጣኝ የመድኃኒት ምርቶችን ለማምረት ቁርጠኛ ነው።",
     "pillars.card3_highlight1": "የጥራት ማረጋገጫ",
     "pillars.card3_highlight2": "የምርት ካታሎግ",
     "pillars.card3_highlight3": "B2B ሽርክና",
     "pillars.card3_cta": "ምርቶችን ይመልከቱ",
 
-    "pillars.header_badge": "የሁሉም ገጾች መግለጫ",
-    "pillars.header_title": "የጋራ አስፈላጊ ገጾች",
-    "pillars.header_subtitle": "በሆስፒታል፣ በምርመራ እና በመድሃኒት አገልግሎቶች ውስጥ የተቀናጁ የጤና አጠባበቅ መፍትሄዎች።",
-
+    // General Hospital Section
     "general.title": "አፊላስ ጠቅላላ ሆስፒታል",
     "general.subtitle": "ርህራሄ ያለው፣ ልዩ የታካሚ እንክብካቤ በ24/7 ይገኛል።",
-    "general.description": "አፊላስ ሆስፒታል በፈለገ ህይወት ሆስፒታል አካባቢ፣ ከአማራ ህዝብ ጤና ኢንስቲትዩት ፊት ለፊት፣ በታና ሐይቅ ዳርቻ ላይ የሚገኝ የተለያዩ ልዩ ልዩ የሕክምና አገልግሎቶች ያሉት ሆስፒታል ነው። በከተማው ውስጥ ካሉ የግል ሆስፒታሎች አንዱ ሲሆን ከ10 በላይ ልዩ ልዩ የሕክምና ማዕከላት አሉት። አፊላስ በአንድ ቦታ የላቀ የምርመራ እና የሕክምና አገልግሎት ይሰጣል።",
+  "general.intro": "አፊላስ ሆስፒታል በፈለገ ህይወት ሆስፒታል አካባቢ፣ ከአማራ ህዝብ ጤና ኢንስቲትዩት ፊት ለፊት፣ በታና ሐይቅ ዳርቻ ላይ የሚገኝ የተለያዩ ልዩ ልዩ የሕክምና አገልግሎቶች ያሉት ሆስፒታል ነው።",
+  "general.feature1": "ከ10 በላይ ልዩ ልዩ የሕክምና ማዕከላት በአንድ ቦታ",
+  "general.feature2": "ዘመናዊ የምርመራ እና የህክምና አገልግሎቶች",
+  "general.feature3": "ምቹ የሆነ አንድ ቦታ ላይ የሚገኝ የሕክምና ማዕከል",
+  "general.feature4": "ከፍተኛ ጥራት ያለው የግል ሆስፒታል",
+  "general.feature5": "ልምድ ያላቸው የሕክምና ባለሙያዎች",
     "general.location": "አድራሻ",
     "general.location_address": "ፈለገ ህይወት አካባቢ፣ አማራ ህዝብ ጤና ኢንስቲትዩት፣ የታና ሐይቅ ዳር",
     "general.emergency_services": "የአደጋ ጊዜ አገልግሎት",
     "general.emergency_desc": "24/7 የአደጋ ጊዜ እንክብካቤ እና አምቡላንስ አገልግሎት",
     "general.cta": "የሆስፒታል አገልግሎቶችን ያስሱ",
 
+    // Diagnostic Center Section
     "diagnostic.title": "አፊላስ የምርመራ ማዕከል",
     "diagnostic.subtitle": "ፈጣን፣ ትክክለኛ እና አስተማማኝ የምርመራ ውጤቶች ትክክለኛ የህክምና ውሳኔዎችን ያመጣሉ።",
     "diagnostic.about_title": "ስለ አፊላስ የምርመራ ማዕከል",
@@ -472,6 +448,7 @@ const translations: Record<Language, Record<string, string>> = {
     "diagnostic.package3_name": "የሴቶች / የወንዶች ጤና",
     "diagnostic.package3_desc": "በእያንዳንዱ የህይወት ደረጃ በጣም አስፈላጊ በሆኑ ምርመራዎች ዙሪያ የተገነባ አጠቃላይ ምርመራ።",
 
+    // Drug Manufacturing Section
     "pharma.title": "አፊላስ መድሃኒት ማምረቻ",
     "pharma.subtitle": "በአካባቢው ከፍተኛ ጥራት ባለው እና ተገዢ በሆነ የመድኃኒት ምርት የማህበረሰብ ጤናን መጠበቅ።",
     "pharma.description": "አፊላስ መድሃኒት ማምረቻ አለም አቀፍ ደረጃዎችን የሚያሟሉ ከፍተኛ ጥራት ያላቸውን የመድኃኒት ምርቶች ለማምረት ቁርጠኛ ነው። በዘመናዊ የማምረቻ ተቋማት እና በGMP መመሪያዎች ጥብቅ አክባሪነት፣ እያንዳንዱ ምርት ደህንነቱ የተጠበቀ፣ ውጤታማ እና ለታካሚ አገልግሎት አስተማማኝ መሆኑን እናረጋግጣለን።",
@@ -489,6 +466,22 @@ const translations: Record<Language, Record<string, string>> = {
     "pharma.card4_tag": "አግኙን",
     "pharma.cta": "ወደ ፋርማ ገጽ ይሂዱ",
 
+    // Doctor Finder Section
+    "doctors.headline": "ሐኪም ያግኙ",
+    "doctors.subtitle": "በዋና ዋና የሕክምና ዘርፎች ውስጥ ልምድ ካላቸው ስፔሻሊስቶች ጋር ይገናኙ።",
+    "doctors.filter_specialty": "ስፔሻሊቲ ይምረጡ",
+    "doctors.filter_availability": "ተገኝነት ይምረጡ",
+    "doctors.filter_search": "ሐኪም በስም ይፈልጉ...",
+    "doctors.view_all": "ሁሉንም ስፔሻሊስቶች ይመልከቱ እና ቀጠሮ ይያዙ",
+    "doctors.book": "ቀጠሮ ይያዙ",
+    "doctors.email": "ኢሜይል",
+    "doctors.available": "ይገኛል",
+    "doctors.status_loading": "በመጫን ላይ...",
+    "doctors.status_offline": "ከመስመር ውጭ ሁነታ",
+    "doctors.status_live": "የቀጥታ ውሂብ",
+    "doctors.no_doctors": "ከመስፈርትዎ ጋር የሚስማማ ምንም ሐኪም አልተገኘም።",
+
+    // About Us Section
     "about.title": "ስለ አፊላስ",
     "about.subtitle": "ለተደራሽ የጤና እንክብካቤ ክሊኒካዊ እውቀትን፣ ቴክኖሎጂን እና የአካባቢ ማምረቻን ማጣመር።",
     "about.vision_title": "ራዕይ",
@@ -515,13 +508,12 @@ const translations: Record<Language, Record<string, string>> = {
     "about.quality_1": "የኢንፌክሽን መቆጣጠሪያ",
     "about.quality_2": "መደበኛ የስራ ሂደቶች",
     "about.quality_3": "የቁጥጥር ሰርተፊኬቶች",
-
     "about.page_title": "ስለ አፊላስ ሆስፒታል",
     "about.toc_title": "በዚህ ገጽ ላይ",
     "about.what_is_afilas": "አፊላስ ምንድን ነው",
-    "about.what_is_afilas_p1": "አፊላስ ፋርማሲዩቲካልስ ማኑፋክቸሪንግ እና ሜዲካል ሰርቪስ ኤስ.ሲ. በሰኔ 2017 (እ.ኤ.አ.) የተመሰረተው ቁርጠኛ፣ ራዕይ ያላቸው፣ ቡድን ተኮር፣ እና አሳቢ የጤና ሳይንስ እና ተዛማጅ ምሁራን ነው ማህበረሰቡ የሚቀርበውን ልምድ የኖሩ ናቸው። ከላይ ከተጠቀሰው ዓላማ አንፃር \"አፊላስ\" የሚለው ቃል \"የእውቀት ድምጽ ተሰማ ወይም የአዋቂዎች ድምጽ ተሰማ\" ማለት ከሳባ ቋንቋ ተመርጧል። ባለሙያ ኤክስፐርቶች ሁሉንም ሙያዊ ተግባራት ማስተናገድ አለባቸው ብለን በጥብቅ እናምናለን።",
-    "about.what_is_afilas_p2": "የመጀመሪያው የአፊላስ ንግድ ድርጅት በጥር 2018 (እ.ኤ.አ.) የተከፈተው የአፊላስ ጤና ጣቢያ ነው፣ ይህም ወደ አፊላስ ጠቅላላ ሆስፒታል (AGH) አድጓል። ሆስፒታሉ አሁን በአማራ ብሄራዊ ክልላዊ መንግስት (አብክመ) ውስጥ ከምርጥ የጤና እንክብካቤ መዳረሻዎች አንዱ ነው።",
-    "about.what_is_afilas_p3": "በ2022 ሁለተኛውን የንግድ ድርጅታችንን አፊላስ ፋርማሲዩቲካልስ ጅምላ (APW) ከፍተናል እንዲሁም በ2026 የአፊላስ ምርመራ ማዕከል ከፍተናል።",
+    "about.what_is_afilas_p1": "አፊላስ ፋርማሲዩቲካልስ ማኑፋክቸሪንግ እና ሜዲካል ሰርቪስ ኤስ.ሲ. በሰኔ 2017 የተመሰረተው በጤና ሳይንስ ባለሙያዎች ነው።",
+    "about.what_is_afilas_p2": "የመጀመሪያው የአፊላስ ንግድ ድርጅት በጥር 2018 የተከፈተው የአፊላስ ጤና ጣቢያ ነው፣ ይህም ወደ አፊላስ ጠቅላላ ሆስፒታል አድጓል።",
+    "about.what_is_afilas_p3": "በ2022 ሁለተኛውን የንግድ ድርጅታችንን አፊላስ ፋርማሲዩቲካልስ ጅምላ እና በ2026 የምርመራ ማዕከል ከፍተናል።",
     "about.board_title": "የአፊላስ PMMS ኤስ.ሲ. የዳይሬክተሮች ቦርድ",
     "about.inspectors_title": "ኦዲተሮች / ውስጣዊ ኦዲተሮች",
     "about.ceo_title": "የአፊላስ PMMS ኤስ.ሲ. ዋና ሥራ አስፈጻሚ (CEO)",
@@ -531,34 +523,27 @@ const translations: Record<Language, Record<string, string>> = {
     "about.meaning": "የስም ትርጉም",
     "about.meaning_text": "የእውቀት ድምጽ ተሰማ",
 
-    "doctors.headline": "ሐኪም ያግኙ",
-    "doctors.subtitle": "በዋና ዋና የሕክምና ዘርፎች ውስጥ ልምድ ካላቸው ስፔሻሊስቶች ጋር ይገናኙ።",
-    "doctors.filter_specialty": "ስፔሻሊቲ ይምረጡ",
-    "doctors.filter_availability": "ተገኝነት ይምረጡ",
-    "doctors.filter_search": "ሐኪም በስም ይፈልጉ...",
-    "doctors.view_all": "ሁሉንም ስፔሻሊስቶች ይመልከቱ እና ቀጠሮ ይያዙ",
-    "doctors.book": "ቀጠሮ ይያዙ",
-
+    // Footer
     "footer.tagline": "በእንክብካቤ፣ ትክክለኛነት እና ምርት ጤናን ማሳደግ።",
-    "footer.address": "አድራሻ፡ [Insert Facility Address]",
-    "footer.phone": "ስልክ፡ [Insert Main Desk Number]",
-    "footer.email": "ኢሜይል፡ [Insert Info Email]",
+    "footer.address": "አድራሻ፡ ፈለገ ህይወት አካባቢ፣ የታና ሐይቅ ዳር፣ ባሕር ዳር",
+    "footer.phone": "ስልክ፡ +251 98 320 1998",
+    "footer.email": "ኢሜይል፡ info@afilas.com",
     "footer.quick_links": "ፈጣን አገናኞች",
     "footer.hospital_departments": "የሆስፒታል ክፍሎች",
     "footer.diagnostic_packages": "የምርመራ ፓኬጆች",
     "footer.pharma_catalog": "የመድኃኒት ካታሎግ",
     "footer.careers_news": "ስራዎች እና ዜናዎች",
     "footer.emergency_support": "ድንገተኛ እና ድጋፍ",
-    "footer.emergency_hotline": "የድንገተኛ ጊዜ መስመር፡ [Insert Phone]",
+    "footer.emergency_hotline": "የድንገተኛ ጊዜ መስመር፡ +251 98 320 1998",
     "footer.lab_results": "የላብራቶሪ ውጤት መግቢያ",
     "footer.lab_results_link": "ግባ / አገናኝ ይድረሱ",
     "footer.pharma_inquiries": "የመድኃኒት ንግድ ጥያቄዎች",
-    "footer.pharma_inquiries_contact": "[የB2B ቡድን ያግኙ]",
+    "footer.pharma_inquiries_contact": "የB2B ቡድን ያግኙ",
     "footer.rights_reserved": "ሁሉም መብቶች የተጠበቁ ናቸው።",
 
+    // Division Specific Pages
     "hospital.hero.title": "አፊላስ ሆስፒታል ክፍል",
-    "hospital.hero.subtitle":
-      "ዘመናዊ መገልገያዎች እና በተለያዩ የህክምና ዘርፎች ልምድ ያላቸው ባለሙያዎች። የሆስፒታል ክፍላችን ርህራሄ የተሞላበት እና በታካሚ ዙሪያ ያተኮረ እንክብካቤ የሚሰጥ አጠቃላይ የሆስፒታል እና የውጭ ህሙማን አገልግሎቶችን ይሰጣል።",
+    "hospital.hero.subtitle": "ዘመናዊ መገልገያዎች እና በተለያዩ የህክምና ዘርፎች ልምድ ያላቸው ባለሙያዎች።",
     "hospital.hero.cta1": "ክፍሎችን ያስሱ",
     "hospital.hero.cta2": "ቀጠሮ ይያዙ",
     "hospital.hero.scroll": "ለማሰስ ይሸብልሉ",
@@ -567,23 +552,20 @@ const translations: Record<Language, Record<string, string>> = {
     "hospital.hero.roller_2": "ባለሙያ ስፔሻሊስቶች",
     "hospital.hero.roller_3": "24/7 ድንገተኛ",
     "hospital.hero.roller_4": "ጤናዎ፣ ቅድሚያችን",
-
     "hospital.services.title": "የእኛ የህክምና አገልግሎቶች",
     "hospital.services.subtitle": "ለጤናዎ የተዘጋጀ አጠቃላይ እንክብካቤ",
     "hospital.services.per_visit": "በእያንዳንዱ ጉብኝት",
     "hospital.services.book": "ቀጠሮ ይያዙ",
 
     "diagnostics.hero.title": "አፊላስ ምርመራ ማዕከል",
-    "diagnostics.hero.subtitle":
-      "ከፍተኛ ትክክለኛነት ያለው ምስል እና ሙሉ በሙሉ አውቶማቲክ የላብራቶሪ ምርመራ። የእኛ ምርመራ ማዕከል ክሊኒኮችን እና ታካሚዎችን ትክክለኛ እና ወቅታዊ ውጤቶች ያቀርባል።",
+    "diagnostics.hero.subtitle": "ከፍተኛ ትክክለኛነት ያለው ምስል እና ሙሉ በሙሉ አውቶማቲክ የላብራቶሪ ምርመራ።",
     "diagnostics.hero.cta1": "አገልግሎቶችን ይመልከቱ",
     "diagnostics.hero.cta2": "ምርመራ ያስይዙ",
     "diagnostics.hero.scroll": "ለማሰስ ይሸብልሉ",
     "diagnostics.hero.social_proof": "በየወሩ ከ10,000 በላይ ምርመራዎች ይከናወናሉ",
 
     "pharma.hero.title": "አፊላስ መድሃኒት ማምረቻ",
-    "pharma.hero.subtitle":
-      "ጥራትን ያማከለ፣ ተደራሽ የሆነ ዓለም አቀፍ ደረጃዎችን የሚያሟላ የመድኃኒት ማምረቻ። ደህንነታቸው የተጠበቀ፣ ውጤታማ እና ተመጣጣኝ አስፈላጊ መድኃኒቶችን በአገር ውስጥ በማምረት የጤና ጥንካሬን ማጠናከር።",
+    "pharma.hero.subtitle": "ጥራትን ያማከለ፣ ተደራሽ የሆነ ዓለም አቀፍ ደረጃዎችን የሚያሟላ የመድኃኒት ማምረቻ።",
     "pharma.hero.cta1": "ምርቶችን ይመልከቱ",
     "pharma.hero.cta2": "B2B ጥያቄዎች",
     "pharma.hero.scroll": "ለማሰስ ይሸብልሉ",
@@ -591,7 +573,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     "pharma.why.badge": "የእሴት ሀሳብ",
     "pharma.why.title": "ለምን የአፊላስ ቡድንን ይመርጣሉ?",
-    "pharma.why.subtitle": "ከማምረት እስከ ታካሚ እንክብካቤ — አፊላስ መድሃኒት ማምረቻ ለሆስፒታሎች፣ ለአከፋፋዮች እና ለፋርማሲዎች ታማኝ አጋር ያደርገዋል።",
+    "pharma.why.subtitle": "ከማምረት እስከ ታካሚ እንክብካቤ — አፊላስ መድሃኒት ማምረቻ ታማኝ አጋር ያደርገዋል።",
     "pharma.why.cta": "B2B ዋጋ ጠይቅ",
     "pharma.why.card1_title": "ከጅምር እስከ ፍጻሜ የጤና እንክብካቤ",
     "pharma.why.card1_desc": "ከህክምና በኋላ መድሃኒቶችን ከማምረት እስከ ታካሚ እንክብካቤ ድረስ ያለምንም እንቅፋት ውህደት።",
@@ -599,7 +581,7 @@ const translations: Record<Language, Record<string, string>> = {
     "pharma.why.card1_h2": "የተቀናጀ ሆስፒታል እና ፋርማሲ ስርጭት",
     "pharma.why.card1_h3": "ከህክምና በኋላ የመድሃኒት ክትትል ድጋፍ",
     "pharma.why.card2_title": "ዘመናዊ ቴክኖሎጂ",
-    "pharma.why.card2_desc": "ወጥ የሆነ ከፍተኛ ጥራት ያለው ምርት ለማረጋገጥ በአውቶማቲክ የመድሃኒት ማሽነሪ እና ዘመናዊ የቅንብር ተቋማት የተዘጋጀ።",
+    "pharma.why.card2_desc": "ወጥ የሆነ ከፍተኛ ጥራት ያለው ምርት ለማረጋገጥ በአውቶማቲክ የመድሃኒት ማሽነሪ የተዘጋጀ።",
     "pharma.why.card2_h1": "ሙሉ በሙሉ አውቶማቲክ ታብሌት እና ካፕሱል ምርት",
     "pharma.why.card2_h2": "ዘመናዊ ቅንብር እና የጥራት ሙከራ ላብራቶሪዎች",
     "pharma.why.card2_h3": "በእውነተኛ ጊዜ የባች ክትትል እና የምርት ቁጥጥር",
@@ -611,7 +593,7 @@ const translations: Record<Language, Record<string, string>> = {
 
     "pharma.b2b.badge": "B2B ንግድ",
     "pharma.b2b.title": "ከአፊላስ ፋርማ ጋር ይተባበሩ",
-    "pharma.b2b.subtitle": "ሆስፒታል አውታረመረብ፣ ፋርማሲ ሰንሰለት ወይም የመድሃኒት አከፋፋይ ከሆኑ — ብጁ ዋጋ፣ የጅምላ ትዕዛዝ ጥቅሶች እና የኮንትራት ማምረቻ ሃሳቦችን ያግኙ።",
+    "pharma.b2b.subtitle": "ሆስፒታል አውታረመረብ፣ ፋርማሲ ሰንሰለት ወይም የመድሃኒት አከፋፋይ ከሆኑ — ብጁ ዋጋ እና ጥቅሶችን ያግኙ።",
     "pharma.b2b.phone_label": "B2B የንግድ ስልክ",
     "pharma.b2b.email_label": "የንግድ ኢሜይል",
     "pharma.b2b.location_label": "የማምረቻ ተቋም",
@@ -657,14 +639,13 @@ const translations: Record<Language, Record<string, string>> = {
 
     "pharma.catalog.badge": "ምርቶቻችን",
     "pharma.catalog.title": "የመድሃኒት ምርቶች",
-    "pharma.catalog.subtitle": "በGMP ደረጃዎች ስር በአገር ውስጥ የሚመረቱ ጥራታቸው የተረጋገጠ መድሃኒቶች — ለተቋማዊ እና ችርቻሮ ስርጭት ይገኛሉ።",
+    "pharma.catalog.subtitle": "በGMP ደረጃዎች ስር በአገር ውስጥ የሚመረቱ ጥራታቸው የተረጋገጠ መድሃኒቶች።",
     "pharma.catalog.price": "ዋጋ",
     "pharma.catalog.active": "ንቁ",
     "pharma.catalog.days": "ቀናት",
 
     "blog.title": "የጤና እና ህክምና ግንዛቤዎች",
-    "blog.subtitle":
-      "ከአፊላስ ቡድን የቅርብ ጊዜ የህክምና ምርምር፣ ክሊኒካዊ ግኝቶች እና የጤና ወቅታዊ መረጃዎችን ይከታተሉ።",
+    "blog.subtitle": "ከአፊላስ ቡድን የቅርብ ጊዜ የህክምና ምርምር እና የጤና መረጃዎችን ይከታተሉ።",
     "blog.search_placeholder": "ጽሑፎችን፣ ምርምሮችን፣ ታጎችን ይፈልጉ...",
     "blog.filter_all": "ሁሉም ጽሑፎች",
     "blog.filter_categories": "ምድቦች",
@@ -690,28 +671,28 @@ const translations: Record<Language, Record<string, string>> = {
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>("en");
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const savedLanguage = localStorage.getItem(
       "afilas-language",
     ) as Language | null;
-    setLanguageState(savedLanguage || "en");
-    setMounted(true);
+    if (savedLanguage === "en" || savedLanguage === "am") {
+      setLanguageState(savedLanguage);
+    }
   }, []);
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem("afilas-language", lang);
+    try {
+      localStorage.setItem("afilas-language", lang);
+    } catch {
+      // Ignore
+    }
   };
 
   const t = (key: string): string => {
-    return translations[language][key] || key;
+    return translations[language]?.[key] || translations["en"]?.[key] || key;
   };
-
-  if (!mounted) {
-    return <>{children}</>;
-  }
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t }}>
