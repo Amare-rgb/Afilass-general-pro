@@ -115,45 +115,36 @@ export function Header() {
     setMobileOpen(false);
   }, [pathname]);
 
-  // Afilas Group branches
-  const pillarItems = useMemo(
-    () => [
-      {
-        id: "hospital",
-        label: t("nav.division.hospital"),
-        href: "/hospital",
-        description: t("nav.division.hospital_desc"),
-        icon: Building2,
-        color: "text-red-600 dark:text-red-400",
-        bgColor: "bg-red-100 dark:bg-red-900/30",
-        hoverBg: "hover:bg-red-50 dark:hover:bg-red-900/20",
-        borderColor: "border-red-200 dark:border-red-800",
-      },
-      {
-        id: "diagnostics",
-        label: t("nav.division.diagnostics"),
-        href: "/diagnostics",
-        description: t("nav.division.diagnostics_desc"),
-        icon: Microscope,
-        color: "text-blue-600 dark:text-blue-400",
-        bgColor: "bg-blue-100 dark:bg-blue-900/30",
-        hoverBg: "hover:bg-blue-50 dark:hover:bg-blue-900/20",
-        borderColor: "border-blue-200 dark:border-blue-800",
-      },
-      {
-        id: "pharma",
-        label: t("nav.division.pharma"),
-        href: "/pharma",
-        description: t("nav.division.pharma_desc"),
-        icon: Pill,
-        color: "text-green-600 dark:text-green-400",
-        bgColor: "bg-green-100 dark:bg-green-900/30",
-        hoverBg: "hover:bg-green-50 dark:hover:bg-green-900/20",
-        borderColor: "border-green-200 dark:border-green-800",
-      },
-    ],
-    [t],
-  );
+  // Afilas Group branches - MODIFIED (icons now use single color)
+const pillarItems = useMemo(
+  () => [
+    {
+      id: "hospital",
+      label: t("nav.division.hospital"),
+      href: "/hospital",
+      description: t("nav.division.hospital_desc"),
+      icon: Building2,
+      // Removed: color, bgColor, hoverBg, borderColor - using single color scheme
+    },
+    {
+      id: "diagnostics",
+      label: t("nav.division.diagnostics"),
+      href: "/diagnostics",
+      description: t("nav.division.diagnostics_desc"),
+      icon: Microscope,
+      // Removed: color, bgColor, hoverBg, borderColor - using single color scheme
+    },
+    {
+      id: "pharma",
+      label: t("nav.division.pharma"),
+      href: "/pharma",
+      description: t("nav.division.pharma_desc"),
+      icon: Pill,
+      // Removed: color, bgColor, hoverBg, borderColor - using single color scheme
+    },
+  ],
+  [t],
+);
 
   // Handle branch selection
   const handleBranchSelect = (branchId: string, branchLabel: string, branchHref: string) => {
@@ -338,73 +329,72 @@ export function Header() {
                 </Link>
               )}
 
-              {/* AFILAS GROUP DROPDOWN */}
-              <div className="relative" ref={groupDropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setGroupDropdownOpen(!groupDropdownOpen)}
-                  className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${
-                    isScrolled ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"
-                  } ${groupDropdownOpen ? (isScrolled ? "bg-slate-100 dark:bg-slate-800" : "bg-white/20") : ""}`}
-                  aria-haspopup="menu"
-                  aria-expanded={groupDropdownOpen}
-                >
-                  {t("nav.group") || "Afilas Group"}
-                  <ChevronDown className={`ml-1 h-4 w-4 transition-transform duration-200 ${groupDropdownOpen ? "rotate-180" : ""}`} />
-                </button>
+              {/* AFILAS GROUP DROPDOWN - MODIFIED with single color icons */}
+<div className="relative" ref={groupDropdownRef}>
+  <button
+    type="button"
+    onClick={() => setGroupDropdownOpen(!groupDropdownOpen)}
+    className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${
+      isScrolled ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"
+    } ${groupDropdownOpen ? (isScrolled ? "bg-slate-100 dark:bg-slate-800" : "bg-white/20") : ""}`}
+    aria-haspopup="menu"
+    aria-expanded={groupDropdownOpen}
+  >
+    {t("nav.group") || "Afilas Group"}
+    <ChevronDown className={`ml-1 h-4 w-4 transition-transform duration-200 ${groupDropdownOpen ? "rotate-180" : ""}`} />
+  </button>
 
-                {groupDropdownOpen && (
-                  <div className={`absolute left-0 top-full z-50 mt-3 w-[650px] max-w-[90vw] rounded-2xl p-6 transition-all duration-300 shadow-2xl ${
-                    isScrolled ? "bg-white/95 backdrop-blur-xl border border-slate-200/80 dark:bg-slate-900/95 dark:border-slate-700/80" : "bg-white/10 backdrop-blur-2xl border border-white/25"
-                  }`} role="menu">
-                    
-                    <div className="text-center mb-5">
-                      <p className={`text-sm font-semibold tracking-wide ${isScrolled ? "text-slate-800 dark:text-slate-200" : "text-white"}`}>
-                        {t("nav.group_dropdown_title") || "Explore Our Divisions"}
-                      </p>
-                      <div className={`w-10 h-0.5 mx-auto mt-2 rounded-full ${isScrolled ? "bg-teal-500" : "bg-white/50"}`}></div>
-                    </div>
+  {groupDropdownOpen && (
+    <div className={`absolute left-0 top-full z-50 mt-3 w-[650px] max-w-[90vw] rounded-2xl p-6 transition-all duration-300 shadow-2xl ${
+      isScrolled ? "bg-white/95 backdrop-blur-xl border border-slate-200/80 dark:bg-slate-900/95 dark:border-slate-700/80" : "bg-white/10 backdrop-blur-2xl border border-white/25"
+    }`} role="menu">
+      
+      <div className="text-center mb-5">
+        <p className={`text-sm font-semibold tracking-wide ${isScrolled ? "text-slate-800 dark:text-slate-200" : "text-white"}`}>
+          {t("nav.group_dropdown_title") || "Explore Our Divisions"}
+        </p>
+        <div className={`w-10 h-0.5 mx-auto mt-2 rounded-full ${isScrolled ? "bg-teal-500" : "bg-white/50"}`}></div>
+      </div>
 
-                    <div className="grid grid-cols-3 gap-4">
-                      {pillarItems.map((item) => {
-                        const IconComponent = item.icon;
-                        const isSelected = selectedBranch === item.label;
-                        return (
-                          <button
-                            key={item.id}
-                            onClick={() => handleBranchSelect(item.id, item.label, item.href)}
-                            className={`group flex flex-col items-center text-center rounded-xl p-5 transition-all duration-300 transform hover:scale-105 ${
-                              isScrolled 
-                                ? `hover:bg-slate-100 dark:hover:bg-slate-800 ${item.hoverBg} ${isSelected ? `${item.bgColor} ring-2 ${item.borderColor}` : 'border border-transparent hover:border-slate-200 dark:hover:border-slate-700'}`
-                                : `hover:bg-white/20 ${isSelected ? 'bg-white/30 ring-2 ring-white/50' : 'border border-transparent hover:border-white/30'}`
-                            }`}
-                          >
-                            <div className={`mb-3 flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 ${
-                              isScrolled ? `${item.bgColor} group-hover:shadow-lg` : "bg-white/20 group-hover:bg-white/30"
-                            }`}>
-                              <IconComponent className={`h-7 w-7 ${isScrolled ? item.color : "text-white"}`} />
-                            </div>
-                            <div className="space-y-0.5">
-                              <p className={`text-sm font-bold uppercase tracking-wide ${isScrolled ? item.color : "text-white"}`}>
-                                {item.label}
-                              </p>
-                              <p className={`text-[10px] max-w-[140px] mx-auto leading-relaxed ${isScrolled ? "text-slate-500 dark:text-slate-400" : "text-white/80"}`}>
-                                {item.description}
-                              </p>
-                              {isSelected && (
-                                <span className="inline-block mt-2 px-2 py-0.5 text-[9px] font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 rounded-full border border-teal-200 dark:border-teal-800">
-                                  ✓ Selected
-                                </span>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+      <div className="grid grid-cols-3 gap-4">
+        {pillarItems.map((item) => {
+          const IconComponent = item.icon;
+          const isSelected = selectedBranch === item.label;
+          return (
+            <button
+              key={item.id}
+              onClick={() => handleBranchSelect(item.id, item.label, item.href)}
+              className={`group flex flex-col items-center text-center rounded-xl p-5 transition-all duration-300 transform hover:scale-105 ${
+                isScrolled 
+                  ? `hover:bg-slate-100 dark:hover:bg-slate-800 ${isSelected ? 'bg-slate-100 dark:bg-slate-800 ring-2 ring-teal-500 dark:ring-teal-400' : 'border border-transparent hover:border-slate-200 dark:hover:border-slate-700'}`
+                  : `hover:bg-white/20 ${isSelected ? 'bg-white/30 ring-2 ring-white/50' : 'border border-transparent hover:border-white/30'}`
+              }`}
+            >
+              <div className={`mb-3 flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 ${
+                isScrolled ? "bg-slate-100 dark:bg-slate-800 group-hover:shadow-lg" : "bg-white/20 group-hover:bg-white/30"
+              }`}>
+                <IconComponent className={`h-7 w-7 ${isScrolled ? "text-slate-700 dark:text-slate-300" : "text-white"}`} />
+              </div>
+              <div className="space-y-0.5">
+                <p className={`text-sm font-bold uppercase tracking-wide ${isScrolled ? "text-slate-800 dark:text-slate-200" : "text-white"}`}>
+                  {item.label}
+                </p>
+                <p className={`text-[10px] max-w-[140px] mx-auto leading-relaxed ${isScrolled ? "text-slate-500 dark:text-slate-400" : "text-white/80"}`}>
+                  {item.description}
+                </p>
+                {isSelected && (
+                  <span className="inline-block mt-2 px-2 py-0.5 text-[9px] font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 rounded-full border border-teal-200 dark:border-teal-800">
+                    ✓ Selected
+                  </span>
                 )}
               </div>
-
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  )}
+</div>
               {/* HOME PAGE LINKS */}
               {isHome && (
                 <>
@@ -616,30 +606,30 @@ export function Header() {
               </Link>
             )}
 
-            {/* AFILAS GROUP - Mobile */}
-            <button type="button" onClick={() => setGroupDropdownOpen(!groupDropdownOpen)} className={`flex w-full items-center justify-between rounded-lg p-3 font-medium transition-colors ${isScrolled ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`}>
-              <span>{t("nav.group") || "Afilas Group"}</span>
-              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${groupDropdownOpen ? "rotate-180" : ""}`} />
-            </button>
+            {/* AFILAS GROUP - Mobile (single color icons) */}
+<button type="button" onClick={() => setGroupDropdownOpen(!groupDropdownOpen)} className={`flex w-full items-center justify-between rounded-lg p-3 font-medium transition-colors ${isScrolled ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`}>
+  <span>{t("nav.group") || "Afilas Group"}</span>
+  <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${groupDropdownOpen ? "rotate-180" : ""}`} />
+</button>
 
-            {groupDropdownOpen && (
-              <div className="ml-4 space-y-1 border-l-2 pl-2">
-                {pillarItems.map((item) => {
-                  const IconComponent = item.icon;
-                  const isSelected = selectedBranch === item.label;
-                  return (
-                    <button key={item.id} onClick={() => handleBranchSelect(item.id, item.label, item.href)} className={`flex w-full items-start gap-3 rounded-lg px-3 py-2 transition-colors ${isScrolled ? `hover:bg-slate-100 dark:hover:bg-slate-800 ${item.hoverBg} ${isSelected ? `${item.bgColor}` : ''}` : `hover:bg-white/20 ${isSelected ? 'bg-white/30' : ''}`}`}>
-                      <IconComponent className={`mt-0.5 h-5 w-5 shrink-0 ${isScrolled ? item.color : "text-white"}`} />
-                      <div className="flex-1 text-left">
-                        <p className={`text-sm font-bold uppercase tracking-wide ${isScrolled ? item.color : "text-white"}`}>{item.label}</p>
-                        <p className={`text-xs ${isScrolled ? "text-slate-500 dark:text-slate-400" : "text-white/60"}`}>{item.description}</p>
-                      </div>
-                      {isSelected && <span className="text-teal-600 dark:text-teal-400 text-xs font-semibold">✓</span>}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+{groupDropdownOpen && (
+  <div className="ml-4 space-y-1 border-l-2 pl-2">
+    {pillarItems.map((item) => {
+      const IconComponent = item.icon;
+      const isSelected = selectedBranch === item.label;
+      return (
+        <button key={item.id} onClick={() => handleBranchSelect(item.id, item.label, item.href)} className={`flex w-full items-start gap-3 rounded-lg px-3 py-2 transition-colors ${isScrolled ? `hover:bg-slate-100 dark:hover:bg-slate-800 ${isSelected ? 'bg-slate-100 dark:bg-slate-800' : ''}` : `hover:bg-white/20 ${isSelected ? 'bg-white/30' : ''}`}`}>
+          <IconComponent className={`mt-0.5 h-5 w-5 shrink-0 ${isScrolled ? "text-slate-700 dark:text-slate-300" : "text-white"}`} />
+          <div className="flex-1 text-left">
+            <p className={`text-sm font-bold uppercase tracking-wide ${isScrolled ? "text-slate-800 dark:text-slate-200" : "text-white"}`}>{item.label}</p>
+            <p className={`text-xs ${isScrolled ? "text-slate-500 dark:text-slate-400" : "text-white/60"}`}>{item.description}</p>
+          </div>
+          {isSelected && <span className="text-teal-600 dark:text-teal-400 text-xs font-semibold">✓</span>}
+        </button>
+      );
+    })}
+  </div>
+)}
 
             {/* HOME PAGE MOBILE LINKS */}
             {isHome && (
