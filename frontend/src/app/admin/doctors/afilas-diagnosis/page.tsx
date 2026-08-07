@@ -11,7 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Upload,
   X,
-  Stethoscope,
+  User,
   CheckCircle,
   XCircle,
   Loader2,
@@ -45,6 +45,26 @@ interface DoctorFormData {
   };
 }
 
+interface FormErrors {
+  name?: string;
+  email?: string;
+  phone?: string;
+  specialization?: string;
+  experience?: string;
+  schedule?: string;
+  bio?: string;
+  photo?: string;
+}
+
+// Define a type for the schedule slots used in validation
+type ScheduleSlotsType = {
+  [key: number]: {
+    startTime: string;
+    endTime: string;
+    isAvailable: boolean;
+  };
+};
+
 const emptyForm: DoctorFormData = { 
   name: '', 
   title: '', 
@@ -68,6 +88,144 @@ const emptyForm: DoctorFormData = {
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const LOCATION_NAME = 'Afilas Diagnosis Center';
 
+// ============================================================
+// FRONTEND VALIDATION FUNCTIONS (Matches Backend)
+// ============================================================
+
+const validateName = (value: string): string | null => {
+  if (!value || value.trim().length === 0) {
+    return 'Name is required';
+  }
+  if (value.trim().length < 2) {
+    return 'Name must be at least 2 characters';
+  }
+  if (value.trim().length > 100) {
+    return 'Name must be less than 100 characters';
+  }
+  if (!/^[a-zA-Z\s\-'.]+$/.test(value.trim())) {
+    return 'Name contains invalid characters (only letters, spaces, hyphens, apostrophes, and periods allowed)';
+  }
+  return null;
+};
+
+const validateEmail = (value: string): string | null => {
+  if (!value || value.trim().length === 0) {
+    return 'Email is required';
+  }
+  const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  if (!emailRegex.test(value.trim())) {
+    return 'Please enter a valid email address';
+  }
+  if (value.trim().length > 255) {
+    return 'Email must be less than 255 characters';
+  }
+  return null;
+};
+
+const validatePhone = (value: string): string | null => {
+  if (!value || value.trim().length === 0) {
+    return null; // Phone is optional
+  }
+  const phoneRegex = /^[\+\d\s\-\(\)]{7,20}$/;
+  if (!phoneRegex.test(value.trim())) {
+    return 'Please enter a valid phone number (7-20 characters, numbers, spaces, +, -, (), allowed)';
+  }
+  return null;
+};
+
+const validateSpecialization = (value: string): string | null => {
+  if (!value || value.trim().length === 0) {
+    return 'Specialization is required';
+  }
+  if (value.trim().length < 2) {
+    return 'Specialization must be at least 2 characters';
+  }
+  if (value.trim().length > 100) {
+    return 'Specialization must be less than 100 characters';
+  }
+  if (!/^[a-zA-Z\s\-',.&]+$/.test(value.trim())) {
+    return 'Specialization contains invalid characters';
+  }
+  return null;
+};
+
+const validateExperience = (value: number): string | null => {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  if (value < 0) {
+    return 'Experience cannot be negative';
+  }
+  if (value > 100) {
+    return 'Experience cannot exceed 100 years';
+  }
+  if (!Number.isInteger(value)) {
+    return 'Experience must be a whole number';
+  }
+  return null;
+};
+
+const validateBio = (value: string): string | null => {
+  if (!value || value.trim().length === 0) {
+    return null; // Bio is optional
+  }
+  if (value.trim().length > 500) {
+    return 'Bio must be less than 500 characters';
+  }
+  return null;
+};
+
+const validateSchedule = (scheduleSlots: ScheduleSlotsType): string | null => {
+  const entries = Object.entries(scheduleSlots) as [string, { startTime: string; endTime: string; isAvailable: boolean }][];
+  const availableSlots = entries.filter(([_, slot]) => slot.isAvailable);
+  
+  if (availableSlots.length === 0) {
+    return 'Please set at least one working day';
+  }
+  
+  const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  
+  for (const [day, slot] of availableSlots) {
+    const dayIndex = parseInt(day);
+    if (isNaN(dayIndex) || dayIndex < 0 || dayIndex > 6) {
+      return 'Invalid day of week';
+    }
+    
+    if (!slot.startTime || !slot.endTime) {
+      return `Please set both start and end times for ${dayNames[dayIndex]}`;
+    }
+    
+    if (slot.startTime >= slot.endTime) {
+      return `Invalid time range for ${dayNames[dayIndex]}: Start time must be before end time`;
+    }
+    
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(slot.startTime)) {
+      return `Invalid start time format for ${dayNames[dayIndex]} (use HH:MM)`;
+    }
+    if (!timeRegex.test(slot.endTime)) {
+      return `Invalid end time format for ${dayNames[dayIndex]} (use HH:MM)`;
+    }
+  }
+  
+  return null;
+};
+
+const validatePhoto = (file: File | null): string | null => {
+  if (!file) return null;
+  
+  const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+  if (!validTypes.includes(file.type)) {
+    return 'Please upload a valid image file (JPEG, PNG, GIF, or WebP)';
+  }
+  
+  if (file.size > 5 * 1024 * 1024) {
+    return 'Image size must be less than 5MB';
+  }
+  
+  return null;
+};
+
 export default function AfilasDiagnosisDoctorsPage() {
   const { t } = useLanguage();
   const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -81,6 +239,8 @@ export default function AfilasDiagnosisDoctorsPage() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function load() {
@@ -118,12 +278,21 @@ export default function AfilasDiagnosisDoctorsPage() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      const photoError = validatePhoto(file);
+      if (photoError) {
+        setFormErrors({ ...formErrors, photo: photoError });
+        setError(photoError);
+        return;
+      }
+      
       setImageFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+      setFormErrors({ ...formErrors, photo: undefined });
+      setError('');
     }
   };
 
@@ -154,9 +323,81 @@ export default function AfilasDiagnosisDoctorsPage() {
     }
   };
 
+  const validateField = (field: string, value: any): string | null => {
+    switch (field) {
+      case 'name':
+        return validateName(value);
+      case 'email':
+        return validateEmail(value);
+      case 'phone':
+        return validatePhone(value);
+      case 'specialization':
+        return validateSpecialization(value);
+      case 'experience':
+        return validateExperience(value);
+      case 'bio':
+        return validateBio(value);
+      case 'schedule':
+        return validateSchedule(form.scheduleSlots);
+      default:
+        return null;
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: FormErrors = {};
+    
+    const nameError = validateName(form.name);
+    if (nameError) errors.name = nameError;
+    
+    const emailError = validateEmail(form.email);
+    if (emailError) errors.email = emailError;
+    
+    const phoneError = validatePhone(form.phone);
+    if (phoneError) errors.phone = phoneError;
+    
+    const specializationError = validateSpecialization(form.specialization);
+    if (specializationError) errors.specialization = specializationError;
+    
+    const experienceError = validateExperience(form.experience);
+    if (experienceError) errors.experience = experienceError;
+    
+    const bioError = validateBio(form.bio);
+    if (bioError) errors.bio = bioError;
+    
+    const scheduleError = validateSchedule(form.scheduleSlots);
+    if (scheduleError) errors.schedule = scheduleError;
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleFieldChange = (field: string, value: any) => {
+    setForm({ ...form, [field]: value });
+    setTouched({ ...touched, [field]: true });
+    
+    const error = validateField(field, value);
+    setFormErrors({ ...formErrors, [field]: error || undefined });
+  };
+
+  const handleScheduleChange = (index: number, field: string, value: any) => {
+    const updatedSlots = { ...form.scheduleSlots };
+    updatedSlots[index] = {
+      ...updatedSlots[index],
+      [field]: value
+    };
+    setForm({ ...form, scheduleSlots: updatedSlots });
+    setTouched({ ...touched, schedule: true });
+    
+    const error = validateSchedule(updatedSlots);
+    setFormErrors({ ...formErrors, schedule: error || undefined });
+  };
+
   function startCreate() {
     setEditingId(null);
     setForm(emptyForm);
+    setFormErrors({});
+    setTouched({});
     setShowForm(true);
     setError('');
     setSuccess('');
@@ -190,6 +431,8 @@ export default function AfilasDiagnosisDoctorsPage() {
       experience: doc.experience || 0,
       scheduleSlots
     });
+    setFormErrors({});
+    setTouched({});
     setImagePreview(doc.photoUrl || '');
     setShowForm(true);
     setError('');
@@ -200,25 +443,26 @@ export default function AfilasDiagnosisDoctorsPage() {
     e.preventDefault();
     setSaving(true);
     setError('');
-    setSuccess('');
+    
+    // Mark all fields as touched
+    const allTouched: Record<string, boolean> = {};
+    Object.keys(form).forEach(key => {
+      allTouched[key] = true;
+    });
+    allTouched.schedule = true;
+    setTouched(allTouched);
+    
+    // Validate all fields
+    if (!validateForm()) {
+      setSaving(false);
+      const firstError = document.querySelector('[data-error="true"]');
+      if (firstError) {
+        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
     
     try {
-      if (!form.name.trim()) {
-        setError('Name is required');
-        setSaving(false);
-        return;
-      }
-      if (!form.specialization.trim()) {
-        setError('Specialization is required');
-        setSaving(false);
-        return;
-      }
-      if (!form.email.trim()) {
-        setError('Email is required');
-        setSaving(false);
-        return;
-      }
-      
       let photoUrl = form.photoUrl;
       if (imageFile) {
         setUploadingImage(true);
@@ -233,7 +477,6 @@ export default function AfilasDiagnosisDoctorsPage() {
         setUploadingImage(false);
       }
       
-      // Convert schedule slots to workingHours format for backend
       const workingHours = Object.entries(form.scheduleSlots)
         .filter(([_, slot]) => slot.isAvailable && slot.startTime && slot.endTime)
         .map(([day, slot]) => ({
@@ -244,13 +487,13 @@ export default function AfilasDiagnosisDoctorsPage() {
         }));
 
       const doctorData = { 
-        name: form.name,
-        title: form.specialization,
-        bio: form.bio || '',
+        name: form.name.trim(),
+        title: form.specialization.trim(),
+        bio: form.bio?.trim() || '',
         photoUrl: photoUrl,
-        email: form.email,
-        phone: form.phone || '',
-        specialization: form.specialization,
+        email: form.email.trim().toLowerCase(),
+        phone: form.phone?.trim() || '',
+        specialization: form.specialization.trim(),
         experience: form.experience || 0,
         location: LOCATION_NAME,
         active: true,
@@ -293,7 +536,6 @@ export default function AfilasDiagnosisDoctorsPage() {
     }
   }
 
-  // Format time to 12-hour format
   const formatTimeDisplay = (time?: string) => {
     if (!time || time === '') return 'Not set';
     
@@ -315,7 +557,6 @@ export default function AfilasDiagnosisDoctorsPage() {
     }
   };
 
-  // Get schedule display text
   const getScheduleDisplay = (doctor: Doctor) => {
     if (!doctor.scheduleSlots || doctor.scheduleSlots.length === 0) {
       return 'No schedule set';
@@ -324,12 +565,10 @@ export default function AfilasDiagnosisDoctorsPage() {
     const availableSlots = doctor.scheduleSlots.filter(s => s.isAvailable);
     if (availableSlots.length === 0) return 'No schedule set';
     
-    // Get unique day names
     const days = availableSlots
       .map(s => DAYS_OF_WEEK[s.dayOfWeek])
       .filter(Boolean);
     
-    // Get unique time ranges
     const timeRanges = availableSlots.map(s => {
       const start = formatTimeDisplay(s.startTime);
       const end = formatTimeDisplay(s.endTime);
@@ -339,34 +578,33 @@ export default function AfilasDiagnosisDoctorsPage() {
     const uniqueDays = [...new Set(days)];
     const uniqueTimes = [...new Set(timeRanges)];
     
-    // Format: "Monday, Wednesday, Friday - 9:00 AM - 5:00 PM"
     if (uniqueTimes.length === 1) {
       return `${uniqueDays.join(', ')} - ${uniqueTimes[0]}`;
     }
     
-    // Multiple time ranges
     const timeDisplay = uniqueTimes.map(t => `(${t})`).join(' ');
     return `${uniqueDays.join(', ')} ${timeDisplay}`;
   };
 
+  // Helper to check if field has error
+  const hasError = (field: keyof FormErrors) => {
+    return formErrors[field] && touched[field];
+  };
+
   return (
     <>
-      <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-        <div className="flex items-center gap-3">
-          <Link href="/admin/doctors" className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-            <ArrowLeft size={20} className="text-gray-600 dark:text-gray-300" />
-          </Link>
-          <div>
-            <h1 className="font-display text-3xl text-clinical-900 flex items-center gap-2">
-              <Activity className="w-7 h-7 text-purple-600" />
-              Afilas Diagnosis Center
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">Manage doctors for Afilas Diagnosis Center</p>
-          </div>
-        </div>
+      {/* Header with buttons on the right side */}
+      <div className="flex items-center justify-end mb-8 flex-wrap gap-4">
+        <button
+          onClick={() => load()}
+          className="focus-ring rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 text-sm font-semibold px-5 py-2.5 transition-colors shadow-sm flex items-center gap-2"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Refresh
+        </button>
         <button
           onClick={startCreate}
-          className="focus-ring rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-5 py-2.5 transition-colors flex items-center gap-2 shadow-sm"
+          className="focus-ring rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 text-sm font-semibold px-5 py-2.5 transition-colors shadow-sm flex items-center gap-2"
         >
           <UserPlus className="w-4 h-4" />
           Add Doctor
@@ -394,22 +632,22 @@ export default function AfilasDiagnosisDoctorsPage() {
       )}
 
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-2xl">
-              <h2 className="font-semibold text-clinical-900 text-xl flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between rounded-t-xl">
+              <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
                 {editingId ? (
                   <>
-                    <Edit className="w-5 h-5 text-purple-600" />
+                    <Edit className="w-4 h-4 text-purple-600" />
                     Edit Doctor
                   </>
                 ) : (
                   <>
-                    <UserPlus className="w-5 h-5 text-purple-600" />
-                    Add New Doctor
+                    <UserPlus className="w-4 h-4 text-purple-600" />
+                    New Doctor
                   </>
                 )}
-              </h2>
+              </h3>
               <button
                 type="button"
                 onClick={() => {
@@ -417,27 +655,31 @@ export default function AfilasDiagnosisDoctorsPage() {
                   setImageFile(null);
                   setImagePreview('');
                   setError('');
+                  setFormErrors({});
+                  setTouched({});
                 }}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1 hover:bg-gray-100 rounded-lg transition-colors text-gray-400 hover:text-gray-600"
               >
-                <X size={20} className="text-gray-500" />
+                <X size={20} />
               </button>
             </div>
             
-            <form onSubmit={handleSubmit} className="p-6 space-y-5">
-              <div className="flex flex-col items-center gap-4">
-                <div className="relative">
-                  <div className="w-32 h-32 rounded-full overflow-hidden bg-gray-100 border-4 border-dashed border-gray-300 flex items-center justify-center">
+            <form onSubmit={handleSubmit} className="p-4 space-y-3">
+              {/* Image Upload - Compact */}
+              <div className="flex items-center gap-3">
+                <div className="relative flex-shrink-0">
+                  <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
                     {imagePreview ? (
                       <Image
                         src={imagePreview}
                         alt="Doctor preview"
-                        width={128}
-                        height={128}
+                        width={56}
+                        height={56}
+                        unoptimized
                         className="object-cover w-full h-full"
                       />
                     ) : (
-                      <Stethoscope className="w-12 h-12 text-gray-400" />
+                      <User className="w-6 h-6 text-gray-400" />
                     )}
                   </div>
                   <input
@@ -450,196 +692,278 @@ export default function AfilasDiagnosisDoctorsPage() {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className="absolute bottom-0 right-0 bg-purple-600 text-white p-2 rounded-full hover:bg-purple-700 transition-colors shadow-lg"
+                    className="absolute bottom-0 right-0 bg-white border border-gray-200 text-gray-600 p-0.5 rounded-full hover:bg-gray-50 transition-colors text-xs shadow-sm"
                   >
-                    <Upload size={16} />
+                    <Upload className="w-3 h-3" />
                   </button>
                 </div>
-                <p className="text-xs text-gray-400">Upload doctor photo (JPG, PNG)</p>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Full Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    required
-                    value={form.name}
-                    onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="focus-ring w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 transition-colors"
-                    placeholder="Dr. John Doe"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Specialization <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    required
-                    placeholder="Cardiology, Radiology, etc."
-                    value={form.specialization}
-                    onChange={(e) => setForm({ ...form, specialization: e.target.value })}
-                    className="focus-ring w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 transition-colors"
-                  />
+                  <p className="text-xs font-medium text-gray-700">Photo</p>
+                  <p className="text-[10px] text-gray-400">JPG, PNG, GIF, WebP (max 5MB)</p>
                 </div>
               </div>
+              {formErrors.photo && touched.photo && (
+                <p className="text-xs text-red-500 -mt-2">{formErrors.photo}</p>
+              )}
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Email <span className="text-red-500">*</span>
-                  </label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      required
-                      type="email"
-                      placeholder="doctor@example.com"
-                      value={form.email}
-                      onChange={(e) => setForm({ ...form, email: e.target.value })}
-                      className="focus-ring w-full rounded-lg border border-gray-300 pl-10 pr-4 py-2.5 focus:border-purple-500 transition-colors"
-                    />
-                  </div>
+              {/* Full Name */}
+              <div data-error={!!formErrors.name && touched.name}>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                  Full Name <span className="text-red-400">*</span>
+                </label>
+                <input
+                  required
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (/^[a-zA-Z\s\-'.]*$/.test(value) || value === '') {
+                      handleFieldChange('name', value);
+                    }
+                  }}
+                  onBlur={() => setTouched({ ...touched, name: true })}
+                  className={`w-full rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none ${
+                    hasError('name')
+                      ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                      : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                  }`}
+                  placeholder="Dr. John Doe"
+                  maxLength={100}
+                />
+                {hasError('name') && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.name}</p>
+                )}
+                <p className="text-[10px] text-gray-400 mt-0.5">{form.name.length}/100</p>
+              </div>
+              
+              {/* Specialization */}
+              <div data-error={!!formErrors.specialization && touched.specialization}>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                  Specialization <span className="text-red-400">*</span>
+                </label>
+                <input
+                  required
+                  type="text"
+                  placeholder="Cardiology"
+                  value={form.specialization}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (/^[a-zA-Z\s\-',.&]*$/.test(value) || value === '') {
+                      handleFieldChange('specialization', value);
+                    }
+                  }}
+                  onBlur={() => setTouched({ ...touched, specialization: true })}
+                  className={`w-full rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none ${
+                    hasError('specialization')
+                      ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                      : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                  }`}
+                  maxLength={100}
+                />
+                {hasError('specialization') && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.specialization}</p>
+                )}
+                <p className="text-[10px] text-gray-400 mt-0.5">{form.specialization.length}/100</p>
+              </div>
+              
+              {/* Email */}
+              <div data-error={!!formErrors.email && touched.email}>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                  Email <span className="text-red-400">*</span>
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                  <input
+                    required
+                    type="email"
+                    placeholder="doctor@example.com"
+                    value={form.email}
+                    onChange={(e) => {
+                      const value = e.target.value.toLowerCase();
+                      handleFieldChange('email', value);
+                    }}
+                    onBlur={() => setTouched({ ...touched, email: true })}
+                    className={`w-full rounded-lg border pl-8 pr-3 py-1.5 text-sm transition-colors outline-none ${
+                      hasError('email')
+                        ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                        : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                    }`}
+                    maxLength={255}
+                  />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
-                    Phone
-                  </label>
-                  <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <input
-                      type="tel"
-                      placeholder="+251-911-123456"
-                      value={form.phone}
-                      onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                      className="focus-ring w-full rounded-lg border border-gray-300 pl-10 pr-4 py-2.5 focus:border-purple-500 transition-colors"
-                    />
-                  </div>
+                {hasError('email') && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.email}</p>
+                )}
+              </div>
+              
+              {/* Phone */}
+              <div data-error={!!formErrors.phone && touched.phone}>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
+                  Phone
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-2.5 top-1/2 transform -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                  <input
+                    type="tel"
+                    placeholder="+251-911-123456"
+                    value={form.phone}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (/^[\+\d\s\-\(\)]*$/.test(value) || value === '') {
+                        handleFieldChange('phone', value);
+                      }
+                    }}
+                    onBlur={() => setTouched({ ...touched, phone: true })}
+                    className={`w-full rounded-lg border pl-8 pr-3 py-1.5 text-sm transition-colors outline-none ${
+                      hasError('phone')
+                        ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                        : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                    }`}
+                    maxLength={20}
+                  />
                 </div>
+                {hasError('phone') && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.phone}</p>
+                )}
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              {/* Experience */}
+              <div data-error={!!formErrors.experience && touched.experience}>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
                   Experience (years)
                 </label>
                 <input
                   type="number"
                   min="0"
+                  max="100"
+                  step="1"
                   value={form.experience}
-                  onChange={(e) => setForm({ ...form, experience: parseInt(e.target.value) || 0 })}
-                  className="focus-ring w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 transition-colors"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '') {
+                      handleFieldChange('experience', 0);
+                    } else {
+                      const num = parseInt(value);
+                      if (!isNaN(num) && num >= 0 && num <= 100) {
+                        handleFieldChange('experience', num);
+                      }
+                    }
+                  }}
+                  onBlur={() => setTouched({ ...touched, experience: true })}
+                  className={`w-full rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none ${
+                    hasError('experience')
+                      ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                      : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                  }`}
                   placeholder="10"
                 />
+                {hasError('experience') && (
+                  <p className="text-xs text-red-500 mt-0.5">{formErrors.experience}</p>
+                )}
               </div>
 
-              {/* Schedule Slots - Day by Day */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-purple-600" />
-                    Weekly Schedule
-                  </div>
-                  <span className="text-xs text-gray-400 font-normal">Set working hours for each day</span>
+              {/* Weekly Schedule */}
+              <div data-error={!!formErrors.schedule && touched.schedule}>
+                <label className="block text-xs font-medium text-gray-600 mb-1">
+                  Weekly Schedule <span className="text-red-400">*</span>
                 </label>
-                <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
                   {DAYS_OF_WEEK.map((day, index) => (
-                    <div key={index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="w-24 flex-shrink-0">
-                        <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <div key={index} className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded-lg">
+                      <div className="w-14 flex-shrink-0">
+                        <label className="flex items-center gap-1 text-xs font-medium text-gray-600">
                           <input
                             type="checkbox"
                             checked={form.scheduleSlots[index]?.isAvailable || false}
                             onChange={(e) => {
-                              const updatedSlots = { ...form.scheduleSlots };
-                              updatedSlots[index] = {
-                                ...updatedSlots[index],
-                                isAvailable: e.target.checked,
-                                startTime: e.target.checked ? updatedSlots[index].startTime || '09:00' : '',
-                                endTime: e.target.checked ? updatedSlots[index].endTime || '17:00' : ''
-                              };
-                              setForm({ ...form, scheduleSlots: updatedSlots });
+                              const isChecked = e.target.checked;
+                              handleScheduleChange(index, 'isAvailable', isChecked);
+                              if (isChecked) {
+                                handleScheduleChange(index, 'startTime', form.scheduleSlots[index]?.startTime || '09:00');
+                                handleScheduleChange(index, 'endTime', form.scheduleSlots[index]?.endTime || '17:00');
+                              }
                             }}
-                            className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                            className="rounded border-gray-300 text-gray-600 focus:ring-gray-400"
                           />
-                          {day}
+                          <span className="truncate text-[10px]">{day.slice(0, 3)}</span>
                         </label>
                       </div>
-                      <div className="flex-1 grid grid-cols-2 gap-3">
-                        <div>
-                          <input
-                            type="time"
-                            value={form.scheduleSlots[index]?.startTime || ''}
-                            disabled={!form.scheduleSlots[index]?.isAvailable}
-                            onChange={(e) => {
-                              const updatedSlots = { ...form.scheduleSlots };
-                              updatedSlots[index] = {
-                                ...updatedSlots[index],
-                                startTime: e.target.value
-                              };
-                              setForm({ ...form, scheduleSlots: updatedSlots });
-                            }}
-                            className={`focus-ring w-full rounded-lg border px-3 py-1.5 text-sm focus:border-purple-500 transition-colors ${
-                              form.scheduleSlots[index]?.isAvailable 
-                                ? 'border-gray-300' 
-                                : 'border-gray-200 bg-gray-100 text-gray-400'
-                            }`}
-                            step="900"
-                          />
-                        </div>
-                        <div>
-                          <input
-                            type="time"
-                            value={form.scheduleSlots[index]?.endTime || ''}
-                            disabled={!form.scheduleSlots[index]?.isAvailable}
-                            onChange={(e) => {
-                              const updatedSlots = { ...form.scheduleSlots };
-                              updatedSlots[index] = {
-                                ...updatedSlots[index],
-                                endTime: e.target.value
-                              };
-                              setForm({ ...form, scheduleSlots: updatedSlots });
-                            }}
-                            className={`focus-ring w-full rounded-lg border px-3 py-1.5 text-sm focus:border-purple-500 transition-colors ${
-                              form.scheduleSlots[index]?.isAvailable 
-                                ? 'border-gray-300' 
-                                : 'border-gray-200 bg-gray-100 text-gray-400'
-                            }`}
-                            step="900"
-                          />
-                        </div>
+                      <div className="flex-1 grid grid-cols-2 gap-1">
+                        <input
+                          type="time"
+                          value={form.scheduleSlots[index]?.startTime || ''}
+                          disabled={!form.scheduleSlots[index]?.isAvailable}
+                          onChange={(e) => handleScheduleChange(index, 'startTime', e.target.value)}
+                          className={`w-full rounded-lg border px-1.5 py-0.5 text-[10px] transition-colors outline-none ${
+                            form.scheduleSlots[index]?.isAvailable 
+                              ? 'border-gray-200 bg-white focus:border-gray-400 focus:ring-1 focus:ring-gray-400' 
+                              : 'border-gray-100 bg-gray-100 text-gray-400 cursor-not-allowed'
+                          }`}
+                          step="900"
+                        />
+                        <input
+                          type="time"
+                          value={form.scheduleSlots[index]?.endTime || ''}
+                          disabled={!form.scheduleSlots[index]?.isAvailable}
+                          onChange={(e) => handleScheduleChange(index, 'endTime', e.target.value)}
+                          className={`w-full rounded-lg border px-1.5 py-0.5 text-[10px] transition-colors outline-none ${
+                            form.scheduleSlots[index]?.isAvailable 
+                              ? 'border-gray-200 bg-white focus:border-gray-400 focus:ring-1 focus:ring-gray-400' 
+                              : 'border-gray-100 bg-gray-100 text-gray-400 cursor-not-allowed'
+                          }`}
+                          step="900"
+                        />
                       </div>
                     </div>
                   ))}
                 </div>
+                {hasError('schedule') && (
+                  <p className="text-xs text-red-500 mt-1">{formErrors.schedule}</p>
+                )}
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              {/* Bio */}
+              <div data-error={!!formErrors.bio && touched.bio}>
+                <label className="block text-xs font-medium text-gray-600 mb-0.5">
                   Bio
                 </label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   value={form.bio}
-                  onChange={(e) => setForm({ ...form, bio: e.target.value })}
-                  className="focus-ring w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-purple-500 transition-colors"
-                  placeholder="Doctor's biography..."
+                  onChange={(e) => handleFieldChange('bio', e.target.value)}
+                  onBlur={() => setTouched({ ...touched, bio: true })}
+                  className={`w-full rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none ${
+                    hasError('bio')
+                      ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
+                      : 'border-gray-200 focus:border-gray-400 focus:ring-1 focus:ring-gray-400'
+                  }`}
+                  placeholder="Brief bio..."
+                  maxLength={500}
                 />
+                <div className="flex justify-between">
+                  {hasError('bio') && (
+                    <p className="text-xs text-red-500 mt-0.5">{formErrors.bio}</p>
+                  )}
+                  <p className={`text-[10px] mt-0.5 ml-auto ${form.bio.length > 450 ? 'text-orange-500' : 'text-gray-400'}`}>
+                    {form.bio.length}/500
+                  </p>
+                </div>
               </div>
 
-              <div className="flex gap-3 pt-2">
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-2 border-t border-gray-100">
                 <button
                   type="submit"
                   disabled={saving || uploadingImage}
-                  className="flex-1 focus-ring rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white text-sm font-semibold px-6 py-2.5 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 text-sm font-medium px-4 py-1.5 transition-colors flex items-center justify-center gap-2"
                 >
                   {saving || uploadingImage ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      {uploadingImage ? 'Uploading Image...' : 'Saving...'}
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      {uploadingImage ? 'Uploading...' : 'Saving...'}
                     </>
                   ) : (
-                    editingId ? 'Update Doctor' : 'Add Doctor'
+                    editingId ? 'Update' : 'Add'
                   )}
                 </button>
                 <button
@@ -649,8 +973,10 @@ export default function AfilasDiagnosisDoctorsPage() {
                     setImageFile(null);
                     setImagePreview('');
                     setError('');
+                    setFormErrors({});
+                    setTouched({});
                   }}
-                  className="flex-1 focus-ring rounded-lg border border-gray-300 text-gray-700 text-sm font-semibold px-6 py-2.5 hover:bg-gray-50 transition-colors"
+                  className="flex-1 rounded-lg bg-white border border-gray-200 text-gray-500 text-sm font-medium px-4 py-1.5 hover:bg-gray-50 hover:border-gray-300 transition-colors"
                 >
                   Cancel
                 </button>
@@ -666,85 +992,80 @@ export default function AfilasDiagnosisDoctorsPage() {
         </div>
       ) : doctors.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
-          <Stethoscope className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-700 mb-2">No Doctors Found</h3>
           <p className="text-sm text-gray-500 mb-4">No doctors available for Afilas Diagnosis Center</p>
           <button
             onClick={startCreate}
-            className="focus-ring rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold px-5 py-2.5 transition-colors"
+            className="focus-ring rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 text-sm font-semibold px-5 py-2.5 transition-colors"
           >
             + Add Doctor
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
           {doctors.map((doc) => (
-            <div key={doc.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-200 flex flex-col">
-              <div className="relative h-56 bg-gradient-to-br from-purple-50 to-gray-100 flex-shrink-0">
-                {doc.photoUrl ? (
-                  <Image
-                    src={doc.photoUrl}
-                    alt={doc.name}
-                    fill
-                    unoptimized
-                    className="object-cover"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <Stethoscope className="w-20 h-20 text-purple-300" />
+            <div key={doc.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
+              <div className="p-4 flex items-start gap-3">
+                {/* Small Circular Avatar */}
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200 flex items-center justify-center bg-gray-50">
+                    {doc.photoUrl ? (
+                      <Image
+                        src={doc.photoUrl}
+                        alt={doc.name}
+                        width={48}
+                        height={48}
+                        unoptimized
+                        className="object-cover w-full h-full"
+                      />
+                    ) : (
+                      <User className="w-5 h-5 text-gray-400" />
+                    )}
                   </div>
-                )}
-                <div className="absolute top-3 right-3">
-                  <span className={`text-xs px-3 py-1 rounded-full font-medium ${
-                    doc.active ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'
-                  }`}>
-                    {doc.active ? 'Active' : 'Inactive'}
-                  </span>
                 </div>
-              </div>
-              
-              <div className="p-5 flex flex-col flex-1">
-                <h3 className="font-semibold text-gray-900 text-lg">{doc.name}</h3>
-                <p className="text-sm text-purple-600 font-medium">{doc.specialization || doc.title}</p>
                 
-                {doc.email && (
-                  <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
-                    <Mail className="w-3 h-3" />
-                    {doc.email}
-                  </p>
-                )}
-                
-                {doc.bio && (
-                  <p className="text-xs text-gray-500 mt-3 line-clamp-2">{doc.bio}</p>
-                )}
-                
-                {/* Schedule Display at Bottom */}
-                {doc.scheduleSlots && doc.scheduleSlots.filter(s => s.isAvailable).length > 0 && (
-                  <div className="mt-4 pt-3 border-t border-gray-100">
-                    <div className="flex items-start gap-2">
-                      <Clock className="w-4 h-4 text-purple-500 mt-0.5 flex-shrink-0" />
-                      <div className="text-xs">
-                        <p className="font-medium text-gray-700">{getScheduleDisplay(doc)}</p>
-                      </div>
-                    </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-1">
+                    <h4 className="text-sm font-semibold text-gray-800 truncate">{doc.name}</h4>
+                    <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${
+                      doc.active ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
+                    }`}>
+                      {doc.active ? 'Active' : 'Off'}
+                    </span>
                   </div>
-                )}
-                
-                <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
-                  <button 
-                    onClick={() => startEdit(doc)} 
-                    className="flex-1 text-sm text-purple-600 hover:text-purple-800 font-medium hover:bg-purple-50 px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"
-                  >
-                    <Edit className="w-3.5 h-3.5" />
-                    Edit
-                  </button>
-                  <button 
-                    onClick={() => remove(doc.id)} 
-                    className="flex-1 text-sm text-red-600 hover:text-red-800 font-medium hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                    Delete
-                  </button>
+                  <p className="text-xs text-gray-500 truncate">{doc.specialization || doc.title}</p>
+                  
+                  {doc.email && (
+                    <p className="text-[10px] text-gray-400 truncate flex items-center gap-0.5 mt-0.5">
+                      <Mail className="w-2.5 h-2.5" />
+                      {doc.email}
+                    </p>
+                  )}
+                  
+                  {doc.scheduleSlots && doc.scheduleSlots.filter(s => s.isAvailable).length > 0 && (
+                    <p className="text-[10px] text-gray-400 mt-1 truncate flex items-center gap-0.5">
+                      <Clock className="w-2.5 h-2.5" />
+                      {getScheduleDisplay(doc)}
+                    </p>
+                  )}
+                  
+                  <div className="flex gap-1 mt-2 pt-2 border-t border-gray-100">
+                    <button 
+                      onClick={() => startEdit(doc)} 
+                      className="flex-1 text-[10px] text-purple-600 hover:text-purple-800 font-medium hover:bg-purple-50 px-2 py-1 rounded transition-colors flex items-center justify-center gap-0.5"
+                    >
+                      <Edit className="w-3 h-3" />
+                      Edit
+                    </button>
+                    <button 
+                      onClick={() => remove(doc.id)} 
+                      className="flex-1 text-[10px] text-gray-500 hover:text-red-600 font-medium hover:bg-gray-50 px-2 py-1 rounded transition-colors flex items-center justify-center gap-0.5"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -753,15 +1074,8 @@ export default function AfilasDiagnosisDoctorsPage() {
       )}
       
       {!loading && doctors.length > 0 && (
-        <div className="mt-4 text-xs text-gray-400 flex items-center justify-between">
+        <div className="mt-4 text-[10px] text-gray-400 flex items-center justify-end">
           <span>Showing {doctors.length} doctor{doctors.length !== 1 ? 's' : ''} for Afilas Diagnosis Center</span>
-          <button
-            onClick={() => load()}
-            className="text-purple-600 hover:text-purple-800 transition-colors flex items-center gap-1"
-          >
-            <RefreshCw className="w-3 h-3" />
-            Refresh
-          </button>
         </div>
       )}
     </>
