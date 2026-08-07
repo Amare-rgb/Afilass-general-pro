@@ -1,27 +1,37 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DoctorFinder } from "@/components/DoctorFinder";
-import HospitalHero from "@/components/HospitalDivision/HospitalHero"; // ✅ Ensure this import is correct
 import { HospitalServices } from "@/components/HospitalDivision/HospitalServices";
-import Link from "next/link";
-import { 
-  ArrowRight, 
-  Building2, 
-  Users, 
-  Heart, 
-  Brain, 
-  Bone, 
-  Shield, 
-  Ambulance 
+import { useLanguage } from "@/contexts/LanguageProvider";
+import {
+  ArrowRight,
+  Building2,
+  Users,
+  Heart,
+  Brain,
+  Bone,
+  Shield,
+  Ambulance,
+  Play,
+  Check,
+  Award,
+  Clock,
+  Sparkles,
+  PhoneCall,
+  X,
 } from "lucide-react";
 
 const departments = [
   {
     slug: "cardiology",
     name: "Cardiology",
-    description: "Heart and cardiovascular system care with advanced interventional procedures",
+    description:
+      "Heart and cardiovascular system care with advanced interventional procedures",
     icon: Heart,
     color: "text-red-500",
     bgColor: "bg-red-100 dark:bg-red-950/30",
@@ -29,7 +39,8 @@ const departments = [
   {
     slug: "pediatrics",
     name: "Pediatrics",
-    description: "Specialized care for children and infants in a child-friendly environment",
+    description:
+      "Specialized care for children and infants in a child-friendly environment",
     icon: Users,
     color: "text-blue-500",
     bgColor: "bg-blue-100 dark:bg-blue-950/30",
@@ -37,7 +48,8 @@ const departments = [
   {
     slug: "neurology",
     name: "Neurology",
-    description: "Brain and nervous system treatment with advanced diagnostics",
+    description:
+      "Brain and nervous system treatment with advanced diagnostic technology",
     icon: Brain,
     color: "text-purple-500",
     bgColor: "bg-purple-100 dark:bg-purple-950/30",
@@ -45,7 +57,8 @@ const departments = [
   {
     slug: "orthopedics",
     name: "Orthopedics",
-    description: "Bone and joint health management including surgical and non-surgical care",
+    description:
+      "Bone and joint health management including surgical and non-surgical care",
     icon: Bone,
     color: "text-green-500",
     bgColor: "bg-green-100 dark:bg-green-950/30",
@@ -53,7 +66,8 @@ const departments = [
   {
     slug: "oncology",
     name: "Oncology",
-    description: "Cancer diagnosis and treatment with comprehensive care",
+    description:
+      "Cancer diagnosis and specialized treatment with comprehensive patient support",
     icon: Shield,
     color: "text-orange-500",
     bgColor: "bg-orange-100 dark:bg-orange-950/30",
@@ -61,136 +75,390 @@ const departments = [
   {
     slug: "emergency",
     name: "Emergency Medicine",
-    description: "24/7 emergency and trauma care with rapid response teams",
+    description:
+      "24/7 emergency and trauma care with rapid response medical teams",
     icon: Ambulance,
     color: "text-red-600",
     bgColor: "bg-red-100 dark:bg-red-950/30",
   },
 ];
 
+const amenities = [
+  {
+    title: "ICU/CCU",
+    desc: "Intensive care units with advanced monitoring and life support systems.",
+    icon: Building2,
+  },
+  {
+    title: "Surgery Suites",
+    desc: "Modern operating rooms with latest equipment including robotic-assisted surgery.",
+    icon: Sparkles,
+  },
+  {
+    title: "Diagnostic Center",
+    desc: "Advanced imaging and laboratory services including MRI, CT scans, and X-ray.",
+    icon: Award,
+  },
+  {
+    title: "Pharmacy",
+    desc: "In-house pharmacy with comprehensive stock of medications available 24/7.",
+    icon: Clock,
+  },
+  {
+    title: "Blood Bank",
+    desc: "Safe and tested blood transfusion services available around the clock.",
+    icon: Shield,
+  },
+  {
+    title: "Emergency Room",
+    desc: "24/7 emergency services and trauma care with rapid response teams.",
+    icon: PhoneCall,
+  },
+];
+
+const trustLogos = [
+  { name: "24/7 Emergency Care", badge: "Always Available" },
+  { name: "ISO/GMP Compliant", badge: "Certified Quality" },
+  { name: "Advanced Automated Lab", badge: "Best In Class" },
+  { name: "Maternal & Child Health Care ", badge: "Quality Care" },
+];
+
 export default function HospitalPage() {
+  const { t } = useLanguage();
+
+  // Scroll Reveal Observer Logic matching template JS
+  useEffect(() => {
+    const revealElements = document.querySelectorAll(
+      ".reveal-left, .reveal-right, .reveal-up"
+    );
+
+    const observerOptions = {
+      root: null,
+      rootMargin: "0px 0px -50px 0px",
+      threshold: 0.15,
+    };
+
+    const revealObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("reveal-active");
+          observer.unobserve(entry.target);
+        }
+      });
+    }, observerOptions);
+
+    revealElements.forEach((el) => revealObserver.observe(el));
+
+    return () => revealObserver.disconnect();
+  }, []);
+
   return (
     <>
+      {/* Top Header - Kept untouched */}
       <Header />
-      <main className="pt-32">
-        <div className="relative">
-          
-          {/* ✅ USE THE CORRECT HERO COMPONENT */}
-          <HospitalHero 
-            title="Afilas General Hospital"
-            subtitle="Providing world-class healthcare with compassion and advanced medical technology."
-          />
 
-          {/* Departments section */}
-          <section
-            id="departments"
-            className="relative z-10 bg-background py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-t border-border"
-          >
-            <div className="max-w-7xl mx-auto w-full">
-              <div className="mb-12 text-center">
-                <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-                  Our Departments
-                </h2>
-                <p className="text-lg text-foreground/70">
-                  Comprehensive medical services across our specialized departments
-                </p>
-              </div>
+      <main className="pt-20 sm:pt-28 bg-background text-foreground transition-colors duration-300">
+     
+{/* ==========================================================================
+   1. HERO SECTION – Hourglass Shape, Full Width, Thin Border
+   ========================================================================== */}
+<section className="hero-wrapper container mx-auto px-4 sm:px-6 lg:px-8 text-center pt-6 pb-12 relative">
+  <div className="hero-content reveal-up max-w-4xl mx-auto">
+    
+    <h1 className="headline text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-6 text-foreground">
+      Afilas General Hospital & <br className="hidden sm:block" />
+      <span className="text-primary"> Healthcare Network</span>
+    </h1>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {departments.map((dept) => {
-                  const Icon = dept.icon;
-                  return (
-                    <Link
-                      key={dept.slug}
-                      href={`/hospital/departments/${dept.slug}`}
-                      className="bg-card border border-border rounded-2xl p-6 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group cursor-pointer"
-                    >
-                      <div className={`w-12 h-12 ${dept.bgColor} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition`}>
-                        <Icon className={`w-6 h-6 ${dept.color}`} />
-                      </div>
-                      <h3 className="text-lg font-bold text-foreground mb-2 group-hover:text-primary transition">
-                        {dept.name}
-                      </h3>
-                      <p className="text-foreground/70 text-sm mb-4">
-                        {dept.description}
-                      </p>
-                      <div className="flex items-center gap-2 text-primary font-semibold group-hover:gap-3 transition-all text-sm">
-                        Learn More
-                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
-                      </div>
-                    </Link>
-                  );
-                })}
+    <div className="hero-ctas flex flex-wrap justify-center items-center gap-4 mb-4">
+      <a
+        href="#doctors"
+        className="btn btn-primary px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-lg shadow-lg hover:bg-primary/90 hover:scale-105 transition-all duration-200"
+      >
+        Book Appointment
+      </a>
+      <a
+        href="#services"
+        className="btn btn-secondary px-8 py-3.5 bg-card text-foreground font-bold rounded-lg border border-border hover:bg-accent/10 transition-all duration-200 block"
+      >
+        View Medical Services
+      </a>
+    </div>
+
+    <p className="pricing-note text-xs text-muted-foreground mb-10">
+      24/7 Emergency Care • JCI Accredited • 50+ Senior Medical Specialists
+    </p>
+
+    {/* Hero Facility Showcase Mockup */}
+    <div className="mockup-container reveal-up delay-1 max-w-4xl mx-auto h-[260px] sm:h-[420px] relative rounded-2xl overflow-hidden border border-border shadow-2xl group">
+      <Image
+        src="/afilas.jpg"
+        alt="Afilas General Hospital Facility"
+        fill
+        priority
+        className="object-cover group-hover:scale-105 transition-transform duration-700"
+      />
+    </div>
+  </div>
+</section>
+
+        {/* ==========================================================================
+           2. LOGOS / TRUST SECTION (Template Section 4)
+           ========================================================================== */}
+        <section className="logos-wrapper container mx-auto px-4 sm:px-6 lg:px-8 text-center py-10 border-t border-border/40 reveal-up">
+          <p className="logos-headline text-xs font-bold uppercase tracking-widest text-muted-foreground mb-6">
+            TRUSTED BY LEADING HEALTHCARE PARTNERS & 50,000+ PATIENTS
+          </p>
+          <div className="logo-grid grid grid-cols-2 md:grid-cols-4 gap-6 items-center justify-center">
+            {trustLogos.map((item, idx) => (
+              <div
+                key={idx}
+                className="logo-item p-4 rounded-xl bg-card border border-border/60 hover:border-primary/40 transition-colors shadow-sm flex flex-col items-center justify-center"
+              >
+                <span className="font-extrabold text-sm sm:text-base text-foreground tracking-wide">
+                  {item.name}
+                </span>
+                <span className="text-[11px] font-semibold text-primary mt-1">
+                  {item.badge}
+                </span>
               </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ==========================================================================
+           3. WELCOME TO AFILAS GENERAL HOSPITAL SECTION
+           ========================================================================== */}
+        <section
+          id="about"
+          className="how-it-works-wrapper container mx-auto px-4 sm:px-6 lg:px-8 text-center py-12 sm:py-16"
+        >
+          <div className="step-card-wrapper reveal-up max-w-4xl mx-auto">
+            <div className="step-card bg-card border border-border rounded-2xl p-8 sm:p-12 text-center shadow-lg">
+              <h2 className="section-title text-2xl sm:text-4xl font-extrabold text-foreground mb-4">
+                Welcome to Afilas General Hospital
+              </h2>
+              <p className="text-sm sm:text-base text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+                Afilas hospital is a multi-specialty hospital located around Felege Hiwot Hospital, in front of Amhara public health institute, offshore Lake Tana with breathtaking view. It is one of the private hospitals in the city, with over 10 specialty centers. Afilas offers state-of-the-art diagnostic and therapeutic care in a one-stop medical center.
+              </p>
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* Amenities section */}
-          <section className="relative z-10 bg-card py-16 sm:py-24 px-4 sm:px-6 lg:px-8 border-y border-border">
-            <div className="max-w-7xl mx-auto w-full">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-                  Hospital Amenities
-                </h2>
-                <p className="text-lg text-foreground/70 max-w-2xl mx-auto">
-                  World-class facilities and services for patient comfort and recovery
-                </p>
-              </div>
+ {/* ==========================================================================
+   4. SPECIALIZED MEDICAL DEPARTMENTS (REDESIGNED)
+   ========================================================================== */}
+<section className="feature-wrapper feature-1 container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 flex flex-col lg:flex-row items-start gap-10 lg:gap-14">
+  {/* LEFT – Image */}
+  <div className="feature-mockup mockup-container w-full lg:w-[42%] h-[300px] sm:h-[380px] lg:h-[480px] rounded-none border border-border shadow-xl relative overflow-hidden reveal-left shrink-0">
+    <Image
+      src="/Afilas-Logo.jfif"
+      alt="Afilas General Hospital medical facility"
+      fill
+      className="object-cover"
+      priority
+    />
+    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent flex flex-col justify-end p-6 sm:p-8">
+      <span className="inline-block text-xs font-bold uppercase tracking-wider text-white bg-primary/90 px-4 py-1.5 w-fit mb-2">
+        Clinical Excellence
+      </span>
+      <h4 className="text-xl sm:text-2xl font-bold text-white leading-tight">
+        World-Class Medical<br />Departments
+      </h4>
+    </div>
+  </div>
 
-              <div className="grid md:grid-cols-3 gap-6">
-                {[
-                  {
-                    title: "ICU/CCU",
-                    desc: "Intensive care units with advanced monitoring and life support systems.",
-                  },
-                  {
-                    title: "Surgery Suites",
-                    desc: "Modern operating rooms with latest equipment including robotic-assisted surgery.",
-                  },
-                  {
-                    title: "Diagnostic Center",
-                    desc: "Advanced imaging and laboratory services including MRI, CT scans, and X-ray.",
-                  },
-                  {
-                    title: "Pharmacy",
-                    desc: "In-house pharmacy with comprehensive stock of medications available 24/7.",
-                  },
-                  {
-                    title: "Blood Bank",
-                    desc: "Safe and tested blood transfusion services available around the clock.",
-                  },
-                  {
-                    title: "Emergency Room",
-                    desc: "24/7 emergency services and trauma care with rapid response teams.",
-                  },
-                ].map((amenity, idx) => (
-                  <div key={idx} className="text-center space-y-3 p-6 hover:bg-accent/5 rounded-2xl transition">
-                    <div className="w-14 h-14 bg-accent/10 border border-accent/20 rounded-2xl flex items-center justify-center mx-auto">
-                      <Building2 className="w-7 h-7 text-accent" />
+  {/* RIGHT – Content + Cards */}
+  <div className="feature-content w-full lg:flex-1 text-left reveal-right">
+    <h2 className="section-title text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground mb-3">
+      Specialized Medical Departments
+    </h2>
+    <p className="feature-text text-sm sm:text-base text-muted-foreground mb-8 leading-relaxed max-w-xl">
+      Our multidisciplinary teams of specialized physicians, surgeons, and
+      healthcare practitioners deliver world-class medical outcomes using
+      cutting-edge technologies.
+    </p>
+
+    {/* 3-column grid for departments with larger cards and row gap */}
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 gap-y-6">
+      {departments.map((dept) => {
+        const Icon = dept.icon;
+        return (
+          <Link
+            key={dept.slug}
+            href={`/hospital/departments/${dept.slug}`}
+            className="group flex flex-col items-start gap-3 p-5 border border-border/70 hover:border-primary/60 transition-all duration-300 hover:shadow-md"
+          >
+            <div className="w-12 h-12 bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-300">
+              <Icon className="w-6 h-6 text-primary" strokeWidth={1.8} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-1">
+                {dept.name}
+                <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300" />
+              </h3>
+              <p className="text-sm text-muted-foreground leading-relaxed mt-1">
+                {dept.description}
+              </p>
+            </div>
+          </Link>
+        );
+      })}
+    </div>
+  </div>
+</section>
+
+        {/* ==========================================================================
+           5. FEATURE 2: HOSPITAL AMENITIES (Template Section 7)
+           ========================================================================== */}
+        <section className="feature-wrapper feature-2 container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 flex flex-col-reverse lg:flex-row items-center gap-12">
+          <div className="feature-content w-full lg:w-1/2 text-left reveal-left">
+            <h2 className="section-title text-2xl sm:text-4xl font-extrabold text-foreground mb-4">
+              World-Class Hospital Amenities
+            </h2>
+            <p className="feature-text text-sm sm:text-base text-muted-foreground mb-6 leading-relaxed">
+              Designed around patient dignity, safety, and rapid recovery. From 24/7 emergency response to advanced imaging labs and modern surgical suites.
+            </p>
+
+            <div>
+              <a
+                href="#services"
+                className="btn btn-secondary px-6 py-3 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary/90 transition-all inline-flex items-center gap-2"
+              >
+                Explore Facilities
+                <ArrowRight className="w-4 h-4" />
+              </a>
+            </div>
+          </div>
+
+          <div className="feature-mockup mockup-container w-full lg:w-1/2 reveal-right">
+            <div className="grid sm:grid-cols-2 gap-4 p-6 bg-card border border-border rounded-2xl shadow-xl">
+              {amenities.map((amenity, idx) => {
+                const Icon = amenity.icon;
+                return (
+                  <div
+                    key={idx}
+                    className="p-4 rounded-xl bg-background border border-border/80 hover:bg-accent/5 transition-colors"
+                  >
+                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mb-3">
+                      <Icon className="w-5 h-5 text-primary" />
                     </div>
-                    <h3 className="text-lg font-bold text-foreground">
+                    <h3 className="text-sm font-bold text-foreground mb-1">
                       {amenity.title}
                     </h3>
-                    <p className="text-foreground/70 text-sm">
+                    <p className="text-xs text-muted-foreground leading-normal">
                       {amenity.desc}
                     </p>
                   </div>
-                ))}
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ==========================================================================
+           6. PRICING & PACKAGES SECTION (Template Section 9)
+           ========================================================================== */}
+        <section
+          id="pricing"
+          className="pricing-cta-wrapper container mx-auto px-4 sm:px-6 lg:px-8 text-center py-16 sm:py-24"
+        >
+          <h2 className="section-title text-2xl sm:text-4xl font-extrabold text-foreground mb-4 reveal-up max-w-2xl mx-auto">
+            Comprehensive Health Packages & Transparent Pricing
+          </h2>
+
+          <div className="reveal-up delay-1 max-w-4xl mx-auto">
+            <div className="pricing-card bg-card text-foreground rounded-2xl p-8 sm:p-12 flex flex-col md:flex-row justify-between items-center gap-8 shadow-2xl border border-border">
+              <div className="pricing-left text-left w-full md:w-2/3">
+                <ul className="features-list grid sm:grid-cols-2 gap-3 text-sm">
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary shrink-0" />
+                    <span>24/7 Emergency Support</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary shrink-0" />
+                    <span>Diagnostic & Lab Testing</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary shrink-0" />
+                    <span>Dedicated Senior Specialist</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary shrink-0" />
+                    <span>In-House Pharmacy Access</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary shrink-0" />
+                    <span>Digital Medical Records</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="w-4 h-4 text-primary shrink-0" />
+                    <span>Structured Follow-up Care</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="pricing-right text-center md:text-right w-full md:w-1/3 flex flex-col items-center md:items-end">
+                <p className="price-value text-3xl sm:text-4xl font-black text-primary mb-1">
+                  ETB 1,200 <span className="price-period text-xs font-normal text-muted-foreground">/ consult</span>
+                </p>
+                <p className="text-xs text-muted-foreground mb-4">Transparent fees with zero hidden charges</p>
+                <a
+                  href="#doctors"
+                  className="btn btn-primary px-6 py-3 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary/90 transition-all text-sm block w-full text-center shadow-md"
+                >
+                  Book Your Consultation
+                </a>
               </div>
             </div>
-          </section>
-
-          {/* Medical Services section - API Connected */}
-          <div className="relative z-10">
-            <HospitalServices />
           </div>
+        </section>
 
-          {/* Doctor Finder section */}
-          <div className="relative z-10 bg-background border-t border-border">
-            <DoctorFinder />
-          </div>
+        {/* ==========================================================================
+           8. MEDICAL SERVICES SECTION (API Connected Component)
+           ========================================================================== */}
+        <div id="services" className="border-t border-border/50">
+          <HospitalServices />
         </div>
+
+        {/* ==========================================================================
+           9. DOCTOR FINDER SECTION (Search & API Connected Component)
+           ========================================================================== */}
+        <div className="border-t border-border">
+          <DoctorFinder />
+        </div>
+
+        {/* ==========================================================================
+           10. TESTIMONIAL SECTION (Template Section 10)
+           ========================================================================== */}
+        <section className="testimonial-wrapper container mx-auto px-4 sm:px-6 lg:px-8 text-center py-10 sm:py-14 border-t border-border/40 reveal-up">
+          <div className="testimonial-content max-w-2xl mx-auto">
+            <div className="testimonial-profile mb-6">
+              <div className="profile-pic-container w-16 h-16 rounded-full overflow-hidden mx-auto bg-muted border-2 border-primary shadow-md relative">
+                <Image
+                  src="https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=200&q=80"
+                  alt="Dr. Selam Tesfaye"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            </div>
+            <blockquote className="testimonial-quote text-base sm:text-lg font-medium text-foreground italic mb-6 leading-relaxed">
+              “At Afilas General Hospital, our mission is to blend high-precision medical science with compassionate care. Every treatment plan is tailored specifically to ensure quick recovery and lasting health for our patients.”
+            </blockquote>
+            <div className="testimonial-author">
+              <p className="author-name font-bold text-sm text-foreground">
+                Dr. Selam Tesfaye
+              </p>
+              <p className="author-title text-xs text-muted-foreground">
+                Chief Medical Officer & Senior Endocrinologist
+              </p>
+            </div>
+          </div>
+        </section>
       </main>
+
+      {/* Bottom Footer - Kept untouched */}
       <Footer />
     </>
   );

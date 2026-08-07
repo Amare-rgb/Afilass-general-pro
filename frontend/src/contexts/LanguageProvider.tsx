@@ -477,7 +477,7 @@ const translations: Record<Language, Record<string, string>> = {
     "doctors.email": "ኢሜይል",
     "doctors.available": "ይገኛል",
     "doctors.status_loading": "በመጫን ላይ...",
-    "doctors.status_offline": "ከመስመር ውጭ ሁነታ",
+    "doctors.status_offline": "Internet የለም !",
     "doctors.status_live": "የቀጥታ ውሂብ",
     "doctors.no_doctors": "ከመስፈርትዎ ጋር የሚስማማ ምንም ሐኪም አልተገኘም።",
 
