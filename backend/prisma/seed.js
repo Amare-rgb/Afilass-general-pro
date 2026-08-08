@@ -11,7 +11,7 @@ const LOCATIONS = [
 ];
 
 async function main() {
-  console.log('🌱 Seeding database...');
+  console.log(' Seeding database...');
 
   // Clear existing data
   await prisma.$transaction([
@@ -177,7 +177,7 @@ async function main() {
     { name: 'Dr. Maria Garcia', specialization: 'Oncology', phone: '+1234567895' },
     { name: 'Dr. Robert Brown', specialization: 'Emergency Medicine', phone: '+1234567896' },
   ];
-
+     
   const allDoctors = [];
   for (const location of LOCATIONS) {
     for (const doc of doctorData) {
