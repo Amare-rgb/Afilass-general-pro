@@ -273,47 +273,8 @@ section[id] {
   animation: fadeInUp 1s ease-out forwards;
 }
 
-.scroll-indicator {
-  animation: fadeOutDown 1s ease-in forwards;
-  animation-delay: 4s;
-}
-
-@keyframes heroZoomOut {
-  from {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-  }
-  to {
-    transform: scale(1.4) translateY(-20vh);
-    opacity: 0;
-  }
-}
-
-.hero-content-zoom {
-  animation: heroZoomOut linear forwards;
-  animation-timeline: scroll();
-  animation-range: 0vh 50vh;
-}
-
-@supports not (animation-timeline: scroll()) {
-  .hero-content-zoom {
-    animation: heroZoomOut 1.5s ease forwards;
-    animation-timeline: auto;
-  }
-}
-
-.parallax-wrapper {
-  overflow-x: hidden;
-  overflow-y: auto;
-  perspective: 1px;
-  transform-style: preserve-3d;
-}
-
-.parallax-section {
-  position: relative;
-  transform-style: inherit;
-  min-height: 100vh;
-  width: 100%;
+.animate-fadeInUp {
+  animation: fadeInUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .division-hero-bg {
@@ -545,4 +506,35 @@ section[id] {
   }
 }
 
+/* Custom CSS for Inverted Rounded Tab Corners */
+.tab-active-top-curve {
+  position: relative;
+}
+.tab-active-top-curve::before {
+  content: '';
+  position: absolute;
+  top: -24px;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  border-bottom-right-radius: 20px;
+  box-shadow: 8px 8px 0 8px var(--card); /* Matches the main panel background */
+  pointer-events: none;
+}
+
+.tab-active-bottom-curve {
+  position: relative;
+}
+.tab-active-bottom-curve::after {
+  content: '';
+  position: absolute;
+  bottom: -24px;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  border-top-right-radius: 20px;
+  box-shadow: 8px -8px 0 8px var(--card); /* Matches the main panel background */
+  pointer-events: none;
 }
