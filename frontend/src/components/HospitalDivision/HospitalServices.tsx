@@ -1,6 +1,7 @@
 // components/HospitalDivision/HospitalServices.tsx
 "use client";
 
+import Link from "next/link";
 import { useLanguage } from "@/contexts/LanguageProvider";
 import { useEffect, useRef, useState } from "react";
 import { 
@@ -40,13 +41,13 @@ interface Service {
   };
 }
 
-// Mock data - 6 services (will be displayed immediately)
+// Mock data - services across all 3 company pillars
 const mockServices: Service[] = [
   {
     id: "mock-1",
     name: "General Consultation",
     description: "Comprehensive consultation with a specialist physician for diagnosis and treatment planning.",
-    price: 50,
+    price: 500,
     duration: 30,
     image: null,
     departmentId: null,
@@ -57,7 +58,7 @@ const mockServices: Service[] = [
     id: "mock-2",
     name: "Cardiac Check-up",
     description: "Full cardiac evaluation including ECG, stress test, and specialist cardiology review.",
-    price: 120,
+    price: 1200,
     duration: 45,
     image: null,
     departmentId: null,
@@ -68,7 +69,7 @@ const mockServices: Service[] = [
     id: "mock-3",
     name: "Pediatric Wellness Visit",
     description: "Growth monitoring, developmental screening, vaccinations, and general pediatric care.",
-    price: 40,
+    price: 400,
     duration: 25,
     image: null,
     departmentId: null,
@@ -79,7 +80,7 @@ const mockServices: Service[] = [
     id: "mock-4",
     name: "Orthopedic Assessment",
     description: "Comprehensive bone, joint, and muscle examination with X-ray if needed.",
-    price: 70,
+    price: 700,
     duration: 40,
     image: null,
     departmentId: null,
@@ -88,24 +89,57 @@ const mockServices: Service[] = [
   },
   {
     id: "mock-5",
-    name: "Neurology Consultation",
-    description: "In-depth neurological examination, diagnostic testing, and treatment planning.",
-    price: 90,
-    duration: 50,
+    name: "MRI & CT Diagnostic Scanning",
+    description: "High-precision 3D body imaging, brain scan, and automated diagnostic radiology.",
+    price: 3500,
+    duration: 60,
     image: null,
     departmentId: null,
-    location: "Afilas General Hospital",
+    location: "Afilas Diagnostic Center",
     isActive: true
   },
   {
     id: "mock-6",
-    name: "Emergency Triage",
-    description: "Rapid assessment and stabilisation for emergency cases with immediate care.",
-    price: 30,
-    duration: 20,
+    name: "Comprehensive Lab Panel",
+    description: "Automated blood work, biochemistry, hormone profiles, and pathology testing.",
+    price: 850,
+    duration: 30,
     image: null,
     departmentId: null,
-    location: "Afilas General Hospital",
+    location: "Afilas Diagnostic Center",
+    isActive: true
+  },
+  {
+    id: "mock-7",
+    name: "Digital Ultrasound & Mammography",
+    description: "Advanced soft-tissue ultrasound imaging and high-definition mammography screening.",
+    price: 1500,
+    duration: 45,
+    image: null,
+    departmentId: null,
+    location: "Afilas Diagnostic Center",
+    isActive: true
+  },
+  {
+    id: "mock-8",
+    name: "B2B Pharmaceutical Supply",
+    description: "Bulk wholesale order fulfillment for GMP-certified antibiotics, analgesics, and essential medicines.",
+    price: 5000,
+    duration: 120,
+    image: null,
+    departmentId: null,
+    location: "Afilas Drug Manufacturing",
+    isActive: true
+  },
+  {
+    id: "mock-9",
+    name: "Contract Manufacturing & Quality QA",
+    description: "Custom pharmaceutical formulation, batch stability testing, and ISO 9001 compliance auditing.",
+    price: 8000,
+    duration: 180,
+    image: null,
+    departmentId: null,
+    location: "Afilas Drug Manufacturing",
     isActive: true
   }
 ];
@@ -127,13 +161,30 @@ const iconMap: Record<string, any> = {
   'trauma': Ambulance,
   'imaging': Microscope,
   'scan': Microscope,
+  'mri': Microscope,
+  'ct': Microscope,
+  'lab': Microscope,
   'pharmacy': Pill,
   'medication': Pill,
+  'drug': Pill,
+  'b2b': Pill,
   'therapy': Activity,
   'rehab': Activity,
   'general': Stethoscope,
   'consultation': Stethoscope,
 };
+
+function getAppointmentLink(service: Service) {
+  const loc = service.location || 'Afilas General Hospital';
+  let basePath = '/appointments/hospital';
+  if (loc === 'Afilas Diagnosis Center') {
+    basePath = '/appointments/diagnosis';
+  } else if (loc === 'Afilas Drug Manufacturing') {
+    basePath = '/appointments/pharma';
+  }
+  const param = service.name ? `${service.name} - ${loc}` : loc;
+  return `${basePath}?${encodeURIComponent(param)}`;
+}
 
 // Custom hook for scroll‑reveal animation
 function useInView(ref: React.RefObject<HTMLElement>) {
@@ -172,8 +223,8 @@ function getColorFromName(name: string): string {
   if (nameLower.includes('orthopedics') || nameLower.includes('bone')) return 'text-green-500';
   if (nameLower.includes('oncology') || nameLower.includes('cancer')) return 'text-orange-500';
   if (nameLower.includes('emergency') || nameLower.includes('trauma')) return 'text-red-600';
-  if (nameLower.includes('imaging') || nameLower.includes('scan')) return 'text-cyan-500';
-  if (nameLower.includes('pharmacy') || nameLower.includes('medication')) return 'text-teal-500';
+  if (nameLower.includes('imaging') || nameLower.includes('scan') || nameLower.includes('mri')) return 'text-cyan-500';
+  if (nameLower.includes('pharmacy') || nameLower.includes('drug') || nameLower.includes('b2b')) return 'text-teal-500';
   if (nameLower.includes('therapy') || nameLower.includes('rehab')) return 'text-indigo-500';
   return 'text-primary';
 }
@@ -187,19 +238,23 @@ function getBgColorFromName(name: string): string {
   if (nameLower.includes('orthopedics') || nameLower.includes('bone')) return 'bg-green-100 dark:bg-green-950/30';
   if (nameLower.includes('oncology') || nameLower.includes('cancer')) return 'bg-orange-100 dark:bg-orange-950/30';
   if (nameLower.includes('emergency') || nameLower.includes('trauma')) return 'bg-red-100 dark:bg-red-950/30';
-  if (nameLower.includes('imaging') || nameLower.includes('scan')) return 'bg-cyan-100 dark:bg-cyan-950/30';
-  if (nameLower.includes('pharmacy') || nameLower.includes('medication')) return 'bg-teal-100 dark:bg-teal-950/30';
+  if (nameLower.includes('imaging') || nameLower.includes('scan') || nameLower.includes('mri')) return 'bg-cyan-100 dark:bg-cyan-950/30';
+  if (nameLower.includes('pharmacy') || nameLower.includes('drug') || nameLower.includes('b2b')) return 'bg-teal-100 dark:bg-teal-950/30';
   if (nameLower.includes('therapy') || nameLower.includes('rehab')) return 'bg-indigo-100 dark:bg-indigo-950/30';
   return 'bg-primary/10';
 }
 
-export function HospitalServices({ 
-  showHeader = true,
-  searchPlaceholder 
-}: { 
+interface HospitalServicesProps {
+  selectedLocation?: string;
   showHeader?: boolean;
   searchPlaceholder?: string;
-}) {
+}
+
+export function HospitalServices({ 
+  selectedLocation = "All",
+  showHeader = true,
+  searchPlaceholder 
+}: HospitalServicesProps) {
   const { t } = useLanguage();
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef);
@@ -218,7 +273,7 @@ export function HospitalServices({
     // Try to fetch from API in background to replace mock data
     async function fetchFromAPI() {
       try {
-        const response = await fetch('http://localhost:5000/api/services?location=Afilas%20General%20Hospital');
+        const response = await fetch('http://localhost:5000/api/services');
         
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -246,14 +301,30 @@ export function HospitalServices({
     };
   }, []);
 
-  // Filter services on frontend by name or description
+  // Filter services on frontend by name/description AND selected location
   const filteredServices = services.filter((service) => {
     const query = searchQuery.toLowerCase().trim();
-    if (!query) return true;
-    return (
+    const matchesSearch = !query || 
       service.name.toLowerCase().includes(query) ||
-      (service.description && service.description.toLowerCase().includes(query))
-    );
+      (service.description && service.description.toLowerCase().includes(query));
+
+    const normLocation = (service.location || "").toLowerCase();
+    const targetLoc = (selectedLocation || "All").toLowerCase();
+
+    let matchesLocation = true;
+    if (targetLoc !== "all" && targetLoc !== "") {
+      if (targetLoc.includes("hospital")) {
+        matchesLocation = normLocation.includes("hospital");
+      } else if (targetLoc.includes("diagnostic") || targetLoc.includes("diagnosis")) {
+        matchesLocation = normLocation.includes("diagnostic") || normLocation.includes("diagnosis");
+      } else if (targetLoc.includes("pharma") || targetLoc.includes("drug") || targetLoc.includes("manufacturing")) {
+        matchesLocation = normLocation.includes("pharma") || normLocation.includes("drug") || normLocation.includes("manufacturing");
+      } else {
+        matchesLocation = normLocation.includes(targetLoc);
+      }
+    }
+
+    return matchesSearch && matchesLocation;
   });
 
   if (loading) {
@@ -413,9 +484,12 @@ export function HospitalServices({
                       </div>
                     </div>
 
-                    <button className="mt-6 w-full bg-primary text-primary-foreground py-3 px-4 rounded-xl font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all shadow-sm">
+                    <Link
+                      href={getAppointmentLink(service)}
+                      className="mt-6 w-full bg-primary text-primary-foreground py-3 px-4 rounded-xl font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all shadow-sm block text-center"
+                    >
                       {t("hospital.sec_services.book_btn")}
-                    </button>
+                    </Link>
                   </div>
                 </div>
               );

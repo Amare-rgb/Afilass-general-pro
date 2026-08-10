@@ -66,6 +66,18 @@ export default function DiagnosticsPage() {
     return () => { isMounted = false; };
   }, []);
 
+function getAppointmentLink(service: any) {
+  const loc = service.location || 'Afilas Diagnosis Center';
+  let basePath = '/appointments/hospital';
+  if (loc === 'Afilas Diagnosis Center') {
+    basePath = '/appointments/diagnosis';
+  } else if (loc === 'Afilas Drug Manufacturing') {
+    basePath = '/appointments/pharma';
+  }
+  const param = service.name ? `${service.name} - ${loc}` : loc;
+  return `${basePath}?${encodeURIComponent(param)}`;
+}
+
   function getFallbackServices() {
     return [
       {
@@ -458,7 +470,7 @@ export default function DiagnosticsPage() {
         </section>
 
         {/* ==========================================================================
-           Copied Section 1: MEDICAL SERVICES
+           Copied Section 3: MEDICAL SERVICES
            ========================================================================== */}
         <section id="services" className="border-t border-border/50 py-16 sm:py-20 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -507,9 +519,12 @@ export default function DiagnosticsPage() {
                           )}
                           <span>{t("hospital.sec_services.location_label")} {service.location || t("hospital.sec_services.default_location")}</span>
                         </div>
-                        <button className="mt-2 self-start bg-primary text-primary-foreground px-5 py-1.5 rounded-full text-sm font-semibold hover:bg-primary/90 transition-colors">
+                        <Link
+                          href={getAppointmentLink(service)}
+                          className="mt-2 self-start bg-primary text-primary-foreground px-5 py-1.5 rounded-full text-sm font-semibold hover:bg-primary/90 transition-colors inline-block text-center"
+                        >
                           {t("hospital.sec_services.book_btn")}
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   ))}
@@ -517,7 +532,7 @@ export default function DiagnosticsPage() {
 
                 <div className="text-center mt-10">
                   <Link
-                    href="/services"
+                    href="/services?location=Afilas%20Diagnosis%20Center"
                     className="inline-flex items-center gap-2 border border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2.5 font-medium transition-colors duration-300"
                   >
                     <span>{t("hospital.sec_services.view_all_btn")}</span>

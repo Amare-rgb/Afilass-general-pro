@@ -538,3 +538,95 @@ section[id] {
   box-shadow: 8px -8px 0 8px var(--card); /* Matches the main panel background */
   pointer-events: none;
 }
+
+/* ========================================================================================
+   UNDERLINE BUTTON – Animated underline on hover
+   ======================================== */
+.underline-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  transition: color 0.3s ease;
+}
+
+/* The underline line */
+.underline-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2.5px;
+  background-color: var(--primary);
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 2px;
+}
+
+/* On hover: expand the line from left to right */
+.underline-btn:hover::after {
+  width: 100%;
+}
+
+/* Optional: slight color change on hover */
+.underline-btn:hover {
+  color: var(--primary);
+}
+
+/* Icon inside the button – inherits the animation */
+.underline-btn .btn-icon {
+  transition: transform 0.3s ease;
+}
+
+.underline-btn:hover .btn-icon {
+  transform: translateX(4px);
+}
+
+/* ========================================
+   VARIANT: White text (for dark backgrounds)
+   ======================================== */
+.underline-btn-white {
+  color: #ffffff;
+}
+
+.underline-btn-white::after {
+  background-color: #ffffff;
+}
+
+.underline-btn-white:hover {
+  color: #ffffff;
+}
+
+/* ========================================
+   VARIANT: Larger text
+   ======================================== */
+.underline-btn-lg {
+  font-size: 1.25rem;
+}
+
+.underline-btn-xl {
+  font-size: 1.5rem;
+}
+
+/* ========================================
+   DARK MODE – automatically inherits variables
+   ======================================== */
+.dark .underline-btn {
+  color: var(--primary);
+}
+
+.dark .underline-btn::after {
+  background-color: var(--primary);
+}
+
+.dark .underline-btn:hover {
+  color: var(--primary);
+}

@@ -100,14 +100,14 @@ export function DiagnosticsHero() {
                 }`}
               >
                 <Link
-                  href="#packages"
+                  href="#services"
                   className="inline-flex items-center px-8 py-4 text-base font-bold text-primary-foreground bg-primary hover:bg-primary/90 rounded-full shadow-lg shadow-primary/20 transition-all hover:scale-105"
                 >
                   {t("diagnostics.hero.cta1")}
                   <ChevronRight className="ml-2 w-5 h-5" />
                 </Link>
                 <Link
-                  href="/register"
+                  href="/appointments"
                   className="inline-flex items-center px-8 py-4 text-base font-bold text-foreground bg-muted hover:bg-muted/80 border border-border rounded-full transition-all hover:scale-105"
                 >
                   {t("diagnostics.hero.cta2")}

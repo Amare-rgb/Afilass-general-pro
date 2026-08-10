@@ -98,7 +98,7 @@ export default function AfilasDiagnosticCenter() {
         // =========================================================
         // SHAPED SECTION – curve at the bottom
         // =========================================================
-        clipPath: "polygon(0 0, 100% 0, 100% 85%, 0 95%)",
+        clipPath: "polygon(50% 100%, 100% 98%, 100% 0, 0 0, 0 98%)",
         // Background color: visible ONLY in light mode
         // In dark mode, it becomes transparent
         backgroundColor: "var(--muted, #f1f5f9)",
@@ -216,16 +216,16 @@ export default function AfilasDiagnosticCenter() {
             ))}
           </div>
 
-          {/* CTA */}
-          <div className="mt-8">
-            <Link
-              href="/diagnostics"
-              className="group inline-flex items-center gap-2 text-primary font-semibold text-sm hover:gap-3 transition-all duration-300"
-            >
-              {t("diagnostic.cta")}
-              <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-            </Link>
-          </div>
+          {/* CTA – using the new underline button */}
+<div className="mt-8">
+  <Link
+    href="/diagnostics"
+    className="underline-btn"
+  >
+    {t("diagnostic.cta")}
+    <ChevronRight className="btn-icon w-4 h-4" />
+  </Link>
+</div>
         </div>
       </div>
     </section>

@@ -224,6 +224,7 @@ const translations: Record<Language, Record<string, string>> = {
     "diagnostics.hero.scroll": "Scroll to explore",
     "diagnostics.hero.social_proof": "Over 10,000 tests processed monthly",
 
+    // pharma page
     "pharma.hero.title": "Afilas Drug Manufacturing",
     "pharma.hero.subtitle": "Quality-driven, accessible pharmaceutical production meeting international standards.",
     "pharma.hero.cta1": "View Products",
@@ -250,6 +251,15 @@ const translations: Record<Language, Record<string, string>> = {
     "pharma.why.card3_h1": "GMP-certified manufacturing environment",
     "pharma.why.card3_h2": "ISO 9001 quality management system",
     "pharma.why.card3_h3": "Multi-stage quality control & assurance testing",
+
+    "pharma.catalog.badge": "Our Products & Services",
+    "pharma.catalog.title": "Pharmaceutical Manufacturing Services",
+    "pharma.catalog.subtitle": "High-precision pharmaceutical manufacturing, formulation, and laboratory services.",
+    "pharma.catalog.price": "Price:",
+    "pharma.catalog.active": "Active",
+    "pharma.catalog.days": "days",
+    "pharma.catalog.book_btn": "Book Service",
+    "pharma.catalog.view_all_btn": "View All Services",
 
     "pharma.b2b.badge": "B2B Commercial",
     "pharma.b2b.title": "Partner With Afilas Pharma",
@@ -297,12 +307,7 @@ const translations: Record<Language, Record<string, string>> = {
     "pharma.b2b.success_desc": "Thank you for your interest. Our B2B commercial team will contact you within 24 business hours.",
     "pharma.b2b.disclaimer": "By submitting this form you agree to be contacted by the Afilas B2B commercial team.",
 
-    "pharma.catalog.badge": "Our Products",
-    "pharma.catalog.title": "Pharmaceutical Products",
-    "pharma.catalog.subtitle": "Quality-assured medicines manufactured locally under GMP standards.",
-    "pharma.catalog.price": "Price",
-    "pharma.catalog.active": "Active",
-    "pharma.catalog.days": "days",
+    
 
     "blog.title": "Health & Medical Insights",
     "blog.subtitle": "Stay informed with the latest medical research and healthcare updates from Afilas Group.",
@@ -796,12 +801,14 @@ const translations: Record<Language, Record<string, string>> = {
     "pharma.b2b.success_desc": "ለፍላጎትዎ እናመሰግናለን። የB2B ቡድናችን በ24 የስራ ሰዓት ውስጥ ያገኙዎታል።",
     "pharma.b2b.disclaimer": "ይህን ቅጽ በማስገባት ስለ ጥያቄዎ በአፊላስ B2B የንግድ ቡድን ሊገናኙ ይስማማሉ።",
 
-    "pharma.catalog.badge": "ምርቶቻችን",
-    "pharma.catalog.title": "የመድሃኒት ምርቶች",
-    "pharma.catalog.subtitle": "በGMP ደረጃዎች ስር በአገር ውስጥ የሚመረቱ ጥራታቸው የተረጋገጠ መድሃኒቶች።",
-    "pharma.catalog.price": "ዋጋ",
+    "pharma.catalog.badge": "የእኛ ምርቶች እና አገልግሎቶች",
+    "pharma.catalog.title": "የመድኃኒት ማምረቻ አገልግሎቶች",
+    "pharma.catalog.subtitle": "ከፍተኛ ትክክለኛነት ያለው የመድኃኒት ማምረት፣ ቀመር እና ላብራቶሪ አገልግሎቶች።",
+    "pharma.catalog.price": "ዋጋ፡",
     "pharma.catalog.active": "ንቁ",
     "pharma.catalog.days": "ቀናት",
+    "pharma.catalog.book_btn": "አገልግሎት ያስይዙ",
+    "pharma.catalog.view_all_btn": "ሁሉንም አገልግሎቶች ይመልከቱ",
 
     "blog.title": "የጤና እና ህክምና ግንዛቤዎች",
     "blog.subtitle": "ከአፊላስ ቡድን የቅርብ ጊዜ የህክምና ምርምር እና የጤና መረጃዎችን ይከታተሉ።",
