@@ -207,6 +207,18 @@ useEffect(() => {
   return () => { isMounted = false; };
 }, []);
 
+function getAppointmentLink(service: any) {
+  const loc = service.location || 'Afilas General Hospital';
+  let basePath = '/appointments/hospital';
+  if (loc === 'Afilas Diagnosis Center') {
+    basePath = '/appointments/diagnosis';
+  } else if (loc === 'Afilas Drug Manufacturing') {
+    basePath = '/appointments/pharma';
+  }
+  const param = service.name ? `${service.name} - ${loc}` : loc;
+  return `${basePath}?${encodeURIComponent(param)}`;
+}
+
 function getFallbackServices() {
   return [
     {
@@ -370,7 +382,7 @@ useEffect(() => {
 
     <div className="hero-ctas flex flex-wrap justify-center items-center gap-4 mb-4">
       <a
-        href="#doctors"
+        href="appointments/hospital"
         className="btn btn-primary px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-lg shadow-lg hover:bg-primary/90 hover:scale-105 transition-all duration-200"
       >
         {t("hospital.hero.book_btn")}
@@ -749,9 +761,12 @@ useEffect(() => {
                   )}
                   <span>{t("hospital.sec_services.location_label")} {service.location || t("hospital.sec_services.default_location")}</span>
                 </div>
-                <button className="mt-2 self-start bg-primary text-primary-foreground px-5 py-1.5 rounded-full text-sm font-semibold hover:bg-primary/90 transition-colors">
+                <Link
+                  href={getAppointmentLink(service)}
+                  className="mt-2 self-start bg-primary text-primary-foreground px-5 py-1.5 rounded-full text-sm font-semibold hover:bg-primary/90 transition-colors inline-block text-center"
+                >
                   {t("hospital.sec_services.book_btn")}
-                </button>
+                </Link>
               </div>
             </div>
           ))}
@@ -760,7 +775,7 @@ useEffect(() => {
         {/* View All Services Button */}
 <div className="text-center mt-10">
   <Link
-    href="/services"
+    href="/services?location=Afilas%20General%20Hospital"
     className="inline-flex items-center gap-2 border border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2.5 font-medium transition-colors duration-300"
   >
     <span>{t("hospital.sec_services.view_all_btn")}</span>

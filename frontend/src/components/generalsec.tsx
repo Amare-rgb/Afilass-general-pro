@@ -115,13 +115,15 @@ export function GeneralSec() {
             </div>
 
             {/* CTA */}
-            <Link
-              href="/hospital"
-              className="group inline-flex items-center gap-2 text-primary font-semibold text-sm hover:gap-3 transition-all duration-300 mt-2"
-            >
-              {t("general.cta")}
-              <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-            </Link>
+<div className="mt-8">
+  <Link
+    href="/hospital"
+    className="underline-btn"
+  >
+    {t("general.cta")}
+    <ChevronRight className="btn-icon w-4 h-4" />
+  </Link>
+</div>
           </div>
 
           {/* Right column – Image with colorful gradient glow (no border, no badge) */}

@@ -162,7 +162,15 @@ function useInView(ref: React.RefObject<HTMLElement>) {
 // ============================================================
 // COMPONENT
 // ============================================================
-export function DoctorFinder() {
+interface DoctorFinderProps {
+  selectedLocation?: string;
+  showHeader?: boolean;
+}
+
+export function DoctorFinder({ 
+  selectedLocation = "All", 
+  showHeader = true 
+}: DoctorFinderProps = {}) {
   const { t } = useLanguage();
   const router = useRouter(); // ✅ Hook for page redirection
   const sectionRef = useRef<HTMLElement>(null);
@@ -263,21 +271,41 @@ export function DoctorFinder() {
     const matchesAvailability =
       selectedAvailability === "" || selectedAvailability === "All" ||
       doctor.availability === selectedAvailability;
-    return matchesSearch && matchesSpecialty && matchesAvailability;
+
+    // Check location matching (case insensitive and flexible)
+    const normLocation = (doctor.location || "").toLowerCase();
+    const targetLoc = (selectedLocation || "All").toLowerCase();
+
+    let matchesLocation = true;
+    if (targetLoc !== "all") {
+      if (targetLoc.includes("hospital")) {
+        matchesLocation = normLocation.includes("hospital");
+      } else if (targetLoc.includes("diagnostic") || targetLoc.includes("diagnosis")) {
+        matchesLocation = normLocation.includes("diagnostic") || normLocation.includes("diagnosis");
+      } else if (targetLoc.includes("pharma") || targetLoc.includes("drug") || targetLoc.includes("manufacturing")) {
+        matchesLocation = normLocation.includes("pharma") || normLocation.includes("drug") || normLocation.includes("manufacturing");
+      } else {
+        matchesLocation = normLocation.includes(targetLoc);
+      }
+    }
+
+    return matchesSearch && matchesSpecialty && matchesAvailability && matchesLocation;
   });
 
   return (
-    <section id="doctors" ref={sectionRef} className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 lg:px-8 bg-background">
+    <section id="doctors" ref={sectionRef} className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="max-w-5xl mx-auto">
         {/* Section Header */}
-        <div className={`mb-8 transition-all duration-600 ease-out ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-          <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
-            {t("doctors.headline")}
-          </h2>
-          <p className="text-sm text-muted-foreground max-w-lg">
-            {t("doctors.subtitle")}
-          </p>
-        </div>
+        {showHeader && (
+          <div className={`mb-8 transition-all duration-600 ease-out ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+              {t("doctors.headline")}
+            </h2>
+            <p className="text-sm text-muted-foreground max-w-lg">
+              {t("doctors.subtitle")}
+            </p>
+          </div>
+        )}
 
         {/* Filter Bar */}
         <div className={`flex flex-col sm:flex-row gap-3 mb-8 transition-all duration-600 ease-out delay-100 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>

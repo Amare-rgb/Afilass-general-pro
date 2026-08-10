@@ -273,47 +273,8 @@ section[id] {
   animation: fadeInUp 1s ease-out forwards;
 }
 
-.scroll-indicator {
-  animation: fadeOutDown 1s ease-in forwards;
-  animation-delay: 4s;
-}
-
-@keyframes heroZoomOut {
-  from {
-    transform: scale(1) translateY(0);
-    opacity: 1;
-  }
-  to {
-    transform: scale(1.4) translateY(-20vh);
-    opacity: 0;
-  }
-}
-
-.hero-content-zoom {
-  animation: heroZoomOut linear forwards;
-  animation-timeline: scroll();
-  animation-range: 0vh 50vh;
-}
-
-@supports not (animation-timeline: scroll()) {
-  .hero-content-zoom {
-    animation: heroZoomOut 1.5s ease forwards;
-    animation-timeline: auto;
-  }
-}
-
-.parallax-wrapper {
-  overflow-x: hidden;
-  overflow-y: auto;
-  perspective: 1px;
-  transform-style: preserve-3d;
-}
-
-.parallax-section {
-  position: relative;
-  transform-style: inherit;
-  min-height: 100vh;
-  width: 100%;
+.animate-fadeInUp {
+  animation: fadeInUp 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .division-hero-bg {
@@ -545,4 +506,127 @@ section[id] {
   }
 }
 
+/* Custom CSS for Inverted Rounded Tab Corners */
+.tab-active-top-curve {
+  position: relative;
+}
+.tab-active-top-curve::before {
+  content: '';
+  position: absolute;
+  top: -24px;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  border-bottom-right-radius: 20px;
+  box-shadow: 8px 8px 0 8px var(--card); /* Matches the main panel background */
+  pointer-events: none;
+}
+
+.tab-active-bottom-curve {
+  position: relative;
+}
+.tab-active-bottom-curve::after {
+  content: '';
+  position: absolute;
+  bottom: -24px;
+  right: 0;
+  width: 24px;
+  height: 24px;
+  background-color: transparent;
+  border-top-right-radius: 20px;
+  box-shadow: 8px -8px 0 8px var(--card); /* Matches the main panel background */
+  pointer-events: none;
+}
+
+/* ========================================================================================
+   UNDERLINE BUTTON – Animated underline on hover
+   ======================================== */
+.underline-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  transition: color 0.3s ease;
+}
+
+/* The underline line */
+.underline-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2.5px;
+  background-color: var(--primary);
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 2px;
+}
+
+/* On hover: expand the line from left to right */
+.underline-btn:hover::after {
+  width: 100%;
+}
+
+/* Optional: slight color change on hover */
+.underline-btn:hover {
+  color: var(--primary);
+}
+
+/* Icon inside the button – inherits the animation */
+.underline-btn .btn-icon {
+  transition: transform 0.3s ease;
+}
+
+.underline-btn:hover .btn-icon {
+  transform: translateX(4px);
+}
+
+/* ========================================
+   VARIANT: White text (for dark backgrounds)
+   ======================================== */
+.underline-btn-white {
+  color: #ffffff;
+}
+
+.underline-btn-white::after {
+  background-color: #ffffff;
+}
+
+.underline-btn-white:hover {
+  color: #ffffff;
+}
+
+/* ========================================
+   VARIANT: Larger text
+   ======================================== */
+.underline-btn-lg {
+  font-size: 1.25rem;
+}
+
+.underline-btn-xl {
+  font-size: 1.5rem;
+}
+
+/* ========================================
+   DARK MODE – automatically inherits variables
+   ======================================== */
+.dark .underline-btn {
+  color: var(--primary);
+}
+
+.dark .underline-btn::after {
+  background-color: var(--primary);
+}
+
+.dark .underline-btn:hover {
+  color: var(--primary);
 }

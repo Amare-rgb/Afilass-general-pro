@@ -11,8 +11,8 @@ export default function PharmaPage() {
   return (
     <>
       <Header />
-      <main>
-        {/* Main container – sticky slide here */}
+      <main className="bg-background text-foreground min-h-screen">
+        {/* Main container */}
         <div className="relative">
           {/* Slide 1: Hero */}
           <PharmaHero />

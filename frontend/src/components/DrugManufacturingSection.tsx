@@ -73,7 +73,8 @@ export default function DrugManufacturingSection() {
       className="w-full py-16 sm:py-20 lg:py-28 px-4 sm:px-6 lg:px-8 relative overflow-hidden"
       style={{
         // Slanted top: left side starts lower, right side higher
-        clipPath: "polygon(0 12%, 100% 0, 100% 100%, 0 100%)",
+        clipPath: "polygon(53% 0, 100% 3%, 100% 97%, 51% 100%, 0 97%, 0 3%)",
+        backgroundColor: "var(--muted, #f1f5f9)",
       }}
     >
       {/* Background color – visible only in light mode */}
@@ -166,19 +167,15 @@ export default function DrugManufacturingSection() {
         {/* ============================================================
             ROW 3: CTA (on its own, left aligned, below everything)
             ============================================================ */}
-        <div
-          className={`transition-all duration-700 ease-out delay-300 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-          }`}
-        >
-          <Link
-            href="/pharma"
-            className="group inline-flex items-center gap-2 text-primary font-semibold text-sm hover:gap-3 transition-all duration-300"
-          >
-            {t("pharma.cta")}
-            <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-0.5" />
-          </Link>
-        </div>
+<div className="pt-2">
+  <Link
+    href="/pharma"
+    className="underline-btn"
+  >
+    {t("pharma.cta")}
+    <ChevronRight className="btn-icon w-4 h-4" />
+  </Link>
+</div>
       </div>
     </section>
   );

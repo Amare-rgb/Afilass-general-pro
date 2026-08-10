@@ -27,7 +27,7 @@ const HERO_IMAGES = {
   },
   // 👇 Add more images here as needed
   emergency: {
-    src: "/slider-2.jpg",
+    src: "/Afilas-Hospital-emergency.jpg",
     alt: "Emergency Services",
     label: "Emergency",
   },
