@@ -1,0 +1,343 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { 
+  ArrowLeft,
+  Bell,
+  BellOff,
+  Shield,
+  Lock,
+  Eye,
+  EyeOff,
+  Save,
+  CheckCircle,
+  AlertCircle,
+  Settings as SettingsIcon
+} from 'lucide-react';
+import { useTheme } from '@/contexts/ThemeProvider';
+import { useLanguage } from '@/contexts/LanguageProvider';
+
+// Define types
+type Theme = 'light' | 'dark' | 'system';
+type Language = 'en' | 'am';
+
+interface Settings {
+  notifications: boolean;
+  emailNotifications: boolean;
+  twoFactorAuth: boolean;
+  password: string;
+  confirmPassword: string;
+}
+
+export default function SettingsPage() {
+  const router = useRouter();
+  const { language } = useLanguage();
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  
+  // Settings state with proper types
+  const [settings, setSettings] = useState<Settings>({
+    notifications: true,
+    emailNotifications: true,
+    twoFactorAuth: false,
+    password: '',
+    confirmPassword: ''
+  });
+
+  useEffect(() => {
+    // Check if user is logged in
+    const token = localStorage.getItem('token');
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+    
+    // Load saved settings
+    const savedSettings = localStorage.getItem('userSettings');
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        setSettings((prev: Settings) => ({ 
+          ...prev, 
+          ...parsed
+        }));
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    }
+    
+    setLoading(false);
+  }, [router]);
+
+  const handleToggle = (key: keyof Omit<Settings, 'password' | 'confirmPassword'>) => {
+    setSettings((prev: Settings) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setSettings((prev: Settings) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSuccessMessage('');
+    setErrorMessage('');
+
+    try {
+      // Validate password if changed
+      if (settings.password && settings.password !== settings.confirmPassword) {
+        setErrorMessage(language === 'am' ? 'የይለፍ ቃሎች አይዛመዱም' : 'Passwords do not match');
+        setSaving(false);
+        return;
+      }
+
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Save settings (remove password fields before saving)
+      const settingsToSave = {
+        notifications: settings.notifications,
+        emailNotifications: settings.emailNotifications,
+        twoFactorAuth: settings.twoFactorAuth
+      };
+      
+      localStorage.setItem('userSettings', JSON.stringify(settingsToSave));
+      
+      setSuccessMessage(language === 'am' ? 'ቅንብሮች ተሳክተዋል!' : 'Settings saved successfully!');
+      
+      // Clear messages after 3 seconds
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error) {
+      setErrorMessage(language === 'am' ? 'ስህተት ተከስቷል' : 'An error occurred');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-teal-600 mx-auto"></div>
+          <p className="mt-3 text-sm text-gray-500">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-white py-4 px-4 sm:py-6 sm:px-6">
+      <div className="max-w-2xl mx-auto">
+        {/* Back Button */}
+        <Link 
+          href="/" 
+          className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-teal-600 transition-colors mb-4"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          <span>{language === 'am' ? 'ተመለስ' : 'Back'}</span>
+        </Link>
+
+        {/* Settings Card */}
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+          {/* Header - White Background */}
+          <div className="bg-white px-5 py-4 sm:px-6 border-b border-gray-200">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-teal-50 flex items-center justify-center">
+                <SettingsIcon className="h-5 w-5 text-teal-600" />
+              </div>
+              <div>
+                <h1 className="text-base font-semibold text-gray-800">
+                  {language === 'am' ? 'ቅንብሮች' : 'Settings'}
+                </h1>
+                <p className="text-xs text-gray-500">
+                  {language === 'am' ? 'ቅንብሮችዎን ያስተዳድሩ' : 'Manage your preferences'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Body - Minimized */}
+          <div className="p-4 sm:p-5">
+            {/* Success/Error Messages */}
+            {successMessage && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2 text-green-700">
+                <CheckCircle className="h-4 w-4 flex-shrink-0" />
+                <span className="text-sm">{successMessage}</span>
+              </div>
+            )}
+            {errorMessage && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-700">
+                <AlertCircle className="h-4 w-4 flex-shrink-0" />
+                <span className="text-sm">{errorMessage}</span>
+              </div>
+            )}
+
+            <div className="space-y-5">
+              {/* Notifications Section */}
+              <div>
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2.5">
+                  <Bell className="h-4 w-4 text-teal-600" />
+                  {language === 'am' ? 'ማስታወቂያዎች' : 'Notifications'}
+                </h2>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Bell className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">
+                          {language === 'am' ? 'ማስታወቂያዎች' : 'Push Notifications'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {language === 'am' ? 'የአፕሊኬሽን ማስታወቂያዎችን ይቀበሉ' : 'Receive app notifications'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleToggle('notifications')}
+                      className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${
+                        settings.notifications ? 'bg-teal-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          settings.notifications ? 'translate-x-5' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <BellOff className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">
+                          {language === 'am' ? 'የኢሜል ማስታወቂያዎች' : 'Email Notifications'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {language === 'am' ? 'የኢሜል ማስታወቂያዎችን ይቀበሉ' : 'Receive email notifications'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleToggle('emailNotifications')}
+                      className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${
+                        settings.emailNotifications ? 'bg-teal-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          settings.emailNotifications ? 'translate-x-5' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Security Section */}
+              <div>
+                <h2 className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2.5">
+                  <Shield className="h-4 w-4 text-teal-600" />
+                  {language === 'am' ? 'ደህንነት' : 'Security'}
+                </h2>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <Lock className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-700">
+                          {language === 'am' ? 'ሁለት ደረጃ ማረጋገጫ' : 'Two-Factor Authentication'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {language === 'am' ? 'ተጨማሪ ደህንነት ያክሉ' : 'Add an extra layer of security'}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleToggle('twoFactorAuth')}
+                      className={`relative inline-flex h-5 w-10 items-center rounded-full transition-colors ${
+                        settings.twoFactorAuth ? 'bg-teal-600' : 'bg-gray-300'
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                          settings.twoFactorAuth ? 'translate-x-5' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                  </div>
+
+                  {/* Change Password */}
+                  <div className="p-3 bg-gray-50 rounded-lg space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Lock className="h-4 w-4 text-gray-500" />
+                      <p className="text-sm font-medium text-gray-700">
+                        {language === 'am' ? 'የይለፍ ቃል ለውጥ' : 'Change Password'}
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          name="password"
+                          value={settings.password}
+                          onChange={handlePasswordChange}
+                          placeholder={language === 'am' ? 'አዲስ የይለፍ ቃል' : 'New password'}
+                          className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                      </div>
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        name="confirmPassword"
+                        value={settings.confirmPassword}
+                        onChange={handlePasswordChange}
+                        placeholder={language === 'am' ? 'የይለፍ ቃል ያረጋግጡ' : 'Confirm password'}
+                        className="w-full px-3 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Save Button - White Background */}
+              <div className="pt-3 border-t border-gray-200">
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-white border-2 border-teal-600 text-teal-600 rounded-lg font-medium text-sm hover:bg-teal-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {saving ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      <span>{language === 'am' ? 'በማስቀመጥ ላይ...' : 'Saving...'}</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4" />
+                      <span>{language === 'am' ? 'ቅንብሮችን አስቀምጥ' : 'Save Settings'}</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
