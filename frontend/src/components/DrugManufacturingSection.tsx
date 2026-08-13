@@ -128,6 +128,7 @@ export default function DrugManufacturingSection() {
               </div>
             </div>
           </div>
+        </div>
 
           {/* RIGHT COLUMN – Capabilities only (no title, no CTA) */}
           <div
@@ -157,7 +158,6 @@ export default function DrugManufacturingSection() {
               );
             })}
           </div>
-        </div>
 
         {/* ============================================================
             ROW 3: CTA Button perfectly CENTERED inside its container
