@@ -1,7 +1,7 @@
 // app/admin/services/afilas-drug/page.tsx
 'use client';
 
-import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Image from 'next/image';
 import { api } from '@/lib/api';
 import { getToken, clearSession } from '@/lib/auth';
@@ -19,6 +19,7 @@ import {
   DollarSign,
   Search,
   ChevronDown,
+  Edit,
   Save,
   Building2,
   Upload,
@@ -26,10 +27,6 @@ import {
   Pill,
   Package
 } from 'lucide-react';
-
-// ============================================================
-// TYPES
-// ============================================================
 
 interface Service {
   id: string;
@@ -65,10 +62,6 @@ interface FormErrors {
   image?: string;
 }
 
-// ============================================================
-// CONSTANTS
-// ============================================================
-
 const LOCATION = 'Afilas Drug Manufacturing';
 const DEFAULT_CATEGORIES = [
   'Prescription Drugs',
@@ -88,89 +81,109 @@ const DEFAULT_CATEGORIES = [
   'Nutraceuticals'
 ];
 
-const IMAGE_MAX_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-
 // ============================================================
 // VALIDATION FUNCTIONS
 // ============================================================
 
 const validateName = (value: string): string | null => {
-  const trimmed = value?.trim();
-  if (!trimmed) return 'Product name is required';
-  if (trimmed.length < 3) return 'Product name must be at least 3 characters';
-  if (trimmed.length > 100) return 'Product name must be less than 100 characters';
+  if (!value || value.trim().length === 0) {
+    return 'Product name is required';
+  }
+  if (value.trim().length < 3) {
+    return 'Product name must be at least 3 characters';
+  }
+  if (value.trim().length > 100) {
+    return 'Product name must be less than 100 characters';
+  }
   return null;
 };
 
 const validateDescription = (value: string): string | null => {
-  const trimmed = value?.trim();
-  if (!trimmed) return 'Description is required';
-  if (trimmed.length < 10) return 'Description must be at least 10 characters';
-  if (trimmed.length > 500) return 'Description must be less than 500 characters';
+  if (!value || value.trim().length === 0) {
+    return 'Description is required';
+  }
+  if (value.trim().length < 10) {
+    return 'Description must be at least 10 characters';
+  }
+  if (value.trim().length > 500) {
+    return 'Description must be less than 500 characters';
+  }
   return null;
 };
 
 const validatePrice = (value: number): string | null => {
-  if (!value || value <= 0) return 'Price is required and must be greater than 0';
-  if (value < 0) return 'Price cannot be negative';
-  if (value > 999999) return 'Price cannot exceed 999,999';
-  if (!Number.isFinite(value)) return 'Please enter a valid price';
+  if (value === undefined || value === null || value === 0) {
+    return 'Price is required and must be greater than 0';
+  }
+  if (value < 0) {
+    return 'Price cannot be negative';
+  }
+  if (value > 999999) {
+    return 'Price cannot exceed 999,999';
+  }
+  if (!Number.isFinite(value)) {
+    return 'Please enter a valid price';
+  }
   return null;
 };
 
 const validateDuration = (value: number): string | null => {
-  if (!value || value <= 0) return 'Duration is required';
-  if (value < 5) return 'Duration must be at least 5 minutes';
-  if (value > 480) return 'Duration cannot exceed 480 minutes (8 hours)';
-  if (!Number.isInteger(value)) return 'Duration must be a whole number';
+  if (value === undefined || value === null || value === 0) {
+    return 'Duration is required';
+  }
+  if (value < 5) {
+    return 'Duration must be at least 5 minutes';
+  }
+  if (value > 480) {
+    return 'Duration cannot exceed 480 minutes (8 hours)';
+  }
+  if (!Number.isInteger(value)) {
+    return 'Duration must be a whole number';
+  }
   return null;
 };
 
 const validateCategory = (value: string): string | null => {
-  if (!value?.trim()) return 'Category is required';
+  if (!value || value.trim().length === 0) {
+    return 'Category is required';
+  }
   return null;
 };
 
 const validateImage = (file: File | null, currentImage?: string): string | null => {
-  if (!file && !currentImage) return 'Image is required';
+  if (!file && !currentImage) {
+    return null;
+  }
   if (file) {
-    if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
       return 'Please upload a valid image file (JPEG, PNG, GIF, or WebP)';
     }
-    if (file.size > IMAGE_MAX_SIZE) {
+    if (file.size > 5 * 1024 * 1024) {
       return 'Image size must be less than 5MB';
     }
   }
   return null;
 };
 
-// ============================================================
-// COMPONENT
-// ============================================================
-
 export default function AdminServicesAfilasDrugPage() {
   const { t } = useLanguage();
-  
-  // State
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState<string>('');
+  const [success, setSuccess] = useState<string>('');
   const [showModal, setShowModal] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState('');
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [newCategory, setNewCategory] = useState('');
-  const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
-  
+  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const [formData, setFormData] = useState<ServiceFormData>({
@@ -184,56 +197,58 @@ export default function AdminServicesAfilasDrugPage() {
     isActive: true
   });
 
-  // ============================================================
-  // API CALLS
-  // ============================================================
-
-  const loadServices = useCallback(async () => {
+  async function loadServices() {
     setLoading(true);
     setError('');
     try {
       const response = await api.get<any>(`/services?location=${encodeURIComponent(LOCATION)}`, true);
       
       let servicesData: Service[] = [];
-      if (Array.isArray(response)) {
-        servicesData = response;
-      } else if (response?.data && Array.isArray(response.data)) {
-        servicesData = response.data;
-      } else if (response?.services && Array.isArray(response.services)) {
-        servicesData = response.services;
+      if (response) {
+        if (Array.isArray(response)) {
+          servicesData = response;
+        } else if (response.data && Array.isArray(response.data)) {
+          servicesData = response.data;
+        } else if (response.services && Array.isArray(response.services)) {
+          servicesData = response.services;
+        }
       }
       
       setServices(servicesData);
+      console.log(`✅ Loaded ${servicesData.length} products for ${LOCATION}`);
     } catch (error: any) {
-      console.error('Failed to load products:', error);
+      console.error('❌ Failed to load products:', error);
       setError(error.message || 'Failed to load products');
       setServices([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }
 
   useEffect(() => {
     loadServices();
-  }, [loadServices]);
+  }, []);
 
-  // ============================================================
-  // VALIDATION
-  // ============================================================
-
-  const validateField = useCallback((field: keyof FormErrors, value: any): string | null => {
+  const validateField = (field: keyof FormErrors, value: any): string | null => {
     switch (field) {
-      case 'name': return validateName(value);
-      case 'description': return validateDescription(value);
-      case 'price': return validatePrice(value);
-      case 'duration': return validateDuration(value);
-      case 'category': return validateCategory(value);
-      case 'image': return validateImage(imageFile, formData.image);
-      default: return null;
+      case 'name':
+        return validateName(value);
+      case 'description':
+        return validateDescription(value);
+      case 'price':
+        return validatePrice(value);
+      case 'duration':
+        return validateDuration(value);
+      case 'category':
+        return validateCategory(value);
+      case 'image':
+        return validateImage(imageFile, formData.image);
+      default:
+        return null;
     }
-  }, [imageFile, formData.image]);
+  };
 
-  const validateForm = useCallback((): boolean => {
+  const validateForm = (): boolean => {
     const errors: FormErrors = {};
     
     const nameError = validateName(formData.name);
@@ -256,82 +271,37 @@ export default function AdminServicesAfilasDrugPage() {
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
-  }, [formData, imageFile]);
+  };
 
   const handleFieldChange = (field: keyof FormErrors, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    setTouched(prev => ({ ...prev, [field]: true }));
+    setFormData({ ...formData, [field]: value });
+    setTouched({ ...touched, [field]: true });
     const error = validateField(field, value);
-    setFormErrors(prev => ({ ...prev, [field]: error || undefined }));
+    setFormErrors({ ...formErrors, [field]: error || undefined });
   };
-
-  const hasError = (field: keyof FormErrors) => {
-    return formErrors[field] && touched[field];
-  };
-
-  // ============================================================
-  // FILTERED SERVICES
-  // ============================================================
-
-  const filteredServices = useMemo(() => {
-    return services.filter(service => {
-      const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            service.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = categoryFilter ? service.category === categoryFilter : true;
-      return matchesSearch && matchesCategory;
-    });
-  }, [services, searchTerm, categoryFilter]);
-
-  // ============================================================
-  // IMAGE HANDLING
-  // ============================================================
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    
-    const imageError = validateImage(file, '');
-    if (imageError) {
-      setFormErrors(prev => ({ ...prev, image: imageError }));
-      setError(imageError);
-      return;
+    if (file) {
+      const imageError = validateImage(file, '');
+      if (imageError) {
+        setFormErrors({ ...formErrors, image: imageError });
+        setError(imageError);
+        return;
+      }
+      
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      setFormErrors({ ...formErrors, image: undefined });
+      setError('');
     }
-    
-    setImageFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => setImagePreview(reader.result as string);
-    reader.readAsDataURL(file);
-    setFormErrors(prev => ({ ...prev, image: undefined }));
-    setError('');
   };
 
-  const uploadImage = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('image', file);
-    
-    const token = getToken();
-    if (!token) throw new Error('No authentication token found');
-    
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/upload?type=services`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}` },
-      body: formData,
-    });
-    
-    const data = await response.json();
-    if (response.status === 401) {
-      clearSession();
-      throw new Error('Session expired. Please login again.');
-    }
-    if (!response.ok) throw new Error(data.error || data.message || 'Upload failed');
-    return data.url;
-  };
-
-  // ============================================================
-  // MODAL HANDLING
-  // ============================================================
-
-  const handleOpenModal = useCallback((service?: Service) => {
+  const handleOpenModal = (service?: Service) => {
     if (service) {
       setEditingService(service);
       setFormData({
@@ -345,6 +315,9 @@ export default function AdminServicesAfilasDrugPage() {
         isActive: service.isActive
       });
       setImagePreview(service.image || '');
+      setImageFile(null);
+      setShowNewCategory(false);
+      setNewCategory('');
     } else {
       setEditingService(null);
       setFormData({
@@ -359,15 +332,15 @@ export default function AdminServicesAfilasDrugPage() {
       });
       setImagePreview('');
       setImageFile(null);
+      setShowNewCategory(false);
+      setNewCategory('');
     }
     setFormErrors({});
     setTouched({});
-    setShowNewCategory(false);
-    setNewCategory('');
     setShowModal(true);
-  }, []);
+  };
 
-  const handleCloseModal = useCallback(() => {
+  const handleCloseModal = () => {
     setShowModal(false);
     setEditingService(null);
     setError('');
@@ -377,52 +350,43 @@ export default function AdminServicesAfilasDrugPage() {
     setImagePreview('');
     setShowNewCategory(false);
     setNewCategory('');
-    setIsSubmitting(false);
-  }, []);
-
-  // ============================================================
-  // CATEGORY HANDLING
-  // ============================================================
+  };
 
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     if (value === 'new') {
       setShowNewCategory(true);
-      setFormData(prev => ({ ...prev, category: '' }));
+      setFormData({ ...formData, category: '' });
     } else {
       setShowNewCategory(false);
       setNewCategory('');
-      setFormData(prev => ({ ...prev, category: value }));
+      setFormData({ ...formData, category: value });
     }
   };
 
   const handleAddNewCategory = () => {
-    if (!newCategory.trim()) return;
-    
-    const trimmedCategory = newCategory.trim();
-    if (categories.includes(trimmedCategory)) {
-      setError(`Category "${trimmedCategory}" already exists`);
-      return;
+    if (newCategory.trim()) {
+      const trimmedCategory = newCategory.trim();
+      if (!categories.includes(trimmedCategory)) {
+        setCategories([...categories, trimmedCategory]);
+        setFormData({ ...formData, category: trimmedCategory });
+        setNewCategory('');
+        setShowNewCategory(false);
+        setTouched({ ...touched, category: true });
+        setFormErrors({ ...formErrors, category: undefined });
+      } else {
+        setError(`Category "${trimmedCategory}" already exists`);
+      }
     }
-    
-    setCategories(prev => [...prev, trimmedCategory]);
-    setFormData(prev => ({ ...prev, category: trimmedCategory }));
-    setNewCategory('');
-    setShowNewCategory(false);
-    setTouched(prev => ({ ...prev, category: true }));
-    setFormErrors(prev => ({ ...prev, category: undefined }));
   };
 
   // ============================================================
-  // SUBMIT HANDLING
+  // handleSubmit - Send everything as FormData
   // ============================================================
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsSubmitting(true);
     
-    // Mark all fields as touched
     const allTouched: Record<string, boolean> = {};
     Object.keys(formData).forEach(key => {
       allTouched[key] = true;
@@ -430,7 +394,6 @@ export default function AdminServicesAfilasDrugPage() {
     setTouched(allTouched);
     
     if (!validateForm()) {
-      setIsSubmitting(false);
       const firstError = document.querySelector('[data-error="true"]');
       if (firstError) {
         firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -439,48 +402,69 @@ export default function AdminServicesAfilasDrugPage() {
     }
 
     try {
-      let imageUrl = formData.image;
+      setUploading(true);
+      
+      // Create FormData
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('price', String(formData.price));
+      formDataToSend.append('duration', String(formData.duration));
+      formDataToSend.append('category', formData.category);
+      formDataToSend.append('location', formData.location || LOCATION);
+      formDataToSend.append('isActive', String(formData.isActive));
+      
+      // Add image file if selected
       if (imageFile) {
-        setUploadingImage(true);
+        formDataToSend.append('image', imageFile);
+        console.log('📁 Adding image to form data:', imageFile.name);
+      }
+      
+      const token = getToken();
+      if (!token) {
+        throw new Error('Authentication required. Please login again.');
+      }
+      
+      const url = editingService 
+        ? `http://localhost:5000/api/services/${editingService.id}`
+        : 'http://localhost:5000/api/services';
+      
+      console.log(`📡 ${editingService ? 'PUT' : 'POST'} ${url}`);
+      
+      const response = await fetch(url, {
+        method: editingService ? 'PUT' : 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formDataToSend,
+      });
+      
+      setUploading(false);
+      
+      if (!response.ok) {
+        let errorMessage = 'Failed to save product';
         try {
-          imageUrl = await uploadImage(imageFile);
-        } catch (uploadError) {
-          setError(uploadError instanceof Error ? uploadError.message : 'Failed to upload image');
-          setIsSubmitting(false);
-          setUploadingImage(false);
-          return;
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.message || errorMessage;
+          console.error('❌ Error response:', errorData);
+        } catch (e) {
+          console.error('❌ Could not parse error response');
         }
-        setUploadingImage(false);
+        throw new Error(errorMessage);
       }
       
-      const serviceData = {
-        ...formData,
-        image: imageUrl,
-        price: Number(formData.price),
-        duration: Number(formData.duration)
-      };
-
-      if (editingService) {
-        await api.put(`/services/${editingService.id}`, serviceData, true);
-        setSuccess('Product updated successfully!');
-      } else {
-        await api.post('/services', serviceData, true);
-        setSuccess('Product created successfully!');
-      }
+      const result = await response.json();
+      console.log('✅ Product saved:', result);
       
+      setSuccess(editingService ? 'Product updated successfully!' : 'Product created successfully!');
       handleCloseModal();
       await loadServices();
     } catch (error: any) {
-      console.error('Failed to save product:', error);
+      setUploading(false);
+      console.error('❌ Failed to save product:', error);
       setError(error.message || 'Failed to save product');
-    } finally {
-      setIsSubmitting(false);
     }
   };
-
-  // ============================================================
-  // DELETE HANDLING
-  // ============================================================
 
   const handleDelete = async (id: string) => {
     if (!confirm('Are you sure you want to delete this product?')) return;
@@ -490,14 +474,17 @@ export default function AdminServicesAfilasDrugPage() {
       setSuccess('Product deleted successfully!');
       await loadServices();
     } catch (error: any) {
-      console.error('Failed to delete product:', error);
+      console.error('❌ Failed to delete product:', error);
       setError(error.message || 'Failed to delete product');
     }
   };
 
-  // ============================================================
-  // UTILITY FUNCTIONS
-  // ============================================================
+  const filteredServices = services.filter(service => {
+    const matchesSearch = service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          service.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter ? service.category === categoryFilter : true;
+    return matchesSearch && matchesCategory;
+  });
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -507,7 +494,7 @@ export default function AdminServicesAfilasDrugPage() {
   };
 
   const getCategoryColor = (category: string) => {
-    const colors: Record<string, string> = {
+    const colors: { [key: string]: string } = {
       'Prescription Drugs': 'bg-red-100 text-red-700',
       'Over-The-Counter': 'bg-blue-100 text-blue-700',
       'Antibiotics': 'bg-green-100 text-green-700',
@@ -527,21 +514,27 @@ export default function AdminServicesAfilasDrugPage() {
     return colors[category] || 'bg-gray-100 text-gray-700';
   };
 
-  // ============================================================
-  // RENDER
-  // ============================================================
+  const hasError = (field: keyof FormErrors) => {
+    return formErrors[field] && touched[field];
+  };
+
+  // Helper to get full image URL
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http')) return imagePath;
+    return `http://localhost:5000${imagePath}`;
+  };
 
   return (
     <>
-      {/* Header */}
+      {/* Header - White buttons */}
       <div className="flex items-center justify-end mb-6 flex-wrap gap-4">
         <div className="flex gap-3 flex-wrap">
           <button
             onClick={loadServices}
-            disabled={loading}
-            className="rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 px-4 py-2 text-sm transition-colors flex items-center gap-2 disabled:opacity-50"
+            className="rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 px-4 py-2 text-sm transition-colors flex items-center gap-2"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className="w-4 h-4" />
             Refresh
           </button>
           <button
@@ -566,7 +559,6 @@ export default function AdminServicesAfilasDrugPage() {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent text-sm"
-                aria-label="Search products"
               />
             </div>
           </div>
@@ -575,7 +567,6 @@ export default function AdminServicesAfilasDrugPage() {
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="pl-3 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none bg-white text-sm"
-              aria-label="Filter by category"
             >
               <option value="">All Categories</option>
               {categories.map(cat => (
@@ -590,22 +581,21 @@ export default function AdminServicesAfilasDrugPage() {
         </div>
       </div>
 
-      {/* Alerts */}
       {success && (
-        <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2" role="alert">
+        <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center gap-2">
           <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
           <p className="text-sm text-green-600">{success}</p>
-          <button onClick={() => setSuccess('')} className="ml-auto" aria-label="Dismiss">
+          <button onClick={() => setSuccess('')} className="ml-auto">
             <X className="w-4 h-4 text-green-600" />
           </button>
         </div>
       )}
 
       {error && (
-        <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2" role="alert">
+        <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
           <XCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
           <p className="text-sm text-red-600">{error}</p>
-          <button onClick={() => setError('')} className="ml-auto" aria-label="Dismiss">
+          <button onClick={() => setError('')} className="ml-auto">
             <X className="w-4 h-4 text-red-600" />
           </button>
         </div>
@@ -613,7 +603,7 @@ export default function AdminServicesAfilasDrugPage() {
 
       {/* Products Grid */}
       {loading ? (
-        <div className="flex items-center justify-center p-12" aria-label="Loading">
+        <div className="flex items-center justify-center p-12">
           <Loader2 className="w-8 h-8 text-green-600 animate-spin" />
         </div>
       ) : filteredServices.length === 0 ? (
@@ -636,15 +626,19 @@ export default function AdminServicesAfilasDrugPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredServices.map((service) => (
             <div key={service.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-              {/* Product Image */}
+              {/* ✅ FIXED: Product Image with full URL */}
               <div className="relative h-40 bg-gray-100">
                 {service.image ? (
                   <Image
-                    src={service.image}
+                    src={getImageUrl(service.image) || ''}
                     alt={service.name}
                     fill
                     unoptimized
                     className="object-cover"
+                    onError={(e) => {
+                      console.error('Image failed to load:', service.image);
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 ) : (
                   <div className="flex items-center justify-center h-full">
@@ -654,9 +648,7 @@ export default function AdminServicesAfilasDrugPage() {
               </div>
               
               <div className="p-4">
-                <h4 className="text-sm font-semibold text-gray-800 truncate" title={service.name}>
-                  {service.name}
-                </h4>
+                <h4 className="text-sm font-semibold text-gray-800 truncate">{service.name}</h4>
                 <span className={`text-[10px] px-2 py-0.5 rounded-full inline-block mt-1 ${getCategoryColor(service.category)}`}>
                   {service.category}
                 </span>
@@ -675,14 +667,14 @@ export default function AdminServicesAfilasDrugPage() {
                     <button
                       onClick={() => handleOpenModal(service)}
                       className="p-1.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-                      aria-label={`Edit ${service.name}`}
+                      title="Edit"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                     <button
                       onClick={() => handleDelete(service.id)}
                       className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      aria-label={`Delete ${service.name}`}
+                      title="Delete"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -717,7 +709,7 @@ export default function AdminServicesAfilasDrugPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-4 space-y-3">
-              {/* Image Upload - Always Visible */}
+              {/* Image Upload */}
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-gray-400 transition-colors">
                 <div className="flex items-center gap-4">
                   <div className="relative flex-shrink-0">
@@ -773,7 +765,7 @@ export default function AdminServicesAfilasDrugPage() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleFieldChange('name', e.target.value)}
-                  onBlur={() => setTouched(prev => ({ ...prev, name: true }))}
+                  onBlur={() => setTouched({ ...touched, name: true })}
                   className={`w-full rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none ${
                     hasError('name')
                       ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
@@ -788,7 +780,7 @@ export default function AdminServicesAfilasDrugPage() {
                 <p className="text-[10px] text-gray-400 mt-0.5">{formData.name.length}/100</p>
               </div>
 
-              {/* Category with New Category Option */}
+              {/* Category */}
               <div data-error={!!formErrors.category && touched.category}>
                 <label className="block text-xs font-medium text-gray-600 mb-0.5">
                   Category <span className="text-red-400">*</span>
@@ -796,7 +788,7 @@ export default function AdminServicesAfilasDrugPage() {
                 <select
                   value={formData.category}
                   onChange={handleCategoryChange}
-                  onBlur={() => setTouched(prev => ({ ...prev, category: true }))}
+                  onBlur={() => setTouched({ ...touched, category: true })}
                   className={`w-full rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none ${
                     hasError('category')
                       ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
@@ -814,7 +806,7 @@ export default function AdminServicesAfilasDrugPage() {
                 )}
               </div>
 
-              {/* New Category Input */}
+              {/* New Category Input - White buttons */}
               {showNewCategory && (
                 <div className="flex gap-2 items-center bg-green-50 border border-green-200 rounded-lg p-3">
                   <div className="flex-1">
@@ -830,7 +822,7 @@ export default function AdminServicesAfilasDrugPage() {
                   <button
                     type="button"
                     onClick={handleAddNewCategory}
-                    className="px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors flex items-center gap-1"
+                    className="px-3 py-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg transition-colors flex items-center gap-1"
                   >
                     <Plus className="w-3.5 h-3.5" />
                     Add
@@ -840,9 +832,9 @@ export default function AdminServicesAfilasDrugPage() {
                     onClick={() => {
                       setShowNewCategory(false);
                       setNewCategory('');
-                      setFormData(prev => ({ ...prev, category: '' }));
+                      setFormData({ ...formData, category: '' });
                     }}
-                    className="px-3 py-1.5 bg-gray-200 text-gray-600 text-sm font-medium rounded-lg hover:bg-gray-300 transition-colors"
+                    className="px-3 py-1.5 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-medium rounded-lg transition-colors"
                   >
                     Cancel
                   </button>
@@ -857,7 +849,7 @@ export default function AdminServicesAfilasDrugPage() {
                 <textarea
                   value={formData.description}
                   onChange={(e) => handleFieldChange('description', e.target.value)}
-                  onBlur={() => setTouched(prev => ({ ...prev, description: true }))}
+                  onBlur={() => setTouched({ ...touched, description: true })}
                   className={`w-full rounded-lg border px-3 py-1.5 text-sm transition-colors outline-none ${
                     hasError('description')
                       ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
@@ -885,7 +877,7 @@ export default function AdminServicesAfilasDrugPage() {
                       type="number"
                       value={formData.price}
                       onChange={(e) => handleFieldChange('price', parseFloat(e.target.value) || 0)}
-                      onBlur={() => setTouched(prev => ({ ...prev, price: true }))}
+                      onBlur={() => setTouched({ ...touched, price: true })}
                       className={`w-full rounded-lg border pl-8 pr-3 py-1.5 text-sm transition-colors outline-none ${
                         hasError('price')
                           ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
@@ -911,7 +903,7 @@ export default function AdminServicesAfilasDrugPage() {
                       type="number"
                       value={formData.duration}
                       onChange={(e) => handleFieldChange('duration', parseInt(e.target.value) || 0)}
-                      onBlur={() => setTouched(prev => ({ ...prev, duration: true }))}
+                      onBlur={() => setTouched({ ...touched, duration: true })}
                       className={`w-full rounded-lg border pl-8 pr-3 py-1.5 text-sm transition-colors outline-none ${
                         hasError('duration')
                           ? 'border-red-400 focus:border-red-500 focus:ring-1 focus:ring-red-500'
@@ -933,8 +925,7 @@ export default function AdminServicesAfilasDrugPage() {
                 <label className="block text-xs font-medium text-gray-600 mb-0.5">
                   Location
                 </label>
-                <input
-                  type="text"
+                <input                  type="text"
                   value={formData.location}
                   disabled
                   className="w-full rounded-lg border border-gray-200 px-3 py-1.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed"
@@ -947,36 +938,36 @@ export default function AdminServicesAfilasDrugPage() {
                   <input
                     type="checkbox"
                     checked={formData.isActive}
-                    onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                    onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                     className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
                   />
                   <span className="text-xs font-medium text-gray-700">Active</span>
                 </label>
               </div>
 
-              {/* Action Buttons */}
+              {/* ✅ FIXED: Action Buttons - White color with "Add Product" text */}
               <div className="flex gap-2 pt-2 border-t border-gray-100">
                 <button
                   type="submit"
-                  disabled={uploadingImage || isSubmitting}
-                  className="flex-1 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 text-sm font-medium px-4 py-1.5 transition-colors flex items-center justify-center gap-2"
+                  disabled={uploading}
+                  className="flex-1 rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 disabled:opacity-50 text-sm font-medium px-4 py-2 transition-colors flex items-center justify-center gap-2"
                 >
-                  {uploadingImage || isSubmitting ? (
+                  {uploading ? (
                     <>
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                      {uploadingImage ? 'Uploading...' : 'Saving...'}
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Saving...
                     </>
                   ) : (
                     <>
-                      <Save className="w-3.5 h-3.5" />
-                      {editingService ? 'Update' : 'Add'}
+                      <Save className="w-4 h-4" />
+                      {editingService ? 'Update Product' : 'Add Product'}
                     </>
                   )}
                 </button>
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="flex-1 rounded-lg bg-white border border-gray-200 text-gray-500 text-sm font-medium px-4 py-1.5 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                  className="flex-1 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-600 text-sm font-medium px-4 py-2 transition-colors"
                 >
                   Cancel
                 </button>

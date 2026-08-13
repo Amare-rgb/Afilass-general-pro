@@ -38,7 +38,6 @@ interface FormErrors {
   photo?: string;
 }
 
-// Define a type for the schedule slots used in validation
 type ScheduleSlotsType = {
   [key: number]: {
     startTime: string;
@@ -71,7 +70,7 @@ const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'F
 const LOCATION_NAME = 'Afilas General Hospital';
 
 // ============================================================
-// FRONTEND VALIDATION FUNCTIONS (Matches Backend)
+// VALIDATION FUNCTIONS
 // ============================================================
 
 const validateName = (value: string): string | null => {
@@ -106,7 +105,7 @@ const validateEmail = (value: string): string | null => {
 
 const validatePhone = (value: string): string | null => {
   if (!value || value.trim().length === 0) {
-    return null; // Phone is optional
+    return null;
   }
   const phoneRegex = /^[\+\d\s\-\(\)]{7,20}$/;
   if (!phoneRegex.test(value.trim())) {
@@ -149,7 +148,7 @@ const validateExperience = (value: number): string | null => {
 
 const validateBio = (value: string): string | null => {
   if (!value || value.trim().length === 0) {
-    return null; // Bio is optional
+    return null;
   }
   if (value.trim().length > 500) {
     return 'Bio must be less than 500 characters';
@@ -158,17 +157,19 @@ const validateBio = (value: string): string | null => {
 };
 
 const validateSchedule = (scheduleSlots: ScheduleSlotsType): string | null => {
-  // Convert to entries and filter only available slots with proper typing
   const entries = Object.entries(scheduleSlots) as [string, { startTime: string; endTime: string; isAvailable: boolean }][];
-  const availableSlots = entries.filter(([_, slot]) => slot.isAvailable);
   
-  if (availableSlots.length === 0) {
+  const hasAvailableDay = entries.some(([_, slot]) => slot.isAvailable === true);
+  
+  if (!hasAvailableDay) {
     return 'Please set at least one working day';
   }
   
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   
-  for (const [day, slot] of availableSlots) {
+  for (const [day, slot] of entries) {
+    if (!slot.isAvailable) continue;
+    
     const dayIndex = parseInt(day);
     if (isNaN(dayIndex) || dayIndex < 0 || dayIndex > 6) {
       return 'Invalid day of week';
@@ -182,7 +183,6 @@ const validateSchedule = (scheduleSlots: ScheduleSlotsType): string | null => {
       return `Invalid time range for ${dayNames[dayIndex]}: Start time must be before end time`;
     }
     
-    // Validate time format (HH:MM)
     const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
     if (!timeRegex.test(slot.startTime)) {
       return `Invalid start time format for ${dayNames[dayIndex]} (use HH:MM)`;
@@ -246,7 +246,6 @@ export default function AfilasGeneralDoctorsPage() {
       
       setDoctors(doctorsData);
       console.log(` Loaded ${doctorsData.length} doctors for ${LOCATION_NAME}`);
-      console.log(' Sample doctor schedule:', doctorsData[0]?.scheduleSlots);
     } catch (error) {
       console.error('❌ Failed to load data:', error);
       setDoctors([]);
@@ -364,11 +363,33 @@ export default function AfilasGeneralDoctorsPage() {
     setFormErrors({ ...formErrors, [field]: error || undefined });
   };
 
+  // ============================================================
+  // FIXED: handleScheduleChange - properly updates schedule
+  // ============================================================
   const handleScheduleChange = (index: number, field: string, value: any) => {
     const updatedSlots = { ...form.scheduleSlots };
     updatedSlots[index] = {
       ...updatedSlots[index],
       [field]: value
+    };
+    setForm({ ...form, scheduleSlots: updatedSlots });
+    setTouched({ ...touched, schedule: true });
+    
+    const error = validateSchedule(updatedSlots);
+    setFormErrors({ ...formErrors, schedule: error || undefined });
+  };
+
+  // ============================================================
+  // FIXED: handleScheduleToggle - specifically for checkbox
+  // ============================================================
+  const handleScheduleToggle = (index: number, isChecked: boolean) => {
+    const updatedSlots = { ...form.scheduleSlots };
+    updatedSlots[index] = {
+      ...updatedSlots[index],
+      isAvailable: isChecked,
+      // Set default times when checking, clear when unchecking
+      startTime: isChecked ? (form.scheduleSlots[index]?.startTime || '09:00') : '',
+      endTime: isChecked ? (form.scheduleSlots[index]?.endTime || '17:00') : ''
     };
     setForm({ ...form, scheduleSlots: updatedSlots });
     setTouched({ ...touched, schedule: true });
@@ -437,7 +458,9 @@ export default function AfilasGeneralDoctorsPage() {
     setTouched(allTouched);
     
     // Validate all fields
-    if (!validateForm()) {
+    const isValid = validateForm();
+    
+    if (!isValid) {
       setSaving(false);
       const firstError = document.querySelector('[data-error="true"]');
       if (firstError) {
@@ -461,14 +484,23 @@ export default function AfilasGeneralDoctorsPage() {
         setUploadingImage(false);
       }
       
+      // Build workingHours array
       const workingHours = Object.entries(form.scheduleSlots)
-        .filter(([_, slot]) => slot.isAvailable && slot.startTime && slot.endTime)
+        .filter(([_, slot]) => slot.isAvailable === true && slot.startTime && slot.endTime)
         .map(([day, slot]) => ({
           dayOfWeek: parseInt(day),
           startTime: slot.startTime,
           endTime: slot.endTime,
           isAvailable: true
         }));
+
+      // Double-check: if workingHours is empty, show error
+      if (workingHours.length === 0) {
+        setError('Please set at least one working day');
+        setFormErrors({ ...formErrors, schedule: 'Please set at least one working day' });
+        setSaving(false);
+        return;
+      }
 
       const doctorData = { 
         name: form.name.trim(),
@@ -484,8 +516,8 @@ export default function AfilasGeneralDoctorsPage() {
         workingHours: workingHours
       };
 
-      console.log('Sending doctor data:', JSON.stringify(doctorData, null, 2));
-      console.log(' Working hours:', workingHours);
+      console.log('📤 Sending doctor data:', JSON.stringify(doctorData, null, 2));
+      console.log(`📅 Working hours: ${workingHours.length} slots`);
       
       if (editingId) {
         await api.put(`/doctors/${editingId}`, doctorData, true);
@@ -501,7 +533,13 @@ export default function AfilasGeneralDoctorsPage() {
       setImagePreview('');
     } catch (err) {
       console.error('❌ Error saving doctor:', err);
-      setError(err instanceof Error ? err.message : 'Failed to save doctor');
+      if (err instanceof ApiError) {
+        setError(err.message);
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Failed to save doctor. Please try again.');
+      }
     } finally {
       setSaving(false);
       setUploadingImage(false);
@@ -570,14 +608,13 @@ export default function AfilasGeneralDoctorsPage() {
     return `${uniqueDays.join(', ')} ${timeDisplay}`;
   };
 
-  // Helper to check if field has error
   const hasError = (field: keyof FormErrors) => {
     return formErrors[field] && touched[field];
   };
 
   return (
     <>
-      {/* Header with buttons on the right side */}
+      {/* Header */}
       <div className="flex items-center justify-end mb-8 flex-wrap gap-4">
         <button
           onClick={() => load()}
@@ -688,7 +725,6 @@ export default function AfilasGeneralDoctorsPage() {
                   type="text"
                   value={form.name}
                   onChange={(e) => {
-                    // Only allow letters, spaces, hyphens, apostrophes, periods
                     const value = e.target.value;
                     if (/^[a-zA-Z\s\-'.]*$/.test(value) || value === '') {
                       handleFieldChange('name', value);
@@ -720,7 +756,6 @@ export default function AfilasGeneralDoctorsPage() {
                   placeholder="Cardiology"
                   value={form.specialization}
                   onChange={(e) => {
-                    // Only allow letters, spaces, hyphens, commas, apostrophes, periods, ampersands
                     const value = e.target.value;
                     if (/^[a-zA-Z\s\-',.&]*$/.test(value) || value === '') {
                       handleFieldChange('specialization', value);
@@ -778,7 +813,6 @@ export default function AfilasGeneralDoctorsPage() {
                   value={form.phone}
                   onChange={(e) => {
                     const value = e.target.value;
-                    // Only allow numbers, spaces, +, -, (, )
                     if (/^[\+\d\s\-\(\)]*$/.test(value) || value === '') {
                       handleFieldChange('phone', value);
                     }
@@ -831,28 +865,29 @@ export default function AfilasGeneralDoctorsPage() {
                 )}
               </div>
 
-              {/* Weekly Schedule */}
-              <div data-error={!!formErrors.schedule && touched.schedule}>
+              {/* ============================================================
+                  FIXED: Weekly Schedule - Checkbox now works properly
+                  ============================================================ */}
+              <div className={`border rounded-lg p-3 ${
+                hasError('schedule') ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
+              }`}>
                 <label className="block text-xs font-medium text-gray-600 mb-1">
                   Weekly Schedule <span className="text-red-400">*</span>
                 </label>
                 <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
                   {DAYS_OF_WEEK.map((day, index) => (
-                    <div key={index} className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded-lg">
+                    <div key={index} className="flex items-center gap-1.5 p-1.5 bg-white rounded-lg shadow-sm">
                       <div className="w-14 flex-shrink-0">
-                        <label className="flex items-center gap-1 text-xs font-medium text-gray-600">
+                        <label className="flex items-center gap-1 text-xs font-medium text-gray-600 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={form.scheduleSlots[index]?.isAvailable || false}
                             onChange={(e) => {
                               const isChecked = e.target.checked;
-                              handleScheduleChange(index, 'isAvailable', isChecked);
-                              if (isChecked) {
-                                handleScheduleChange(index, 'startTime', form.scheduleSlots[index]?.startTime || '09:00');
-                                handleScheduleChange(index, 'endTime', form.scheduleSlots[index]?.endTime || '17:00');
-                              }
+                              console.log(`Day ${index} (${day}) toggled:`, isChecked);
+                              handleScheduleToggle(index, isChecked);
                             }}
-                            className="rounded border-gray-300 text-gray-600 focus:ring-gray-400"
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                           />
                           <span className="truncate text-[10px]">{day.slice(0, 3)}</span>
                         </label>
@@ -863,10 +898,10 @@ export default function AfilasGeneralDoctorsPage() {
                           value={form.scheduleSlots[index]?.startTime || ''}
                           disabled={!form.scheduleSlots[index]?.isAvailable}
                           onChange={(e) => handleScheduleChange(index, 'startTime', e.target.value)}
-                          className={`w-full rounded-lg border px-1.5 py-0.5 text-[10px] transition-colors outline-none ${
+                          className={`w-full rounded border px-1.5 py-0.5 text-[10px] transition-colors outline-none ${
                             form.scheduleSlots[index]?.isAvailable 
-                              ? 'border-gray-200 bg-white focus:border-gray-400 focus:ring-1 focus:ring-gray-400' 
-                              : 'border-gray-100 bg-gray-100 text-gray-400 cursor-not-allowed'
+                              ? 'border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
+                              : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
                           }`}
                           step="900"
                         />
@@ -875,10 +910,10 @@ export default function AfilasGeneralDoctorsPage() {
                           value={form.scheduleSlots[index]?.endTime || ''}
                           disabled={!form.scheduleSlots[index]?.isAvailable}
                           onChange={(e) => handleScheduleChange(index, 'endTime', e.target.value)}
-                          className={`w-full rounded-lg border px-1.5 py-0.5 text-[10px] transition-colors outline-none ${
+                          className={`w-full rounded border px-1.5 py-0.5 text-[10px] transition-colors outline-none ${
                             form.scheduleSlots[index]?.isAvailable 
-                              ? 'border-gray-200 bg-white focus:border-gray-400 focus:ring-1 focus:ring-gray-400' 
-                              : 'border-gray-100 bg-gray-100 text-gray-400 cursor-not-allowed'
+                              ? 'border-gray-300 bg-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500' 
+                              : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
                           }`}
                           step="900"
                         />
@@ -887,7 +922,14 @@ export default function AfilasGeneralDoctorsPage() {
                   ))}
                 </div>
                 {hasError('schedule') && (
-                  <p className="text-xs text-red-500 mt-1">{formErrors.schedule}</p>
+                  <p className="text-xs text-red-500 mt-2 flex items-center gap-1">
+                    <span>⚠️</span> {formErrors.schedule}
+                  </p>
+                )}
+                {!hasError('schedule') && (
+                  <p className="text-[10px] text-gray-400 mt-2">
+                    Check at least one day and set working hours
+                  </p>
                 )}
               </div>
               
@@ -924,15 +966,15 @@ export default function AfilasGeneralDoctorsPage() {
                 <button
                   type="submit"
                   disabled={saving || uploadingImage}
-                  className="flex-1 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 text-sm font-medium px-4 py-1.5 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 text-sm font-medium px-4 py-2 transition-colors flex items-center justify-center gap-2 shadow-sm"
                 >
                   {saving || uploadingImage ? (
                     <>
-                      <span className="inline-block w-3 h-3 border-2 border-gray-600 border-t-transparent rounded-full animate-spin"></span>
+                      <span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                       {uploadingImage ? 'Uploading...' : 'Saving...'}
                     </>
                   ) : (
-                    editingId ? 'Update' : 'Add'
+                    editingId ? 'Update Doctor' : 'Add Doctor'
                   )}
                 </button>
                 <button
@@ -945,7 +987,7 @@ export default function AfilasGeneralDoctorsPage() {
                     setFormErrors({});
                     setTouched({});
                   }}
-                  className="flex-1 rounded-lg bg-white border border-gray-200 text-gray-500 text-sm font-medium px-4 py-1.5 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                  className="flex-1 rounded-lg bg-white border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
@@ -1027,13 +1069,13 @@ export default function AfilasGeneralDoctorsPage() {
                     onClick={() => startEdit(doc)} 
                     className="flex-1 text-sm text-blue-600 hover:text-blue-800 font-medium hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"
                   >
-                    Edit
+                    ✏️ Edit
                   </button>
                   <button 
                     onClick={() => remove(doc.id)} 
                     className="flex-1 text-sm text-red-600 hover:text-red-800 font-medium hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"
                   >
-                    Delete
+                    🗑️ Delete
                   </button>
                 </div>
               </div>

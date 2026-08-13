@@ -11,7 +11,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { 
   Upload,
   X,
-  User,  // Changed from Stethoscope to User
+  User,
   CheckCircle,
   XCircle,
   Loader2,
@@ -56,7 +56,6 @@ interface FormErrors {
   photo?: string;
 }
 
-// Define a type for the schedule slots used in validation
 type ScheduleSlotsType = {
   [key: number]: {
     startTime: string;
@@ -89,7 +88,7 @@ const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'F
 const LOCATION_NAME = 'Afilas Drug Manufacturing';
 
 // ============================================================
-// FRONTEND VALIDATION FUNCTIONS (Matches Backend)
+// VALIDATION FUNCTIONS
 // ============================================================
 
 const validateName = (value: string): string | null => {
@@ -124,7 +123,7 @@ const validateEmail = (value: string): string | null => {
 
 const validatePhone = (value: string): string | null => {
   if (!value || value.trim().length === 0) {
-    return null; // Phone is optional
+    return null;
   }
   const phoneRegex = /^[\+\d\s\-\(\)]{7,20}$/;
   if (!phoneRegex.test(value.trim())) {
@@ -167,7 +166,7 @@ const validateExperience = (value: number): string | null => {
 
 const validateBio = (value: string): string | null => {
   if (!value || value.trim().length === 0) {
-    return null; // Bio is optional
+    return null;
   }
   if (value.trim().length > 500) {
     return 'Bio must be less than 500 characters';
@@ -262,7 +261,6 @@ export default function AfilasDrugDoctorsPage() {
       
       setDoctors(doctorsData);
       console.log(`✅ Loaded ${doctorsData.length} doctors for ${LOCATION_NAME}`);
-      console.log('📅 Sample doctor schedule:', doctorsData[0]?.scheduleSlots);
     } catch (error) {
       console.error('❌ Failed to load data:', error);
       setDoctors([]);
@@ -393,6 +391,23 @@ export default function AfilasDrugDoctorsPage() {
     setFormErrors({ ...formErrors, schedule: error || undefined });
   };
 
+  const handleScheduleToggle = (index: number, isChecked: boolean) => {
+    console.log(`Day ${index} toggled to:`, isChecked);
+    
+    const updatedSlots = { ...form.scheduleSlots };
+    updatedSlots[index] = {
+      ...updatedSlots[index],
+      isAvailable: isChecked,
+      startTime: isChecked ? (form.scheduleSlots[index]?.startTime || '09:00') : '',
+      endTime: isChecked ? (form.scheduleSlots[index]?.endTime || '17:00') : ''
+    };
+    setForm({ ...form, scheduleSlots: updatedSlots });
+    setTouched({ ...touched, schedule: true });
+    
+    const error = validateSchedule(updatedSlots);
+    setFormErrors({ ...formErrors, schedule: error || undefined });
+  };
+
   function startCreate() {
     setEditingId(null);
     setForm(emptyForm);
@@ -444,7 +459,6 @@ export default function AfilasDrugDoctorsPage() {
     setSaving(true);
     setError('');
     
-    // Mark all fields as touched
     const allTouched: Record<string, boolean> = {};
     Object.keys(form).forEach(key => {
       allTouched[key] = true;
@@ -452,7 +466,6 @@ export default function AfilasDrugDoctorsPage() {
     allTouched.schedule = true;
     setTouched(allTouched);
     
-    // Validate all fields
     if (!validateForm()) {
       setSaving(false);
       const firstError = document.querySelector('[data-error="true"]');
@@ -486,6 +499,13 @@ export default function AfilasDrugDoctorsPage() {
           isAvailable: true
         }));
 
+      if (workingHours.length === 0) {
+        setError('Please set at least one working day');
+        setFormErrors({ ...formErrors, schedule: 'Please set at least one working day' });
+        setSaving(false);
+        return;
+      }
+
       const doctorData = { 
         name: form.name.trim(),
         title: form.specialization.trim(),
@@ -500,8 +520,7 @@ export default function AfilasDrugDoctorsPage() {
         workingHours: workingHours
       };
 
-      console.log(' Sending doctor data:', JSON.stringify(doctorData, null, 2));
-      console.log(' Working hours:', workingHours);
+      console.log('📤 Sending doctor data:', JSON.stringify(doctorData, null, 2));
       
       if (editingId) {
         await api.put(`/doctors/${editingId}`, doctorData, true);
@@ -524,15 +543,56 @@ export default function AfilasDrugDoctorsPage() {
     }
   }
 
+  // ============================================================
+  // FIXED: remove function with force delete support
+  // ============================================================
   async function remove(id: string) {
     if (!confirm('Are you sure you want to delete this doctor?')) return;
+    
     try {
+      // Try normal delete first
       await api.delete(`/doctors/${id}`, true);
       setSuccess('Doctor deleted successfully');
       await load();
     } catch (error) {
       console.error('❌ Failed to delete doctor:', error);
-      alert('Failed to delete doctor');
+      
+      // Handle ApiError specifically
+      if (error instanceof ApiError) {
+        // Check if it's a 400 error with active appointments
+        if (error.status === 400) {
+          const errorData = error.data || {};
+          const activeCount = errorData.activeAppointments || 0;
+          
+          // Check if the error message indicates active appointments
+          if (error.message.includes('active appointment') || activeCount > 0) {
+            const confirmForce = confirm(
+              `⚠️ This doctor has ${activeCount || 'some'} active appointment(s).\n\n` +
+              `Force delete will remove the doctor and ALL associated appointments.\n\n` +
+              `This action cannot be undone!\n\n` +
+              `Do you want to proceed?`
+            );
+            
+            if (confirmForce) {
+              try {
+                // Force delete with ?force=true
+                await api.delete(`/doctors/${id}?force=true`, true);
+                setSuccess('Doctor deleted successfully (all appointments were removed)');
+                await load();
+              } catch (forceError) {
+                console.error('❌ Force delete failed:', forceError);
+                alert('Failed to force delete doctor. Please try again.');
+              }
+            }
+          } else {
+            alert(error.message || 'Cannot delete this doctor.');
+          }
+        } else {
+          alert(error.message || 'Failed to delete doctor.');
+        }
+      } else {
+        alert('An unexpected error occurred while deleting the doctor.');
+      }
     }
   }
 
@@ -586,25 +646,23 @@ export default function AfilasDrugDoctorsPage() {
     return `${uniqueDays.join(', ')} ${timeDisplay}`;
   };
 
-  // Helper to check if field has error
   const hasError = (field: keyof FormErrors) => {
     return formErrors[field] && touched[field];
   };
 
   return (
     <>
-      {/* Header with buttons on the right side */}
       <div className="flex items-center justify-end mb-8 flex-wrap gap-4">
         <button
           onClick={() => load()}
-          className="focus-ring rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 text-sm font-semibold px-5 py-2.5 transition-colors shadow-sm flex items-center gap-2"
+          className="focus-ring rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 text-sm font-semibold px-5 py-2.5 transition-colors shadow-sm flex items-center gap-2"
         >
           <RefreshCw className="w-4 h-4" />
           Refresh
         </button>
         <button
           onClick={startCreate}
-          className="focus-ring rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 text-sm font-semibold px-5 py-2.5 transition-colors shadow-sm flex items-center gap-2"
+          className="focus-ring rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 text-sm font-semibold px-5 py-2.5 transition-colors shadow-sm flex items-center gap-2"
         >
           <UserPlus className="w-4 h-4" />
           Add Doctor
@@ -636,17 +694,7 @@ export default function AfilasDrugDoctorsPage() {
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between rounded-t-xl">
               <h3 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-                {editingId ? (
-                  <>
-                    <Edit className="w-4 h-4 text-green-600" />
-                    Edit Doctor
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="w-4 h-4 text-green-600" />
-                    New Doctor
-                  </>
-                )}
+                {editingId ? '✏️ Edit Doctor' : '➕ New Doctor'}
               </h3>
               <button
                 type="button"
@@ -665,7 +713,7 @@ export default function AfilasDrugDoctorsPage() {
             </div>
             
             <form onSubmit={handleSubmit} className="p-4 space-y-3">
-              {/* Image Upload - Compact */}
+              {/* Image Upload */}
               <div className="flex items-center gap-3">
                 <div className="relative flex-shrink-0">
                   <div className="w-14 h-14 rounded-full overflow-hidden bg-gray-100 border-2 border-gray-200 flex items-center justify-center">
@@ -867,23 +915,22 @@ export default function AfilasDrugDoctorsPage() {
                 <label className="block text-xs font-medium text-gray-600 mb-1">
                   Weekly Schedule <span className="text-red-400">*</span>
                 </label>
-                <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
+                <div className={`space-y-1 max-h-36 overflow-y-auto pr-1 border rounded-lg p-2 ${
+                  hasError('schedule') ? 'border-red-400 bg-red-50' : 'border-gray-200 bg-gray-50'
+                }`}>
                   {DAYS_OF_WEEK.map((day, index) => (
-                    <div key={index} className="flex items-center gap-1.5 p-1.5 bg-gray-50 rounded-lg">
+                    <div key={index} className="flex items-center gap-1.5 p-1.5 bg-white rounded-lg shadow-sm">
                       <div className="w-14 flex-shrink-0">
-                        <label className="flex items-center gap-1 text-xs font-medium text-gray-600">
+                        <label className="flex items-center gap-1 text-xs font-medium text-gray-600 cursor-pointer">
                           <input
                             type="checkbox"
                             checked={form.scheduleSlots[index]?.isAvailable || false}
                             onChange={(e) => {
                               const isChecked = e.target.checked;
-                              handleScheduleChange(index, 'isAvailable', isChecked);
-                              if (isChecked) {
-                                handleScheduleChange(index, 'startTime', form.scheduleSlots[index]?.startTime || '09:00');
-                                handleScheduleChange(index, 'endTime', form.scheduleSlots[index]?.endTime || '17:00');
-                              }
+                              console.log(`Day ${index} (${day}) toggled to:`, isChecked);
+                              handleScheduleToggle(index, isChecked);
                             }}
-                            className="rounded border-gray-300 text-gray-600 focus:ring-gray-400"
+                            className="rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
                           />
                           <span className="truncate text-[10px]">{day.slice(0, 3)}</span>
                         </label>
@@ -894,10 +941,10 @@ export default function AfilasDrugDoctorsPage() {
                           value={form.scheduleSlots[index]?.startTime || ''}
                           disabled={!form.scheduleSlots[index]?.isAvailable}
                           onChange={(e) => handleScheduleChange(index, 'startTime', e.target.value)}
-                          className={`w-full rounded-lg border px-1.5 py-0.5 text-[10px] transition-colors outline-none ${
+                          className={`w-full rounded border px-1.5 py-0.5 text-[10px] transition-colors outline-none ${
                             form.scheduleSlots[index]?.isAvailable 
-                              ? 'border-gray-200 bg-white focus:border-gray-400 focus:ring-1 focus:ring-gray-400' 
-                              : 'border-gray-100 bg-gray-100 text-gray-400 cursor-not-allowed'
+                              ? 'border-gray-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500' 
+                              : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
                           }`}
                           step="900"
                         />
@@ -906,10 +953,10 @@ export default function AfilasDrugDoctorsPage() {
                           value={form.scheduleSlots[index]?.endTime || ''}
                           disabled={!form.scheduleSlots[index]?.isAvailable}
                           onChange={(e) => handleScheduleChange(index, 'endTime', e.target.value)}
-                          className={`w-full rounded-lg border px-1.5 py-0.5 text-[10px] transition-colors outline-none ${
+                          className={`w-full rounded border px-1.5 py-0.5 text-[10px] transition-colors outline-none ${
                             form.scheduleSlots[index]?.isAvailable 
-                              ? 'border-gray-200 bg-white focus:border-gray-400 focus:ring-1 focus:ring-gray-400' 
-                              : 'border-gray-100 bg-gray-100 text-gray-400 cursor-not-allowed'
+                              ? 'border-gray-300 bg-white focus:border-green-500 focus:ring-1 focus:ring-green-500' 
+                              : 'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed'
                           }`}
                           step="900"
                         />
@@ -918,7 +965,14 @@ export default function AfilasDrugDoctorsPage() {
                   ))}
                 </div>
                 {hasError('schedule') && (
-                  <p className="text-xs text-red-500 mt-1">{formErrors.schedule}</p>
+                  <p className="text-xs text-red-500 mt-2 flex items-center gap-1">
+                    <span>⚠️</span> {formErrors.schedule}
+                  </p>
+                )}
+                {!hasError('schedule') && (
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    Check at least one day and set working hours
+                  </p>
                 )}
               </div>
               
@@ -955,7 +1009,7 @@ export default function AfilasDrugDoctorsPage() {
                 <button
                   type="submit"
                   disabled={saving || uploadingImage}
-                  className="flex-1 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 text-sm font-medium px-4 py-1.5 transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 rounded-lg bg-green-600 text-white hover:bg-green-700 disabled:opacity-50 text-sm font-medium px-4 py-2 transition-colors flex items-center justify-center gap-2 shadow-sm"
                 >
                   {saving || uploadingImage ? (
                     <>
@@ -963,7 +1017,7 @@ export default function AfilasDrugDoctorsPage() {
                       {uploadingImage ? 'Uploading...' : 'Saving...'}
                     </>
                   ) : (
-                    editingId ? 'Update' : 'Add'
+                    editingId ? 'Update Doctor' : 'Add Doctor'
                   )}
                 </button>
                 <button
@@ -976,7 +1030,7 @@ export default function AfilasDrugDoctorsPage() {
                     setFormErrors({});
                     setTouched({});
                   }}
-                  className="flex-1 rounded-lg bg-white border border-gray-200 text-gray-500 text-sm font-medium px-4 py-1.5 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                  className="flex-1 rounded-lg bg-white border border-gray-300 text-gray-700 text-sm font-medium px-4 py-2 hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
@@ -992,80 +1046,87 @@ export default function AfilasDrugDoctorsPage() {
         </div>
       ) : doctors.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
-          <User className="w-16 h-16 text-gray-300 mx-auto mb-4" /> {/* Changed from Pill to User */}
+          <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-700 mb-2">No Doctors Found</h3>
           <p className="text-sm text-gray-500 mb-4">No doctors available for Afilas Drug Manufacturing</p>
           <button
             onClick={startCreate}
-            className="focus-ring rounded-lg bg-white border border-gray-300 hover:bg-gray-50 hover:border-gray-400 text-gray-700 text-sm font-semibold px-5 py-2.5 transition-colors"
+            className="focus-ring rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 text-sm font-semibold px-5 py-2.5 transition-colors"
           >
             + Add Doctor
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {doctors.map((doc) => (
-            <div key={doc.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-              <div className="p-4 flex items-start gap-3">
-                {/* Small Circular Avatar */}
-                <div className="flex-shrink-0">
-                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-gray-200 flex items-center justify-center bg-gray-50">
-                    {doc.photoUrl ? (
-                      <Image
-                        src={doc.photoUrl}
-                        alt={doc.name}
-                        width={48}
-                        height={48}
-                        unoptimized
-                        className="object-cover w-full h-full"
-                      />
-                    ) : (
-                      <User className="w-5 h-5 text-gray-400" /> 
-                    )}
-                  </div>
+            <div key={doc.id} className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-green-300 hover:scale-[1.02] transition-all duration-300 flex flex-col">
+              <div className="relative flex-shrink-0 p-4 bg-gradient-to-br from-green-50 to-gray-100 flex items-center justify-center">
+                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md">
+                  {doc.photoUrl ? (
+                    <Image
+                      src={doc.photoUrl}
+                      alt={doc.name}
+                      width={128}
+                      height={128}
+                      unoptimized
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-full h-full bg-gray-200">
+                      <User className="w-12 h-12 text-gray-400" />
+                    </div>
+                  )}
                 </div>
+                <div className="absolute top-3 right-3">
+                  <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                    doc.active ? 'bg-green-500 text-white' : 'bg-gray-500 text-white'
+                  }`}>
+                    {doc.active ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="p-5 flex flex-col flex-1">
+                <h3 className="font-semibold text-gray-900 text-lg text-center">{doc.name}</h3>
+                <p className="text-sm text-green-600 font-medium text-center">{doc.specialization || doc.title}</p>
                 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-1">
-                    <h4 className="text-sm font-semibold text-gray-800 truncate">{doc.name}</h4>
-                    <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0 ${
-                      doc.active ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {doc.active ? 'Active' : 'Off'}
-                    </span>
+                {doc.email && (
+                  <p className="text-xs text-gray-400 mt-1 text-center flex items-center justify-center gap-1">
+                    <Mail className="w-3 h-3" />
+                    {doc.email}
+                  </p>
+                )}
+                
+                {doc.bio && (
+                  <p className="text-xs text-gray-500 mt-3 line-clamp-2 text-center">{doc.bio}</p>
+                )}
+                
+                {doc.scheduleSlots && doc.scheduleSlots.filter(s => s.isAvailable).length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-gray-100">
+                    <div className="text-xs text-center">
+                      <p className="font-medium text-gray-700 flex items-center justify-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {getScheduleDisplay(doc)}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-500 truncate">{doc.specialization || doc.title}</p>
-                  
-                  {doc.email && (
-                    <p className="text-[10px] text-gray-400 truncate flex items-center gap-0.5 mt-0.5">
-                      <Mail className="w-2.5 h-2.5" />
-                      {doc.email}
-                    </p>
-                  )}
-                  
-                  {doc.scheduleSlots && doc.scheduleSlots.filter(s => s.isAvailable).length > 0 && (
-                    <p className="text-[10px] text-gray-400 mt-1 truncate flex items-center gap-0.5">
-                      <Clock className="w-2.5 h-2.5" />
-                      {getScheduleDisplay(doc)}
-                    </p>
-                  )}
-                  
-                  <div className="flex gap-1 mt-2 pt-2 border-t border-gray-100">
-                    <button 
-                      onClick={() => startEdit(doc)} 
-                      className="flex-1 text-[10px] text-gray-600 hover:text-gray-800 font-medium hover:bg-gray-50 px-2 py-1 rounded transition-colors flex items-center justify-center gap-0.5"
-                    >
-                      <Edit className="w-3 h-3" />
-                      Edit
-                    </button>
-                    <button 
-                      onClick={() => remove(doc.id)} 
-                      className="flex-1 text-[10px] text-gray-500 hover:text-red-600 font-medium hover:bg-gray-50 px-2 py-1 rounded transition-colors flex items-center justify-center gap-0.5"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                      Delete
-                    </button>
-                  </div>
+                )}
+                
+                <div className="flex gap-2 mt-4 pt-4 border-t border-gray-100">
+                  <button 
+                    onClick={() => startEdit(doc)} 
+                    className="flex-1 text-sm text-green-600 hover:text-green-800 font-medium hover:bg-green-50 px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Edit
+                  </button>
+                  <button 
+                    onClick={() => remove(doc.id)} 
+                    className="flex-1 text-sm text-red-600 hover:text-red-800 font-medium hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete
+                  </button>
                 </div>
               </div>
             </div>
@@ -1074,7 +1135,7 @@ export default function AfilasDrugDoctorsPage() {
       )}
       
       {!loading && doctors.length > 0 && (
-        <div className="mt-4 text-[10px] text-gray-400 flex items-center justify-end">
+        <div className="mt-4 text-xs text-gray-400 flex items-center justify-end">
           <span>Showing {doctors.length} doctor{doctors.length !== 1 ? 's' : ''} for Afilas Drug Manufacturing</span>
         </div>
       )}

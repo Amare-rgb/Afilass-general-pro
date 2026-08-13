@@ -3,9 +3,6 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../lib/prisma');
 const { getJwtSecret } = require('../lib/jwt');
 
-// ===== USE THE SAME FUNCTION AS AUTH ROUTES =====
-// const JWT_SECRET = getJwtSecret(); // Use this instead of hardcoding
-
 const auth = async (req, res, next) => {
   try {
     const authHeader = req.header('Authorization');
@@ -33,12 +30,10 @@ const auth = async (req, res, next) => {
       });
     }
 
-    // ===== FIX: Use the SAME function as auth routes =====
     const jwtSecret = getJwtSecret();
     console.log('🔐 Auth middleware - JWT_SECRET length:', jwtSecret.length);
     console.log('🔐 Auth middleware - Token preview:', token.substring(0, 30) + '...');
 
-    // Verify token with the SAME secret
     const decoded = jwt.verify(token, jwtSecret);
     console.log('✅ Token verified. User ID:', decoded.id);
 
@@ -97,6 +92,55 @@ const auth = async (req, res, next) => {
   }
 };
 
+// ============================================================
+// AUTHORIZE MIDDLEWARE - Supports ADMIN and USER roles
+// ============================================================
+
+// For ADMIN-only routes (create, update, delete services)
+const authorizeAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required',
+    });
+  }
+
+  console.log('🔐 AuthorizeAdmin - User role:', req.user.role);
+
+  // Only allow ADMIN role
+  if (req.user.role !== 'ADMIN') {
+    return res.status(403).json({
+      success: false,
+      error: `Access denied. Only ADMIN users can perform this action. Your role: ${req.user.role}`,
+    });
+  }
+
+  next();
+};
+
+// For USER routes (view services, book appointments)
+const authorizeUser = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required',
+    });
+  }
+
+  console.log('🔐 AuthorizeUser - User role:', req.user.role);
+
+  // Allow both ADMIN and USER roles
+  if (req.user.role !== 'ADMIN' && req.user.role !== 'USER') {
+    return res.status(403).json({
+      success: false,
+      error: `Access denied. Your role: ${req.user.role}`,
+    });
+  }
+
+  next();
+};
+
+// Generic authorize function (backward compatible)
 const authorize = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
@@ -106,14 +150,19 @@ const authorize = (...roles) => {
       });
     }
 
+    console.log('🔐 Authorize - User role:', req.user.role);
+    console.log('🔐 Authorize - Required roles:', roles);
+
+    // Check if user has any of the required roles
     if (!roles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        error: `Insufficient permissions. Required roles: ${roles.join(', ')}`,
+        error: `Access denied. Required roles: ${roles.join(', ')}. Your role: ${req.user.role}`,
       });
     }
+
     next();
   };
 };
 
-module.exports = { auth, authorize };
+module.exports = { auth, authorize, authorizeAdmin, authorizeUser };

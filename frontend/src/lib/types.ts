@@ -39,10 +39,10 @@ export interface Doctor {
   education?: string;
   rating?: number;
   consultationFee?: number;
-  location?: string | null; // ADD THIS LINE - Location field for doctors
+  location?: string | null;
 }
 
-export type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED';
+export type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'MISSED';
 
 export interface Appointment {
   id: string;
@@ -67,6 +67,29 @@ export interface Appointment {
   status: AppointmentStatus;
   location?: string | null;
   reminderSentAt?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+  
+  // Home visit fields
+  visitType?: 'HOSPITAL' | 'HOME' | string | null;
+  city?: string | null;
+  subCity?: string | null;
+  woreda?: string | null;
+  gpsPin?: string | null;
+  homeAddress?: string | null;
+}
+
+// 🔥 ADD PharmaOrder Interface
+export interface PharmaOrder {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  drugName: string;
+  quantity: number;
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'CANCELLED';
+  notes?: string | null;
+  location?: string | null;
   createdAt: string;
   updatedAt?: string;
 }

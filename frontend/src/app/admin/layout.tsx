@@ -270,9 +270,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return <div className="min-h-screen bg-gray-50" />;
   }
 
+  // ============================================================
+  // ✅ FIXED: Logout function - Redirect to Home Page
+  // ============================================================
   function handleLogout() {
+    // Clear all session data
     clearSession();
-    router.replace('/admin/login');
+    
+    // Clear all localStorage items
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('admin');
+    
+    // Clear sessionStorage
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('userRole');
+    sessionStorage.removeItem('isLoggedIn');
+    
+    // ✅ Redirect to home page (not login page)
+    window.location.href = '/';
   }
 
   const getPageTitle = () => {
@@ -507,6 +525,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           )}
 
+          {/* ✅ FIXED: Logout button - Redirects to Home Page */}
           <button
             onClick={handleLogout}
             className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-bold transition-colors ${

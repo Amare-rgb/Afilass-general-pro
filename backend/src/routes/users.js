@@ -6,20 +6,24 @@ const prisma = require('../lib/prisma');
 
 const router = express.Router();
 
-// Get all users
+// ============================================================
+// GET all users (with filtering)
+// ============================================================
 router.get('/', async (req, res) => {
   try {
     const { role, search, location } = req.query;
     
     const where = {};
     if (role) where.role = role;
-    if (location && location !== 'all') where.location = location;
+    if (location && location !== 'all' && location !== 'undefined') where.location = location;
     if (search) {
       where.OR = [
         { name: { contains: search, mode: 'insensitive' } },
         { email: { contains: search, mode: 'insensitive' } },
       ];
     }
+
+    console.log('📡 Fetching users with where:', where);
 
     const users = await prisma.user.findMany({
       where,
@@ -39,21 +43,25 @@ router.get('/', async (req, res) => {
       orderBy: { createdAt: 'desc' },
     });
 
+    console.log(`✅ Found ${users.length} users`);
+
     res.json({
       success: true,
       data: users,
       total: users.length,
     });
   } catch (error) {
-    console.error('Get users error:', error);
+    console.error('❌ Get users error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch users',
+      error: 'Failed to fetch users: ' + error.message,
     });
   }
 });
 
-// Get user by ID
+// ============================================================
+// GET user by ID
+// ============================================================
 router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -87,20 +95,36 @@ router.get('/:id', async (req, res) => {
       data: user,
     });
   } catch (error) {
-    console.error('Get user error:', error);
+    console.error('❌ Get user error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch user',
+      error: 'Failed to fetch user: ' + error.message,
     });
   }
 });
 
-// Create user
+// ============================================================
+// CREATE user (Registration)
+// ============================================================
 router.post('/', [
-  body('name').trim().notEmpty().withMessage('Name is required'),
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
-  body('role').isIn(['SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'USER']).withMessage('Invalid role'),
+  body('name')
+    .trim()
+    .notEmpty().withMessage('Name is required')
+    .isLength({ min: 2 }).withMessage('Name must be at least 2 characters'),
+  body('email')
+    .isEmail().withMessage('Valid email is required')
+    .normalizeEmail(),
+  body('password')
+    .isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
+  body('role')
+    .optional()
+    .isIn(['SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'USER']).withMessage('Invalid role'),
+  body('location')
+    .optional()
+    .isString(),
+  body('phone')
+    .optional()
+    .isString(),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -128,11 +152,11 @@ router.post('/', [
 
     const user = await prisma.user.create({
       data: {
-        name: name,
-        email: email,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
         password: hashedPassword,
         phone: phone || '',
-        role: role,
+        role: role || 'USER',
         location: location || 'Afilas General Hospital',
         isActive: isActive !== undefined ? isActive : true,
       },
@@ -149,24 +173,37 @@ router.post('/', [
       },
     });
 
+    console.log(`✅ New user created: ${user.email} (${user.role}) at ${user.location}`);
+
     res.status(201).json({
       success: true,
       data: user,
+      message: 'User created successfully',
     });
   } catch (error) {
-    console.error('Create user error:', error);
+    console.error('❌ Create user error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to create user',
+      error: 'Failed to create user: ' + error.message,
     });
   }
 });
 
-// Update user
+// ============================================================
+// UPDATE user
+// ============================================================
 router.put('/:id', [
-  body('name').trim().notEmpty().withMessage('Name is required'),
-  body('email').isEmail().withMessage('Valid email is required'),
-  body('role').isIn(['SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'USER']).withMessage('Invalid role'),
+  body('name')
+    .trim()
+    .notEmpty().withMessage('Name is required'),
+  body('email')
+    .isEmail().withMessage('Valid email is required')
+    .normalizeEmail(),
+  body('role')
+    .isIn(['SUPER_ADMIN', 'ADMIN', 'DOCTOR', 'USER']).withMessage('Invalid role'),
+  body('location')
+    .optional()
+    .isString(),
 ], async (req, res) => {
   try {
     const { id } = req.params;
@@ -196,9 +233,10 @@ router.put('/:id', [
       }
     }
 
+    // ✅ FIX: Removed ': any' type annotation
     const updateData = {
-      name: name,
-      email: email,
+      name: name.trim(),
+      email: email.trim().toLowerCase(),
       phone: phone || '',
       role: role,
       location: location || 'Afilas General Hospital',
@@ -226,20 +264,25 @@ router.put('/:id', [
       },
     });
 
+    console.log(`✅ User updated: ${updated.email}`);
+
     res.json({
       success: true,
       data: updated,
+      message: 'User updated successfully',
     });
   } catch (error) {
-    console.error('Update user error:', error);
+    console.error('❌ Update user error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to update user',
+      error: 'Failed to update user: ' + error.message,
     });
   }
 });
 
-// Toggle user status
+// ============================================================
+// TOGGLE user status (Activate/Deactivate)
+// ============================================================
 router.patch('/:id/toggle-status', async (req, res) => {
   try {
     const { id } = req.params;
@@ -269,21 +312,25 @@ router.patch('/:id/toggle-status', async (req, res) => {
       },
     });
 
+    console.log(`✅ User ${user.email} ${isActive ? 'activated' : 'deactivated'}`);
+
     res.json({
       success: true,
       data: updated,
       message: isActive ? 'User activated successfully' : 'User deactivated successfully',
     });
   } catch (error) {
-    console.error('Toggle user status error:', error);
+    console.error('❌ Toggle user status error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to toggle user status',
+      error: 'Failed to toggle user status: ' + error.message,
     });
   }
 });
 
-// Delete user
+// ============================================================
+// DELETE user
+// ============================================================
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -316,20 +363,24 @@ router.delete('/:id', async (req, res) => {
       where: { id: id },
     });
 
+    console.log(`🗑️ User deleted: ${user.email}`);
+
     res.json({
       success: true,
       message: 'User deleted successfully',
     });
   } catch (error) {
-    console.error('Delete user error:', error);
+    console.error('❌ Delete user error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to delete user',
+      error: 'Failed to delete user: ' + error.message,
     });
   }
 });
 
-// Get user statistics
+// ============================================================
+// GET user statistics
+// ============================================================
 router.get('/stats', async (req, res) => {
   try {
     const [total, byRole, byLocation, activeCount, inactiveCount] = await Promise.all([
@@ -371,10 +422,10 @@ router.get('/stats', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Get user stats error:', error);
+    console.error('❌ Get user stats error:', error);
     res.status(500).json({
       success: false,
-      error: 'Failed to fetch user statistics',
+      error: 'Failed to fetch user statistics: ' + error.message,
     });
   }
 });

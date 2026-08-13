@@ -1,12 +1,14 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const prisma = require('../lib/prisma');
-const mailer = require('../lib/mailer');
 const { auth, authorize } = require('../middleware/auth');
+const notificationService = require('../lib/notificationService');
 
 const router = express.Router();
 
+// ============================================================
 // Helper to map appointment for frontend
+// ============================================================
 function mapAppointment(appointment) {
   return {
     id: appointment.id,
@@ -15,15 +17,6 @@ function mapAppointment(appointment) {
     patientPhone: appointment.patientPhone,
     patientAge: appointment.patientAge,
     patientGender: appointment.patientGender,
-    departmentId: null,
-    department: null,
-    doctorId: appointment.doctorId,
-    doctor: appointment.doctor ? {
-      id: appointment.doctor.id,
-      name: appointment.doctor.name,
-      title: appointment.doctor.specialization || null,
-      specialization: appointment.doctor.specialization,
-    } : null,
     serviceId: appointment.serviceId,
     service: appointment.service ? {
       id: appointment.service.id,
@@ -43,18 +36,25 @@ function mapAppointment(appointment) {
     reminderSentAt: appointment.reminderSentAt,
     createdAt: appointment.createdAt,
     updatedAt: appointment.updatedAt,
+    visitType: appointment.visitType || null,
+    city: appointment.city || null,
+    subCity: appointment.subCity || null,
+    woreda: appointment.woreda || null,
+    gpsPin: appointment.gpsPin || null,
+    homeAddress: appointment.homeAddress || null,
   };
 }
 
-// Get all appointments with location filter
-router.get('/', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req, res) => {
+// ============================================================
+// GET all appointments - 🔥 ADMIN and USER only
+// ============================================================
+router.get('/', auth, authorize('ADMIN', 'USER'), async (req, res) => {
   try {
-    const { status, startDate, endDate, doctorId, location } = req.query;
+    const { status, startDate, endDate, location } = req.query;
     
     const where = {};
     
     if (status) where.status = status;
-    if (doctorId) where.doctorId = doctorId;
     if (location && location !== 'all' && location !== 'undefined') {
       where.location = location;
     }
@@ -65,27 +65,9 @@ router.get('/', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req, r
       if (endDate) where.date.lte = new Date(endDate);
     }
 
-    // If user is DOCTOR, only show their appointments
-    if (req.user.role === 'DOCTOR') {
-      const doctor = await prisma.doctor.findFirst({
-        where: { email: req.user.email },
-        select: { id: true },
-      });
-      if (doctor) {
-        where.doctorId = doctor.id;
-      }
-    }
-
     const appointments = await prisma.appointment.findMany({
       where,
       include: {
-        doctor: {
-          select: {
-            id: true,
-            name: true,
-            specialization: true,
-          },
-        },
         service: {
           select: {
             id: true,
@@ -106,7 +88,6 @@ router.get('/', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req, r
       orderBy: { date: 'asc' },
     });
 
-    // Map appointments for frontend
     const mappedAppointments = appointments.map(mapAppointment);
 
     res.json({
@@ -123,21 +104,16 @@ router.get('/', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req, r
   }
 });
 
-// Get single appointment
-router.get('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req, res) => {
+// ============================================================
+// GET single appointment - 🔥 ADMIN and USER only
+// ============================================================
+router.get('/:id', auth, authorize('ADMIN', 'USER'), async (req, res) => {
   try {
     const { id } = req.params;
 
     const appointment = await prisma.appointment.findUnique({
       where: { id },
       include: {
-        doctor: {
-          select: {
-            id: true,
-            name: true,
-            specialization: true,
-          },
-        },
         service: {
           select: {
             id: true,
@@ -164,20 +140,6 @@ router.get('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req
       });
     }
 
-    // If user is DOCTOR, check if they own this appointment
-    if (req.user.role === 'DOCTOR') {
-      const doctor = await prisma.doctor.findFirst({
-        where: { email: req.user.email },
-        select: { id: true },
-      });
-      if (doctor && appointment.doctorId !== doctor.id) {
-        return res.status(403).json({
-          success: false,
-          error: 'You do not have permission to view this appointment',
-        });
-      }
-    }
-
     res.json({
       success: true,
       data: mapAppointment(appointment),
@@ -191,22 +153,29 @@ router.get('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), async (req
   }
 });
 
-// Create appointment - SERVICE ID IS NOW OPTIONAL
+// ============================================================
+// CREATE appointment - PUBLIC (no auth required)
+// Users can book appointments without login
+// ============================================================
 router.post('/', [
   body('patientName').trim().notEmpty().withMessage('Patient name is required'),
   body('patientEmail').isEmail().withMessage('Valid email is required'),
   body('patientPhone').trim().notEmpty().withMessage('Phone number is required'),
-  body('date').isISO8601().withMessage('Valid date is required'),
+  body('date').matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('Valid date is required (YYYY-MM-DD)'),
   body('time').matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Valid time is required (HH:MM)'),
-  body('doctorId').notEmpty().withMessage('Doctor is required'),
-  // serviceId is now optional - removed .notEmpty()
-  body('serviceId').optional().isString().withMessage('Service ID must be a string'),
+  body('serviceId').optional().isString(),
   body('location').optional().isString(),
   body('notes').optional().isString(),
   body('symptoms').optional().isString(),
   body('isEmergency').optional().isBoolean(),
   body('patientAge').optional().isInt({ min: 0, max: 150 }),
   body('patientGender').optional().isIn(['MALE', 'FEMALE', 'OTHER']),
+  body('visitType').optional().isIn(['HOSPITAL', 'HOME']).withMessage('Visit type must be HOSPITAL or HOME'),
+  body('city').optional().isString(),
+  body('subCity').optional().isString(),
+  body('woreda').optional().isString(),
+  body('gpsPin').optional().isString(),
+  body('homeAddress').optional().isString(),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -219,26 +188,20 @@ router.post('/', [
 
     const { 
       patientName, patientEmail, patientPhone, patientAge,
-      patientGender, date, time, doctorId, serviceId,
-      notes, symptoms, isEmergency, location 
+      patientGender, date, time, serviceId,
+      notes, symptoms, isEmergency, location,
+      visitType, city, subCity, woreda, gpsPin, homeAddress
     } = req.body;
 
-    // Check if doctor exists and is available
-    const doctor = await prisma.doctor.findUnique({
-      where: { id: doctorId },
-      include: {
-        workingHours: true,
-      },
-    });
+    const appointmentDate = new Date(date);
 
-    if (!doctor || !doctor.isAvailable) {
+    if (isNaN(appointmentDate.getTime())) {
       return res.status(400).json({
         success: false,
-        error: 'Doctor is not available',
+        error: 'Invalid date format. Please use YYYY-MM-DD',
       });
     }
 
-    // Check if service exists - ONLY IF serviceId IS PROVIDED
     let service = null;
     if (serviceId) {
       service = await prisma.service.findUnique({
@@ -253,40 +216,6 @@ router.post('/', [
       }
     }
 
-    // Check if time slot is available
-    const appointmentDate = new Date(date);
-    const existingAppointment = await prisma.appointment.findFirst({
-      where: {
-        doctorId,
-        date: appointmentDate,
-        time,
-        status: {
-          notIn: ['CANCELLED', 'COMPLETED'],
-        },
-      },
-    });
-
-    if (existingAppointment) {
-      return res.status(400).json({
-        success: false,
-        error: 'This time slot is already booked',
-      });
-    }
-
-    // Check working hours
-    const dayOfWeek = appointmentDate.getDay();
-    const workingHour = doctor.workingHours.find(
-      wh => wh.dayOfWeek === dayOfWeek && wh.isAvailable
-    );
-
-    if (!workingHour) {
-      return res.status(400).json({
-        success: false,
-        error: 'Doctor is not working on this day',
-      });
-    }
-
-    // Find or create user if authenticated
     let userId = null;
     if (req.user) {
       userId = req.user.id;
@@ -300,7 +229,7 @@ router.post('/', [
       }
     }
 
-    // Create appointment - serviceId is optional
+    // Build appointment data - NO doctor fields
     const appointmentData = {
       patientName,
       patientEmail,
@@ -309,30 +238,32 @@ router.post('/', [
       patientGender,
       date: appointmentDate,
       time,
-      notes,
-      symptoms,
+      notes: notes || '',
+      symptoms: symptoms || '',
       isEmergency: isEmergency || false,
-      doctorId,
-      userId: userId,
       location: location || 'Afilas General Hospital',
       status: 'PENDING',
+      visitType: visitType || null,
+      city: city || null,
+      subCity: subCity || null,
+      woreda: woreda || null,
+      gpsPin: gpsPin || null,
+      homeAddress: homeAddress || null,
     };
 
-    // Only add serviceId if it's provided
     if (serviceId) {
       appointmentData.serviceId = serviceId;
+    }
+
+    if (userId) {
+      appointmentData.user = {
+        connect: { id: userId }
+      };
     }
 
     const appointment = await prisma.appointment.create({
       data: appointmentData,
       include: {
-        doctor: {
-          select: {
-            id: true,
-            name: true,
-            specialization: true,
-          },
-        },
         service: {
           select: {
             id: true,
@@ -341,15 +272,18 @@ router.post('/', [
             duration: true,
           },
         },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
       },
     });
 
-    // Send confirmation email
-    try {
-      await mailer.sendAppointmentConfirmation(appointment, doctor, service);
-    } catch (emailError) {
-      console.error('Failed to send confirmation email:', emailError);
-    }
+    console.log(`✅ Appointment created: ${appointment.id} for ${appointment.patientName}`);
 
     res.status(201).json({
       success: true,
@@ -365,9 +299,11 @@ router.post('/', [
   }
 });
 
-// Update appointment status
-router.patch('/:id/status', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), [
-  body('status').isIn(['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED']),
+// ============================================================
+// UPDATE appointment status - 🔥 ADMIN only
+// ============================================================
+router.patch('/:id/status', auth, authorize('ADMIN'), [
+  body('status').isIn(['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'MISSED']),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -378,16 +314,11 @@ router.patch('/:id/status', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), [
     const { id } = req.params;
     const { status } = req.body;
 
+    console.log(`📡 Updating appointment ${id} to status: ${status}`);
+
     const appointment = await prisma.appointment.findUnique({
       where: { id },
       include: {
-        doctor: {
-          select: {
-            id: true,
-            name: true,
-            specialization: true,
-          },
-        },
         service: {
           select: {
             id: true,
@@ -406,31 +337,11 @@ router.patch('/:id/status', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), [
       });
     }
 
-    // If user is DOCTOR, check if they own this appointment
-    if (req.user.role === 'DOCTOR') {
-      const doctor = await prisma.doctor.findFirst({
-        where: { email: req.user.email },
-        select: { id: true },
-      });
-      if (doctor && appointment.doctorId !== doctor.id) {
-        return res.status(403).json({
-          success: false,
-          error: 'You do not have permission to update this appointment',
-        });
-      }
-    }
-
+    const oldStatus = appointment.status;
     const updated = await prisma.appointment.update({
       where: { id },
       data: { status },
       include: {
-        doctor: {
-          select: {
-            id: true,
-            name: true,
-            specialization: true,
-          },
-        },
         service: {
           select: {
             id: true,
@@ -442,12 +353,48 @@ router.patch('/:id/status', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), [
       },
     });
 
-    // Send notification email for status changes
-    if (status === 'CONFIRMED') {
+    console.log(`✅ Appointment ${id} status updated from ${oldStatus} to ${status}`);
+
+    // ============================================================
+    // 🔥 SEND NOTIFICATIONS
+    // ============================================================
+    let notifications = { email: false, sms: false };
+    
+    // ✅ APPROVED - when status changes to CONFIRMED
+    if (status === 'CONFIRMED' && oldStatus !== 'CONFIRMED') {
+      console.log(`📧 Sending APPROVED notification for appointment ${id}`);
       try {
-        await mailer.sendAppointmentConfirmation(updated, updated.doctor, updated.service);
-      } catch (emailError) {
-        console.error('Failed to send confirmation email:', emailError);
+        const result = await notificationService.sendAppointmentApproved(updated);
+        notifications.email = result.email?.success || false;
+        notifications.sms = result.sms?.success || false;
+        
+        if (notifications.email) {
+          console.log(`✅ Approval email sent to ${appointment.patientEmail}`);
+        }
+        if (notifications.sms) {
+          console.log(`✅ Approval SMS sent to ${appointment.patientPhone}`);
+        }
+      } catch (error) {
+        console.error('❌ Failed to send approval notification:', error);
+      }
+    }
+
+    // ❌ REJECTED - when status changes to CANCELLED
+    if (status === 'CANCELLED' && oldStatus !== 'CANCELLED') {
+      console.log(`📧 Sending REJECTED notification for appointment ${id}`);
+      try {
+        const result = await notificationService.sendAppointmentRejected(updated);
+        notifications.email = result.email?.success || false;
+        notifications.sms = result.sms?.success || false;
+        
+        if (notifications.email) {
+          console.log(`✅ Rejection email sent to ${appointment.patientEmail}`);
+        }
+        if (notifications.sms) {
+          console.log(`✅ Rejection SMS sent to ${appointment.patientPhone}`);
+        }
+      } catch (error) {
+        console.error('❌ Failed to send rejection notification:', error);
       }
     }
 
@@ -455,6 +402,10 @@ router.patch('/:id/status', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), [
       success: true,
       data: mapAppointment(updated),
       message: `Appointment status updated to ${status}`,
+      notifications: {
+        emailSent: notifications.email,
+        smsSent: notifications.sms
+      }
     });
   } catch (error) {
     console.error('Update appointment status error:', error);
@@ -465,15 +416,17 @@ router.patch('/:id/status', auth, authorize('SUPER_ADMIN', 'ADMIN', 'DOCTOR'), [
   }
 });
 
-// Update appointment details
-router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
+// ============================================================
+// UPDATE appointment details - 🔥 ADMIN only
+// ============================================================
+router.put('/:id', auth, authorize('ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
     const { 
       patientName, patientEmail, patientPhone, 
       patientAge, patientGender, date, time, 
-      doctorId, serviceId, notes, symptoms, isEmergency,
-      location
+      serviceId, notes, symptoms, isEmergency, location,
+      visitType, city, subCity, woreda, gpsPin, homeAddress
     } = req.body;
 
     const appointment = await prisma.appointment.findUnique({
@@ -497,21 +450,19 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
         patientGender: patientGender || appointment.patientGender,
         date: date ? new Date(date) : appointment.date,
         time: time || appointment.time,
-        doctorId: doctorId || appointment.doctorId,
         serviceId: serviceId !== undefined ? serviceId : appointment.serviceId,
         notes: notes !== undefined ? notes : appointment.notes,
         symptoms: symptoms !== undefined ? symptoms : appointment.symptoms,
         isEmergency: isEmergency !== undefined ? isEmergency : appointment.isEmergency,
         location: location || appointment.location || 'Afilas General Hospital',
+        visitType: visitType !== undefined ? visitType : appointment.visitType,
+        city: city !== undefined ? city : appointment.city,
+        subCity: subCity !== undefined ? subCity : appointment.subCity,
+        woreda: woreda !== undefined ? woreda : appointment.woreda,
+        gpsPin: gpsPin !== undefined ? gpsPin : appointment.gpsPin,
+        homeAddress: homeAddress !== undefined ? homeAddress : appointment.homeAddress,
       },
       include: {
-        doctor: {
-          select: {
-            id: true,
-            name: true,
-            specialization: true,
-          },
-        },
         service: {
           select: {
             id: true,
@@ -537,8 +488,10 @@ router.put('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => 
   }
 });
 
-// Delete appointment (Admin only)
-router.delete('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
+// ============================================================
+// DELETE appointment - 🔥 ADMIN only
+// ============================================================
+router.delete('/:id', auth, authorize('ADMIN'), async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -570,7 +523,9 @@ router.delete('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) 
   }
 });
 
-// Cancel appointment (User)
+// ============================================================
+// CANCEL appointment - 🔥 USER can cancel their own appointments
+// ============================================================
 router.delete('/:id/cancel', auth, async (req, res) => {
   try {
     const { id } = req.params;
@@ -586,7 +541,6 @@ router.delete('/:id/cancel', auth, async (req, res) => {
       });
     }
 
-    // Check permission
     if (appointment.userId !== req.user.id && req.user.role === 'USER') {
       return res.status(403).json({
         success: false,

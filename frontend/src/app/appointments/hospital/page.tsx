@@ -1,4 +1,3 @@
-// src/app/appointments/hospital/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,865 +6,211 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
-  AlertTriangle,
-  ChevronRight,
-  ChevronLeft,
   Check,
   Loader2,
-  PhoneCall,
+  User,
+  Phone,
+  Mail,
+  Stethoscope,
+  FileText,
+  MapPin,
   Crosshair,
-  Navigation
+  Navigation,
+  Home,
+  ChevronRight,
+  ChevronLeft,
+  UserCircle,
+  Users,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import api from '@/lib/api';
 import { Appointment } from '@/lib/types';
 
 // ============================================================
-// TYPE DEFINITIONS
-// ============================================================
-interface Doctor {
-  id: string;
-  name: string;
-  title: string;
-  specialization: string;
-  department: string;
-  active: boolean;
-  email: string;
-  phone: string;
-  availableDays: string[];
-  availableTime: string;
-  image?: string;
-  experience?: string;
-  education?: string;
-}
-
-// ============================================================
-// SCHEMA DEFINITION - NO SERVICE SELECTION
+// SCHEMA DEFINITION
 // ============================================================
 const hospitalBookingSchema = z.object({
-  isEmergency: z.boolean(),
-  visitType: z.enum(['HOSPITAL', 'HOME_CARE']),
+  // Step 1: Personal Information
+  patientName: z.string().min(2, 'Full name is required'),
+  patientPhone: z.string().min(10, 'Valid phone number is required'),
+  patientEmail: z.string().email('A valid email is required'),
+  patientAge: z.string().optional(),
+  patientGender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
+
+  // Step 2: Visit Details
+  symptoms: z.string().optional(),
+  notes: z.string().optional(),
+  visitType: z.enum(['HOSPITAL', 'HOME']),
   city: z.string().optional(),
   subCity: z.string().optional(),
   woreda: z.string().optional(),
   homeAddress: z.string().optional(),
   gpsPin: z.string().optional(),
-  patientName: z.string().min(2, 'Full name is required'),
-  patientPhone: z.string().min(10, 'Valid phone number is required'),
-  patientEmail: z.string().email('Valid email is required'),
-  patientType: z.enum(['RETURNING', 'NEW']),
-  medicalHistory: z.string().optional(),
-  appointmentDate: z.string().min(1, 'Date is required'),
-  timeSlot: z.enum(['MORNING', 'AFTERNOON', 'EVENING']),
-  doctorId: z.string().min(1, 'Please select a doctor'),
 });
 
 type HospitalBookingData = z.infer<typeof hospitalBookingSchema>;
-
-// ============================================================
-// STEP COMPONENTS
-// ============================================================
-
-// Step 1: Emergency Check
-function EmergencyStep({ form, watch, setValue }: { form: any; watch: any; setValue: any }) {
-  const isEmergency = watch('isEmergency');
-
-  return (
-    <div className="space-y-4">
-      <div className="border-b border-gray-100 dark:border-gray-700 pb-2">
-        <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-          Emergency Check
-        </h3>
-        <p className="text-xs text-gray-400 dark:text-gray-500">
-          Confirm if this is a medical emergency
-        </p>
-      </div>
-
-      <div className={`p-4 border-2 rounded-lg transition-all duration-200 ${
-        isEmergency 
-          ? 'border-red-500 bg-red-50 dark:bg-red-950/30 shadow-lg shadow-red-100 dark:shadow-red-900/20' 
-          : 'border-gray-200 dark:border-gray-700 hover:border-red-300 dark:hover:border-red-700'
-      }`}>
-        <div className="flex items-start gap-3">
-          <div className="relative mt-0.5">
-            <input
-              type="checkbox"
-              checked={isEmergency}
-              onChange={(e) => setValue('isEmergency', e.target.checked)}
-              className="w-5 h-5 text-red-600 border-2 border-gray-300 rounded focus:ring-2 focus:ring-red-500 focus:ring-offset-2 cursor-pointer transition-all"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2 flex-wrap">
-              <span>Is this an Emergency?</span>
-              <span className="text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 px-2 py-0.5 rounded-full border border-red-200 dark:border-red-800 animate-pulse">
-                ⚠️ Urgent
-              </span>
-            </label>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-              Check if you or someone else needs immediate medical attention
-            </p>
-            {!isEmergency && (
-              <p className="text-[10px] text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
-                <Check className="w-3 h-3" />
-                Proceed with standard booking
-              </p>
-            )}
-          </div>
-        </div>
-
-        {isEmergency && (
-          <div className="mt-4 p-4 bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/50 dark:to-red-900/30 border-2 border-red-400 dark:border-red-600 rounded-xl shadow-lg shadow-red-200 dark:shadow-red-900/30 animate-in slide-in-from-top duration-300">
-            <div className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center animate-pulse">
-                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
-              </div>
-              <div className="flex-1">
-                <h4 className="text-sm font-bold text-red-800 dark:text-red-200 flex items-center gap-2 flex-wrap">
-                  ⚠️ Emergency Detected
-                  <span className="text-[10px] font-normal bg-red-200 dark:bg-red-800/50 text-red-700 dark:text-red-300 px-2 py-0.5 rounded-full animate-pulse">
-                    Call Now
-                  </span>
-                </h4>
-                <p className="text-xs text-red-700 dark:text-red-300 mt-1 font-medium">
-                  Please call our emergency hotline for immediate assistance:
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <a
-                    href="tel:8560"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white text-sm font-bold rounded-lg transition-all shadow-md hover:shadow-lg hover:shadow-red-500/30 transform hover:-translate-y-0.5"
-                  >
-                    <PhoneCall className="w-4 h-4" />
-                    8560 (Emergency Hotline)
-                  </a>
-                  <a
-                    href="tel:+251583204167"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-800/50 text-red-700 dark:text-red-300 text-sm font-bold rounded-lg transition-all border-2 border-red-300 dark:border-red-700 hover:border-red-500"
-                  >
-                    <PhoneCall className="w-4 h-4" />
-                    +251 58 320 4167
-                  </a>
-                </div>
-                <div className="mt-3 flex items-center gap-2 text-xs text-red-600 dark:text-red-400 bg-white/50 dark:bg-black/20 p-2 rounded-lg">
-                  <span className="font-medium text-base">📍</span>
-                  <span>Emergency Department - Bahir Dar, Kebele 13, Around Felege Hiwot Hospital</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setValue('isEmergency', false)}
-                  className="mt-3 text-xs text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-200 hover:underline font-medium transition-colors flex items-center gap-1"
-                >
-                  <ChevronLeft className="w-3 h-3" />
-                  Not an emergency? Continue with standard booking
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Step 2: Service Type
-function ServiceTypeStep({ form, watch, setValue }: { form: any; watch: any; setValue: any }) {
-  const visitType = watch('visitType');
-  const { register, formState: { errors } } = form;
-
-  return (
-    <div className="space-y-4">
-      <div className="border-b border-gray-100 dark:border-gray-700 pb-2">
-        <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-          Service Type
-        </h3>
-        <p className="text-xs text-gray-400 dark:text-gray-500">
-          Choose how you'd like to receive care
-        </p>
-      </div>
-
-      <div className="space-y-2">
-        <button
-          type="button"
-          onClick={() => setValue('visitType', 'HOSPITAL')}
-          className={`w-full p-3 border rounded-lg text-left transition-all ${
-            visitType === 'HOSPITAL'
-              ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-sm'
-              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-          }`}
-        >
-          <div className="text-sm font-medium text-gray-900 dark:text-white">In-Hospital Visit</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            Visit us at Afilas General Hospital
-          </div>
-          <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
-            Bahir Dar, Kebele 13, Around Felege Hiwot Hospital
-          </div>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setValue('visitType', 'HOME_CARE')}
-          className={`w-full p-3 border rounded-lg text-left transition-all ${
-            visitType === 'HOME_CARE'
-              ? 'border-green-500 bg-green-50 dark:bg-green-900/20 shadow-sm'
-              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
-          }`}
-        >
-          <div className="text-sm font-medium text-gray-900 dark:text-white">Home Care Visit</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-            Doctor visits you at home
-          </div>
-          <div className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5">
-            Available within Bahir Dar area
-          </div>
-        </button>
-      </div>
-
-      {errors.visitType && (
-        <p className="text-xs text-red-600">{errors.visitType.message}</p>
-      )}
-
-      {/* Home Care Address Fields */}
-      {visitType === 'HOME_CARE' && (
-        <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 space-y-3">
-          <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
-            Home Address Details
-          </p>
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                City
-              </label>
-              <input
-                {...register('city')}
-                type="text"
-                placeholder="Bahir Dar"
-                className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-1 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                Sub-City
-              </label>
-              <input
-                {...register('subCity')}
-                type="text"
-                placeholder="Kebele 13"
-                className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-1 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                Woreda
-              </label>
-              <input
-                {...register('woreda')}
-                type="text"
-                placeholder="Woreda 03"
-                className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-1 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                GPS Pin / Location
-              </label>
-              <div className="relative">
-                <input
-                  {...register('gpsPin')}
-                  type="text"
-                  placeholder="Click crosshair to get your current location"
-                  className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-1 focus:ring-green-500 dark:bg-gray-700 dark:text-white pr-10"
-                  readOnly
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    if ('geolocation' in navigator) {
-                      toast.info('Getting your location...');
-                      navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                          const { latitude, longitude } = position.coords;
-                          const gpsString = `${latitude.toFixed(6)}° N, ${longitude.toFixed(6)}° E`;
-                          setValue('gpsPin', gpsString);
-                          toast.success('Location captured successfully! 📍');
-                        },
-                        (error) => {
-                          console.error('Geolocation error:', error);
-                          let errorMessage = 'Unable to get location. ';
-                          switch(error.code) {
-                            case error.PERMISSION_DENIED:
-                              errorMessage += 'Please allow location access in your browser settings.';
-                              break;
-                            case error.POSITION_UNAVAILABLE:
-                              errorMessage += 'Location information is unavailable.';
-                              break;
-                            case error.TIMEOUT:
-                              errorMessage += 'Location request timed out. Please try again.';
-                              break;
-                            default:
-                              errorMessage += 'Please enter your location manually.';
-                          }
-                          toast.error(errorMessage);
-                        },
-                        { 
-                          enableHighAccuracy: true,
-                          timeout: 10000,
-                          maximumAge: 0
-                        }
-                      );
-                    } else {
-                      toast.error('Geolocation is not supported by your browser. Please enter your location manually.');
-                    }
-                  }}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 transition-colors"
-                  title="Get current location"
-                >
-                  <Crosshair className="w-4 h-4" />
-                </button>
-              </div>
-              <p className="text-[10px] text-gray-400 dark:text-gray-500 mt-0.5 flex items-center gap-1">
-                <Navigation className="w-3 h-3" />
-                Click the crosshair icon to use your device's GPS
-              </p>
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                Detailed Address
-              </label>
-              <textarea
-                {...register('homeAddress')}
-                rows={2}
-                placeholder="House number, building, landmarks..."
-                className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-1 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
-              />
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Step 3: Patient Information
-function PatientInfoStep({ form }: { form: any }) {
-  const { register, watch, formState: { errors } } = form;
-  const patientType = watch('patientType');
-
-  return (
-    <div className="space-y-4">
-      <div className="border-b border-gray-100 dark:border-gray-700 pb-2">
-        <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-          Patient Information
-        </h3>
-        <p className="text-xs text-gray-400 dark:text-gray-500">
-          Provide your contact details
-        </p>
-      </div>
-
-      <div className="space-y-3">
-        <div>
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-            Full Name *
-          </label>
-          <input
-            {...register('patientName')}
-            type="text"
-            placeholder="Enter your full name"
-            className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-1 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
-          />
-          {errors.patientName && (
-            <p className="mt-0.5 text-xs text-red-600">{errors.patientName.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-            Phone Number *
-          </label>
-          <input
-            {...register('patientPhone')}
-            type="tel"
-            placeholder="+251 9XX XXX XXX"
-            className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-1 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
-          />
-          {errors.patientPhone && (
-            <p className="mt-0.5 text-xs text-red-600">{errors.patientPhone.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-            Email Address *
-          </label>
-          <input
-            {...register('patientEmail')}
-            type="email"
-            placeholder="your@email.com"
-            className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-1 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
-          />
-          {errors.patientEmail && (
-            <p className="mt-0.5 text-xs text-red-600">{errors.patientEmail.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Patient Type *
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => form.setValue('patientType', 'RETURNING')}
-              className={`p-2 border rounded-lg text-center transition-all text-sm ${
-                patientType === 'RETURNING'
-                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="font-medium text-gray-900 dark:text-white">Returning</div>
-              <div className="text-[10px] text-gray-500">Has visited before</div>
-            </button>
-            <button
-              type="button"
-              onClick={() => form.setValue('patientType', 'NEW')}
-              className={`p-2 border rounded-lg text-center transition-all text-sm ${
-                patientType === 'NEW'
-                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="font-medium text-gray-900 dark:text-white">New Patient</div>
-              <div className="text-[10px] text-gray-500">First time visit</div>
-            </button>
-          </div>
-          {errors.patientType && (
-            <p className="mt-0.5 text-xs text-red-600">{errors.patientType.message}</p>
-          )}
-        </div>
-
-        {patientType === 'NEW' && (
-          <div>
-            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-              Brief Medical History
-            </label>
-            <textarea
-              {...register('medicalHistory')}
-              rows={2}
-              placeholder="Describe your symptoms or reason for visit..."
-              className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-1 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
-            />
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Step 4: Scheduling
-function SchedulingStep({ form, doctors }: { form: any; doctors: Doctor[] }) {
-  const { register, formState: { errors }, watch } = form;
-
-  const getAvailableDates = () => {
-    const dates = [];
-    const today = new Date();
-    for (let i = 1; i <= 14; i++) {
-      const date = new Date(today);
-      date.setDate(date.getDate() + i);
-      dates.push(date.toISOString().split('T')[0]);
-    }
-    return dates;
-  };
-
-  return (
-    <div className="space-y-4">
-      <div className="border-b border-gray-100 dark:border-gray-700 pb-2">
-        <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-          Schedule Appointment
-        </h3>
-        <p className="text-xs text-gray-400 dark:text-gray-500">
-          Select your preferred date and time
-        </p>
-      </div>
-
-      <div className="space-y-4">
-        <div>
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-            Doctor *
-          </label>
-          <select
-            {...register('doctorId')}
-            className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-1 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
-          >
-            <option value="">Select a doctor</option>
-            {doctors.filter(d => d.active !== false).map((doctor) => (
-              <option key={doctor.id} value={doctor.id}>
-                {doctor.title} {doctor.name} - {doctor.specialization || 'General'}
-              </option>
-            ))}
-          </select>
-          {errors.doctorId && (
-            <p className="mt-0.5 text-xs text-red-600">{errors.doctorId.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-            Appointment Date *
-          </label>
-          <select
-            {...register('appointmentDate')}
-            className="w-full px-3 py-1.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-1 focus:ring-green-500 dark:bg-gray-700 dark:text-white"
-          >
-            <option value="">Select a date</option>
-            {getAvailableDates().map((date) => (
-              <option key={date} value={date}>
-                {new Date(date).toLocaleDateString('en-US', {
-                  weekday: 'short',
-                  month: 'short',
-                  day: 'numeric',
-                })}
-              </option>
-            ))}
-          </select>
-          {errors.appointmentDate && (
-            <p className="mt-0.5 text-xs text-red-600">{errors.appointmentDate.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-            Time Slot *
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              onClick={() => form.setValue('timeSlot', 'MORNING')}
-              className={`p-2 border rounded-lg text-center transition-all ${
-                form.watch('timeSlot') === 'MORNING'
-                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="text-xs font-medium text-gray-900 dark:text-white">Morning</div>
-              <div className="text-[10px] text-gray-500">8:00 - 12:00</div>
-            </button>
-            <button
-              type="button"
-              onClick={() => form.setValue('timeSlot', 'AFTERNOON')}
-              className={`p-2 border rounded-lg text-center transition-all ${
-                form.watch('timeSlot') === 'AFTERNOON'
-                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="text-xs font-medium text-gray-900 dark:text-white">Afternoon</div>
-              <div className="text-[10px] text-gray-500">1:00 - 5:00</div>
-            </button>
-            <button
-              type="button"
-              onClick={() => form.setValue('timeSlot', 'EVENING')}
-              className={`p-2 border rounded-lg text-center transition-all ${
-                form.watch('timeSlot') === 'EVENING'
-                  ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <div className="text-xs font-medium text-gray-900 dark:text-white">Evening</div>
-              <div className="text-[10px] text-gray-500">5:00 - 9:00</div>
-            </button>
-          </div>
-          {errors.timeSlot && (
-            <p className="mt-0.5 text-xs text-red-600">{errors.timeSlot.message}</p>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ============================================================
-// MOCK DOCTORS DATA
-// ============================================================
-const mockDoctors: Doctor[] = [
-  {
-    id: 'doc-1',
-    name: 'Dr. Abebe Kebede',
-    title: 'Dr.',
-    specialization: 'Cardiology',
-    department: 'Cardiology',
-    active: true,
-    email: 'abebe.kebede@afilas.com',
-    phone: '+251 911 000 001',
-    availableDays: ['Monday', 'Wednesday', 'Friday'],
-    availableTime: '9:00 AM - 5:00 PM',
-    image: '/doctors/doctor-1.jpg',
-    experience: '15 years',
-    education: 'MD, Addis Ababa University'
-  },
-  {
-    id: 'doc-2',
-    name: 'Dr. Selam Tesfaye',
-    title: 'Dr.',
-    specialization: 'Pediatrics',
-    department: 'Pediatrics',
-    active: true,
-    email: 'selam.tesfaye@afilas.com',
-    phone: '+251 911 000 002',
-    availableDays: ['Tuesday', 'Thursday', 'Saturday'],
-    availableTime: '9:00 AM - 5:00 PM',
-    image: '/doctors/doctor-2.jpg',
-    experience: '10 years',
-    education: 'MD, Gondar University'
-  },
-  {
-    id: 'doc-3',
-    name: 'Dr. Yonas Worku',
-    title: 'Dr.',
-    specialization: 'Orthopedics',
-    department: 'Orthopedics',
-    active: true,
-    email: 'yonas.worku@afilas.com',
-    phone: '+251 911 000 003',
-    availableDays: ['Monday', 'Tuesday', 'Thursday'],
-    availableTime: '8:00 AM - 4:00 PM',
-    image: '/doctors/doctor-3.jpg',
-    experience: '12 years',
-    education: 'MD, Jimma University'
-  },
-  {
-    id: 'doc-4',
-    name: 'Dr. Tigist Hailu',
-    title: 'Dr.',
-    specialization: 'Gynecology',
-    department: 'Gynecology',
-    active: true,
-    email: 'tigist.hailu@afilas.com',
-    phone: '+251 911 000 004',
-    availableDays: ['Wednesday', 'Friday', 'Saturday'],
-    availableTime: '9:00 AM - 6:00 PM',
-    image: '/doctors/doctor-4.jpg',
-    experience: '8 years',
-    education: 'MD, Bahir Dar University'
-  }
-];
 
 // ============================================================
 // MAIN COMPONENT
 // ============================================================
 export default function HospitalBookingPage() {
   const router = useRouter();
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [bookingData, setBookingData] = useState<HospitalBookingData | null>(null);
   const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [loadingData, setLoadingData] = useState(true);
   const [errorDetails, setErrorDetails] = useState<string>('');
 
-  const form = useForm<HospitalBookingData>({
+  const { register, handleSubmit, watch, setValue, trigger, formState: { errors } } = useForm<HospitalBookingData>({
     resolver: zodResolver(hospitalBookingSchema),
     defaultValues: {
-      isEmergency: false,
+      patientName: '',
+      patientPhone: '',
+      patientEmail: '',
+      patientAge: '',
+      patientGender: undefined,
+      symptoms: '',
+      notes: '',
       visitType: 'HOSPITAL',
-      patientType: 'RETURNING',
-      timeSlot: 'MORNING',
-      doctorId: '',
+      city: '',
+      subCity: '',
+      woreda: '',
+      homeAddress: '',
+      gpsPin: '',
     },
   });
 
-  const { watch, handleSubmit, trigger, setValue } = form;
-  const isEmergency = watch('isEmergency');
+  const visitType = watch('visitType');
 
-  // Load doctors
   useEffect(() => {
-    async function loadData() {
-      try {
-        let doctorsData: Doctor[] = [];
-
-        try {
-          const response = await api.getDoctors({ active: true });
-          const data = api.extractData<Doctor[]>(response);
-          doctorsData = data && data.length > 0 ? data : mockDoctors;
-        } catch (error) {
-          console.log('API failed, using mock data:', error);
-          doctorsData = mockDoctors;
-        }
-        
-        setDoctors(doctorsData);
-        console.log('✅ Loaded doctors:', doctorsData.length);
-      } catch (error) {
-        console.error('❌ Failed to load data:', error);
-        setDoctors(mockDoctors);
-        toast.info('Using offline data');
-      } finally {
-        setLoadingData(false);
-      }
-    }
-    loadData();
+    setLoadingData(false);
   }, []);
 
-  const steps = [
-    { id: 0, title: 'Emergency' },
-    { id: 1, title: 'Service' },
-    { id: 2, title: 'Patient' },
-    { id: 3, title: 'Schedule' },
-  ];
-
-  const getStepContent = () => {
-    switch (currentStep) {
-      case 0:
-        return <EmergencyStep form={form} watch={watch} setValue={setValue} />;
-      case 1:
-        return <ServiceTypeStep form={form} watch={watch} setValue={setValue} />;
-      case 2:
-        return <PatientInfoStep form={form} />;
-      case 3:
-        return <SchedulingStep form={form} doctors={doctors} />;
-      default:
-        return null;
+  const getCurrentLocation = () => {
+    if ('geolocation' in navigator) {
+      toast.info('Getting your location...');
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const gpsString = `${latitude.toFixed(6)}° N, ${longitude.toFixed(6)}° E`;
+          setValue('gpsPin', gpsString);
+          toast.success('Location captured successfully! 📍');
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+          toast.error('Unable to get location. Please enter manually.');
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    } else {
+      toast.error('Geolocation is not supported by your browser.');
     }
   };
 
-  if (isEmergency) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-red-50 dark:bg-red-950/30 p-4">
-        <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 border-2 border-red-400 dark:border-red-600">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center mx-auto mb-3 animate-pulse">
-              <AlertTriangle className="w-8 h-8 text-red-600 dark:text-red-400" />
-            </div>
-            <h1 className="text-xl font-bold text-red-800 dark:text-red-200">
-              🚨 Emergency Detected
-            </h1>
-            <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-              Call our emergency hotline immediately:
-            </p>
-            <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
-              <a
-                href="tel:8560"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition shadow-lg hover:shadow-red-500/30 text-lg font-bold"
-              >
-                <PhoneCall className="w-5 h-5" />
-                8560
-              </a>
-              <a
-                href="tel:+251583204167"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg hover:bg-red-200 dark:hover:bg-red-800/50 transition border-2 border-red-300 dark:border-red-700 text-lg font-bold"
-              >
-                <PhoneCall className="w-5 h-5" />
-                +251 58 320 4167
-              </a>
-            </div>
-            <p className="mt-3 text-xs text-red-600 dark:text-red-400">
-              📍 Bahir Dar, Kebele 13, Around Felege Hiwot Hospital
-            </p>
-            <button
-              onClick={() => setValue('isEmergency', false)}
-              className="mt-4 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 underline"
-            >
-              ← Not an emergency? Back to booking
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const canProceed = async () => {
-    let fields: (keyof HospitalBookingData)[] = [];
-    switch (currentStep) {
-      case 0:
-        return true;
-      case 1:
-        fields = ['visitType'];
-        if (watch('visitType') === 'HOME_CARE') {
-          fields = ['visitType', 'city', 'subCity', 'woreda', 'homeAddress'];
-        }
-        break;
-      case 2:
-        fields = ['patientName', 'patientPhone', 'patientEmail', 'patientType'];
-        if (watch('patientType') === 'NEW') {
-          fields.push('medicalHistory');
-        }
-        break;
-      case 3:
-        fields = ['doctorId', 'appointmentDate', 'timeSlot'];
-        break;
-    }
-
-    const isValid = await trigger(fields);
-    if (!isValid) {
-      toast.error('Please fill in all required fields');
-      return false;
-    }
-    return true;
-  };
-
-  const handleNext = async () => {
-    const canContinue = await canProceed();
-    if (!canContinue) return;
-
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
+  const nextStep = async () => {
+    const step1Fields: (keyof HospitalBookingData)[] = ['patientName', 'patientPhone', 'patientEmail'];
+    const isValid = await trigger(step1Fields);
+    if (isValid) {
+      setCurrentStep(2);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+  const prevStep = () => {
+    setCurrentStep(1);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const onSubmit = async (data: HospitalBookingData) => {
     setIsSubmitting(true);
     setErrorDetails('');
-    
+
     try {
-      const timeMap: Record<string, string> = {
-        MORNING: '09:00',
-        AFTERNOON: '14:00',
-        EVENING: '17:00',
-      };
+      // Get current date and time
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const appointmentDate = `${year}-${month}-${day}`;
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const timeSlot = `${hours}:${minutes}`;
 
-      // Use a hardcoded service ID (you need this service in your database)
-      const DEFAULT_SERVICE_ID = 'gen-consult';
+      // 🔥 CRITICAL FIX: ALWAYS use 'Afilas General Hospital' as the location
+      // Whether it's HOSPITAL or HOME visit, the location is the branch
+      const location = 'Afilas General Hospital';
 
-      const payload = {
+      // Build payload
+      const payload: Record<string, unknown> = {
         patientName: data.patientName.trim(),
         patientEmail: data.patientEmail.trim(),
         patientPhone: data.patientPhone.trim(),
-        patientAge: null,
-        patientGender: null,
-        date: data.appointmentDate,
-        time: timeMap[data.timeSlot] || '09:00',
-        doctorId: data.doctorId,
-        serviceId: DEFAULT_SERVICE_ID,
-        location: data.visitType === 'HOME_CARE' ? 'Home Care' : 'Afilas General Hospital',
-        notes: data.medicalHistory || '',
-        symptoms: data.medicalHistory || '',
-        isEmergency: data.isEmergency || false,
+        date: appointmentDate,
+        time: timeSlot,
+        location: location, // ALWAYS the branch name
+        notes: data.notes?.trim() || '',
+        symptoms: data.symptoms?.trim() || '',
+        isEmergency: false,
+        visitType: data.visitType, // 'HOSPITAL' or 'HOME'
       };
 
-      console.log('📤 Submitting appointment payload:', payload);
-      
-      // Use api.createAppointment directly
-      const response = await api.createAppointment(payload, false);
-      
+      // Add age and gender if provided
+      if (data.patientAge) {
+        payload.patientAge = parseInt(data.patientAge);
+      }
+      if (data.patientGender) {
+        payload.patientGender = data.patientGender;
+      }
+
+      // 🔥 CRITICAL FIX: For HOME visits, send the address fields
+      // These will be stored separately from the location
+      if (data.visitType === 'HOME') {
+        payload.city = data.city || null;
+        payload.subCity = data.subCity || null;
+        payload.woreda = data.woreda || null;
+        payload.gpsPin = data.gpsPin || null;
+        payload.homeAddress = data.homeAddress || null;
+      }
+
+      console.log('📤 Submitting appointment payload:', JSON.stringify(payload, null, 2));
+
+      const response = await api.post('/appointments', payload, false);
+
       console.log('✅ Appointment created:', response);
-      
-      // Extract the appointment data
+
       const appointmentData = api.extractData<Appointment>(response);
-      
+
       setCreatedAppointment(appointmentData);
       setBookingData(data);
       setShowConfirmation(true);
       toast.success('Appointment booked successfully! 🎉');
     } catch (error: any) {
       console.error('❌ Booking error:', error);
-      const errorMessage = error.message || 'Failed to book appointment. Please try again.';
+      
+      let errorMessage = 'Failed to book appointment. Please try again.';
+      
+      if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      if (error.data && error.data.errors) {
+        const validationErrors = error.data.errors.map((e: any) => {
+          const field = e.param || e.field || e.path || 'field';
+          return `${field}: ${e.msg || e.message}`;
+        }).join(', ');
+        errorMessage = `Validation failed: ${validationErrors}`;
+      }
+      
+      if (error.data && error.data.error) {
+        errorMessage = error.data.error;
+      }
+      
       setErrorDetails(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -876,35 +221,78 @@ export default function HospitalBookingPage() {
   if (showConfirmation && bookingData) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+        <div className="max-w-sm w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-200 dark:border-gray-700">
           <div className="text-center">
-            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-2">
+              <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
             </div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              Confirmed! ✅
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Your appointment has been booked.
-            </p>
-            <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-left space-y-1">
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white">Confirmed! ✅</h1>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Your appointment has been booked.</p>
+            <div className="mt-3 p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-left space-y-0.5 max-h-48 overflow-y-auto">
               <p className="text-xs text-gray-600 dark:text-gray-300">
                 <span className="font-medium">Patient:</span> {bookingData.patientName}
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-300">
-                <span className="font-medium">Date:</span>{' '}
-                {new Date(bookingData.appointmentDate).toLocaleDateString('en-US', {
-                  weekday: 'short',
-                  month: 'short',
+                <span className="font-medium">Email:</span> {bookingData.patientEmail}
+              </p>
+              <p className="text-xs text-gray-600 dark:text-gray-300">
+                <span className="font-medium">Phone:</span> {bookingData.patientPhone}
+              </p>
+              {bookingData.patientAge && (
+                <p className="text-xs text-gray-600 dark:text-gray-300">
+                  <span className="font-medium">Age:</span> {bookingData.patientAge}
+                </p>
+              )}
+              {bookingData.patientGender && (
+                <p className="text-xs text-gray-600 dark:text-gray-300">
+                  <span className="font-medium">Gender:</span> {bookingData.patientGender}
+                </p>
+              )}
+              <p className="text-xs text-gray-600 dark:text-gray-300">
+                <span className="font-medium">Visit Type:</span> {bookingData.visitType === 'HOSPITAL' ? 'Hospital' : '🏠 Home Visit'}
+              </p>
+              {bookingData.visitType === 'HOME' && (
+                <>
+                  {bookingData.city && (
+                    <p className="text-xs text-gray-600 dark:text-gray-300">
+                      <span className="font-medium">City:</span> {bookingData.city}
+                    </p>
+                  )}
+                  {bookingData.subCity && (
+                    <p className="text-xs text-gray-600 dark:text-gray-300">
+                      <span className="font-medium">Sub-City:</span> {bookingData.subCity}
+                    </p>
+                  )}
+                  {bookingData.woreda && (
+                    <p className="text-xs text-gray-600 dark:text-gray-300">
+                      <span className="font-medium">Woreda:</span> {bookingData.woreda}
+                    </p>
+                  )}
+                  {bookingData.homeAddress && (
+                    <p className="text-xs text-gray-600 dark:text-gray-300">
+                      <span className="font-medium">Address:</span> {bookingData.homeAddress}
+                    </p>
+                  )}
+                  {bookingData.gpsPin && (
+                    <p className="text-xs text-gray-600 dark:text-gray-300">
+                      <span className="font-medium">GPS Pin:</span> {bookingData.gpsPin}
+                    </p>
+                  )}
+                </>
+              )}
+              <p className="text-xs text-gray-600 dark:text-gray-300">
+                <span className="font-medium">Date:</span> {new Date().toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
                   day: 'numeric',
                 })}
               </p>
               <p className="text-xs text-gray-600 dark:text-gray-300">
-                <span className="font-medium">Time:</span> {bookingData.timeSlot}
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-300">
-                <span className="font-medium">Visit Type:</span>{' '}
-                {bookingData.visitType === 'HOME_CARE' ? 'Home Care' : 'Hospital Visit'}
+                <span className="font-medium">Time:</span> {new Date().toLocaleTimeString('en-US', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               </p>
               {createdAppointment && (
                 <p className="text-xs text-gray-600 dark:text-gray-300">
@@ -915,16 +303,16 @@ export default function HospitalBookingPage() {
                 </p>
               )}
             </div>
-            <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
+            <div className="mt-3 flex flex-col sm:flex-row gap-2 justify-center">
               <button
                 onClick={() => router.push('/')}
-                className="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition"
+                className="px-3 py-1.5 bg-black text-white text-xs rounded-lg hover:bg-gray-800 transition"
               >
                 Home
               </button>
               <button
                 onClick={() => window.print()}
-                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-sm rounded-lg hover:bg-gray-300 transition"
+                className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
               >
                 Print
               </button>
@@ -936,101 +324,350 @@ export default function HospitalBookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 flex items-center justify-center">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-2 px-4 flex items-center justify-center">
+      <div className="w-full max-w-sm">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          {/* Card Header */}
-          <div className="bg-gradient-to-r from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 px-6 py-4">
-            <h1 className="text-xl font-bold text-white text-center">
+          <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-[#73787E]">
+            <h1 className="text-sm font-bold text-white text-center">
               General Hospital
             </h1>
-            <p className="text-sm text-green-100 text-center mt-0.5">
+            <p className="text-[11px] text-gray-200 text-center">
               Book your appointment
             </p>
           </div>
 
-          {/* Card Body */}
-          <div className="p-5">
-            {/* Progress Steps */}
-            <div className="mb-6">
-              <div className="flex items-center justify-center">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold bg-green-600 text-white shadow-sm">
-                    {currentStep + 1}
-                  </div>
-                  <span className="text-xs text-gray-400 dark:text-gray-500">
-                    of {steps.length}
-                  </span>
-                </div>
+          <div className="p-2.5">
+            {loadingData ? (
+              <div className="flex items-center justify-center py-3">
+                <Loader2 className="w-5 h-5 animate-spin text-gray-600 dark:text-gray-400" />
+                <span className="ml-2 text-xs text-gray-500">Loading...</span>
               </div>
-            </div>
-
-            {/* Form Content */}
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <div className="min-h-[300px]">
-                {loadingData ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-green-600" />
-                    <span className="ml-2 text-sm text-gray-500">Loading...</span>
+            ) : (
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+                      currentStep >= 1 ? 'bg-black text-white' : 'bg-gray-200 text-gray-500'
+                    }`}>
+                      1
+                    </div>
+                    <span className={`text-xs ${currentStep === 1 ? 'text-black dark:text-white font-medium' : 'text-gray-400'}`}>
+                      Personal Info
+                    </span>
                   </div>
-                ) : (
-                  getStepContent()
+                  <div className="flex-1 h-0.5 mx-2 bg-gray-200">
+                    <div className={`h-full bg-black transition-all duration-300 ${
+                      currentStep === 2 ? 'w-full' : 'w-0'
+                    }`} />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
+                      currentStep >= 2 ? 'bg-black text-white' : 'bg-gray-200 text-gray-500'
+                    }`}>
+                      2
+                    </div>
+                    <span className={`text-xs ${currentStep === 2 ? 'text-black dark:text-white font-medium' : 'text-gray-400'}`}>
+                      Visit Details
+                    </span>
+                  </div>
+                </div>
+
+                {currentStep === 1 && (
+                  <div className="space-y-1.5">
+                    <div className="border-b border-gray-200 dark:border-gray-700 pb-0.5">
+                      <h3 className="text-xs font-semibold text-gray-900 dark:text-white flex items-center gap-1">
+                        <UserCircle className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        Personal Information
+                      </h3>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                        Please provide your personal details
+                      </p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                          Full Name *
+                        </label>
+                        <input
+                          {...register('patientName')}
+                          type="text"
+                          placeholder="Enter your full name"
+                          className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
+                        />
+                        {errors.patientName && (
+                          <p className="mt-0.5 text-[10px] text-red-600">{errors.patientName.message}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                          Phone Number *
+                        </label>
+                        <input
+                          {...register('patientPhone')}
+                          type="tel"
+                          placeholder="+251 9XX XXX XXX"
+                          className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
+                        />
+                        {errors.patientPhone && (
+                          <p className="mt-0.5 text-[10px] text-red-600">{errors.patientPhone.message}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                          Email Address *
+                        </label>
+                        <input
+                          {...register('patientEmail')}
+                          type="email"
+                          placeholder="your@email.com"
+                          className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
+                        />
+                        {errors.patientEmail && (
+                          <p className="mt-0.5 text-[10px] text-red-600">{errors.patientEmail.message}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                          Age
+                        </label>
+                        <input
+                          {...register('patientAge')}
+                          type="number"
+                          placeholder="Enter your age"
+                          min="0"
+                          max="150"
+                          className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                          Gender
+                        </label>
+                        <select
+                          {...register('patientGender')}
+                          className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
+                        >
+                          <option value="">Select Gender</option>
+                          <option value="MALE">Male</option>
+                          <option value="FEMALE">Female</option>
+                          <option value="OTHER">Other</option>
+                        </select>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={nextStep}
+                        className="w-full flex items-center justify-center gap-1.5 px-4 py-2 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-all text-xs mt-2"
+                      >
+                        Next
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                 )}
-              </div>
 
-              {/* Error Details */}
-              {errorDetails && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600">{errorDetails}</p>
-                </div>
-              )}
+                {currentStep === 2 && (
+                  <div className="space-y-1.5">
+                    <div className="border-b border-gray-200 dark:border-gray-700 pb-0.5">
+                      <h3 className="text-xs font-semibold text-gray-900 dark:text-white flex items-center gap-1">
+                        <Users className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                        Visit Details
+                      </h3>
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                        Tell us about your visit
+                      </p>
+                    </div>
 
-              {/* Navigation */}
-              <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
-                <button
-                  type="button"
-                  onClick={handlePrevious}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm transition-colors ${
-                    currentStep === 0
-                      ? 'text-gray-400 cursor-not-allowed'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  }`}
-                  disabled={currentStep === 0}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Back
-                </button>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                        Visit Type *
+                      </label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => setValue('visitType', 'HOSPITAL')}
+                          className={`py-2 text-xs border rounded-lg transition ${
+                            visitType === 'HOSPITAL'
+                              ? 'border-black bg-gray-100 dark:bg-gray-700 text-black dark:text-white'
+                              : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-400'
+                          }`}
+                        >
+                          Hospital Visit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setValue('visitType', 'HOME')}
+                          className={`py-2 text-xs border rounded-lg transition ${
+                            visitType === 'HOME'
+                              ? 'border-black bg-gray-100 dark:bg-gray-700 text-black dark:text-white'
+                              : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-400'
+                          }`}
+                        >
+                          Home Visit
+                        </button>
+                      </div>
+                      {errors.visitType && (
+                        <p className="mt-0.5 text-[10px] text-red-600">{errors.visitType.message}</p>
+                      )}
+                    </div>
 
-                {currentStep < steps.length - 1 ? (
-                  <button
-                    type="button"
-                    onClick={handleNext}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition shadow-sm"
-                  >
-                    Next
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || loadingData}
-                    className="flex items-center gap-1.5 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition shadow-sm disabled:opacity-50"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Booking...
-                      </>
-                    ) : (
-                      <>
-                        <Check className="w-4 h-4" />
-                        Book
-                      </>
+                    {visitType === 'HOME' && (
+                      <div className="space-y-1.5 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div className="border-b border-gray-200 dark:border-gray-700 pb-0.5">
+                          <h3 className="text-xs font-semibold text-gray-900 dark:text-white flex items-center gap-1">
+                            <Home className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                            Home Address Details
+                          </h3>
+                          <p className="text-[10px] text-gray-400 dark:text-gray-500">
+                            Please provide your home address
+                          </p>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                              City
+                            </label>
+                            <input
+                              {...register('city')}
+                              type="text"
+                              placeholder="Bahir Dar"
+                              className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                              Sub-City
+                            </label>
+                            <input
+                              {...register('subCity')}
+                              type="text"
+                              placeholder="Kebele 13"
+                              className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                              Woreda
+                            </label>
+                            <input
+                              {...register('woreda')}
+                              type="text"
+                              placeholder="Woreda 03"
+                              className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                              GPS Pin / Location
+                            </label>
+                            <div className="relative">
+                              <input
+                                {...register('gpsPin')}
+                                type="text"
+                                placeholder="Click crosshair to get location"
+                                className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white pr-8 transition"
+                                readOnly
+                              />
+                              <button
+                                type="button"
+                                onClick={getCurrentLocation}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
+                                title="Get current location"
+                              >
+                                <Crosshair className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <p className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5 flex items-center gap-1">
+                              <Navigation className="w-3 h-3" />
+                              Click the crosshair to use your device's GPS
+                            </p>
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                              Detailed Address
+                            </label>
+                            <textarea
+                              {...register('homeAddress')}
+                              rows={1}
+                              placeholder="House number, building, landmarks..."
+                              className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition resize-none"
+                            />
+                          </div>
+                        </div>
+                      </div>
                     )}
-                  </button>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                        Symptoms
+                      </label>
+                      <textarea
+                        {...register('symptoms')}
+                        rows={1}
+                        placeholder="Describe your symptoms (e.g., Headache, fever, cough...)"
+                        className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
+                        Additional Notes
+                      </label>
+                      <textarea
+                        {...register('notes')}
+                        rows={1}
+                        placeholder="Allergies, medical history, special requests..."
+                        className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition resize-none"
+                      />
+                    </div>
+
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={prevStep}
+                        className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-all text-xs"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                        Back
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={isSubmitting || loadingData}
+                        className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Booking...
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4" />
+                            Book
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
                 )}
-              </div>
-            </form>
+
+                {errorDetails && (
+                  <div className="p-1.5 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-[10px] text-red-600">{errorDetails}</p>
+                  </div>
+                )}
+
+                <p className="text-center text-[9px] text-gray-400 dark:text-gray-500">
+                  By booking, you agree to our terms and conditions
+                </p>
+              </form>
+            )}
           </div>
         </div>
       </div>

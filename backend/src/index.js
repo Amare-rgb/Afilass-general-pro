@@ -29,6 +29,8 @@ const dashboardRoutes = require('./routes/dashboard');
 const serviceRoutes = require('./routes/services');
 const uploadRoutes = require('./routes/upload');
 const userRoutes = require('./routes/users');
+// ✅ ADD THIS: Import pharma orders routes
+const pharmaOrdersRoutes = require('./routes/pharmaOrders');
 
 const app = express();
 
@@ -307,6 +309,13 @@ app.get('/api/notifications/sample', (req, res) => {
   }
 });
 
+// ============================================================
+// ✅ ADD THIS: Register Pharma Orders Routes
+// ============================================================
+console.log('📦 Registering pharma orders routes...');
+app.use('/api/pharma-orders', pharmaOrdersRoutes);
+console.log('✅ Pharma orders routes registered at /api/pharma-orders');
+
 // ===== REGULAR API ROUTES =====
 app.use('/api/auth', authRoutes);
 app.use('/api/doctors', doctorRoutes);
@@ -389,6 +398,10 @@ app.listen(PORT, () => {
   console.log(`   - DELETE /api/notifications/:id`);
   console.log(`   - POST /api/notifications`);
   console.log(`   - GET  /api/notifications/sample`);
+  console.log(`   ✅ NEW: GET  /api/pharma-orders`);
+  console.log(`   ✅ NEW: POST /api/pharma-orders`);
+  console.log(`   ✅ NEW: PATCH /api/pharma-orders/:id/status`);
+  console.log(`   ✅ NEW: DELETE /api/pharma-orders/:id`);
 });
 
 module.exports = app;

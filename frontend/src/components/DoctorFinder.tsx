@@ -3,11 +3,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageProvider";
-import { 
-  Mail, Phone, Star, MapPin, Search, ChevronDown, Loader2, Calendar
+import {
+  Star, MapPin, Search, ChevronDown, Loader2, Calendar, Briefcase, Clock
 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 // ============================================================
 // TYPES (Based on your Backend API)
@@ -51,7 +51,7 @@ const mockDoctors = [
     rating: 4.8,
     consultationFee: 1500,
     location: "Afilas General Hospital",
-    availability: "Mon, Wed, Fri",
+    availability: "Mon - Fri",
   },
   {
     id: "2",
@@ -68,7 +68,7 @@ const mockDoctors = [
     rating: 4.9,
     consultationFee: 1200,
     location: "Afilas General Hospital",
-    availability: "Tue, Thu, Sat",
+    availability: "Mon - Fri",
   },
   {
     id: "3",
@@ -85,7 +85,7 @@ const mockDoctors = [
     rating: 4.7,
     consultationFee: 2000,
     location: "Afilas General Hospital",
-    availability: "Mon, Wed, Fri",
+    availability: "Mon - Fri",
   },
   {
     id: "4",
@@ -102,7 +102,7 @@ const mockDoctors = [
     rating: 4.9,
     consultationFee: 1000,
     location: "Afilas General Hospital",
-    availability: "Mon, Tue, Thu, Fri",
+    availability: "Mon - Fri",
   },
   {
     id: "5",
@@ -119,7 +119,7 @@ const mockDoctors = [
     rating: 4.6,
     consultationFee: 1800,
     location: "Afilas Diagnosis Center",
-    availability: "Tue, Thu, Sat",
+    availability: "Mon - Fri",
   },
   {
     id: "6",
@@ -136,7 +136,7 @@ const mockDoctors = [
     rating: 4.8,
     consultationFee: 1600,
     location: "Afilas General Hospital",
-    availability: "Mon, Wed, Fri",
+    availability: "Mon - Fri",
   },
 ];
 
@@ -162,9 +162,16 @@ function useInView(ref: React.RefObject<HTMLElement>) {
 // ============================================================
 // COMPONENT
 // ============================================================
-export function DoctorFinder() {
+interface DoctorFinderProps {
+  selectedLocation?: string;
+  showHeader?: boolean;
+}
+
+export function DoctorFinder({ 
+  selectedLocation = "All", 
+  showHeader = true 
+}: DoctorFinderProps = {}) {
   const { t } = useLanguage();
-  const router = useRouter(); // ✅ Hook for page redirection
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef);
 
@@ -176,13 +183,6 @@ export function DoctorFinder() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
   const [selectedAvailability, setSelectedAvailability] = useState("");
-
-  // ✅ New function to handle direct page redirection
-  const handleBookAppointment = (doctorId: string) => {
-    // Send the user directly to the appointment page
-    // You can pass the doctor ID as a query parameter if needed
-    router.push(`/appointment?doctorId=${doctorId}`);
-  };
 
   // ============================================================
   // 🔌 REAL API CONNECTION
@@ -263,39 +263,59 @@ export function DoctorFinder() {
     const matchesAvailability =
       selectedAvailability === "" || selectedAvailability === "All" ||
       doctor.availability === selectedAvailability;
-    return matchesSearch && matchesSpecialty && matchesAvailability;
+
+    // Check location matching (case insensitive and flexible)
+    const normLocation = (doctor.location || "").toLowerCase();
+    const targetLoc = (selectedLocation || "All").toLowerCase();
+
+    let matchesLocation = true;
+    if (targetLoc !== "all") {
+      if (targetLoc.includes("hospital")) {
+        matchesLocation = normLocation.includes("hospital");
+      } else if (targetLoc.includes("diagnostic") || targetLoc.includes("diagnosis")) {
+        matchesLocation = normLocation.includes("diagnostic") || normLocation.includes("diagnosis");
+      } else if (targetLoc.includes("pharma") || targetLoc.includes("drug") || targetLoc.includes("manufacturing")) {
+        matchesLocation = normLocation.includes("pharma") || normLocation.includes("drug") || normLocation.includes("manufacturing");
+      } else {
+        matchesLocation = normLocation.includes(targetLoc);
+      }
+    }
+
+    return matchesSearch && matchesSpecialty && matchesAvailability && matchesLocation;
   });
 
   return (
-    <section id="doctors" ref={sectionRef} className="py-24 bg-background">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="doctors" ref={sectionRef} className="py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-background">
+      <div className="max-w-6xl mx-auto">
         {/* Section Header */}
-        <div className={`text-center mb-12 transition-all duration-700 ease-out ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-          <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
-            {t("doctors.headline")}
-          </h2>
-          <p className="text-foreground/70 text-lg max-w-2xl mx-auto">
-            {t("doctors.subtitle")}
-          </p>
-        </div>
+        {showHeader && (
+          <div className={`mb-8 transition-all duration-600 ease-out ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
+              {t("doctors.headline")}
+            </h2>
+            <p className="text-sm text-muted-foreground max-w-lg">
+              {t("doctors.subtitle")}
+            </p>
+          </div>
+        )}
 
         {/* Filter Bar */}
-        <div className={`flex flex-col sm:flex-row gap-4 mb-12 transition-all duration-700 ease-out delay-100 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
+        <div className={`flex flex-col sm:flex-row gap-3 mb-8 transition-all duration-600 ease-out delay-100 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
           <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
               type="text"
               placeholder={t("doctors.filter_search")}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-card border border-border rounded-xl text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all"
+              className="w-full pl-9 pr-4 py-2.5 bg-card border border-border rounded-lg text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
             />
           </div>
-          <div className="relative sm:w-48">
+          <div className="relative sm:w-44">
             <select
               value={selectedSpecialty}
               onChange={(e) => setSelectedSpecialty(e.target.value)}
-              className="w-full appearance-none px-4 py-3 bg-card border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer"
+              className="w-full appearance-none px-3 py-2.5 bg-card border border-border rounded-lg text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all cursor-pointer"
             >
               {specializations.map((spec) => (
                 <option key={spec} value={spec}>
@@ -303,13 +323,13 @@ export function DoctorFinder() {
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40 pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           </div>
-          <div className="relative sm:w-48">
+          <div className="relative sm:w-44">
             <select
               value={selectedAvailability}
               onChange={(e) => setSelectedAvailability(e.target.value)}
-              className="w-full appearance-none px-4 py-3 bg-card border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all cursor-pointer"
+              className="w-full appearance-none px-3 py-2.5 bg-card border border-border rounded-lg text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all cursor-pointer"
             >
               {availabilities.map((avail) => (
                 <option key={avail} value={avail}>
@@ -317,100 +337,99 @@ export function DoctorFinder() {
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40 pointer-events-none" />
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
           </div>
-          <div className="text-xs flex items-center text-foreground/40 ml-auto sm:ml-0">
+          <div className="text-xs flex items-center text-muted-foreground sm:ml-1">
             {loading ? (
-              <span className="flex items-center gap-1 text-yellow-500">
-                <Loader2 className="w-3 h-3 animate-spin" /> Loading...
+              <span className="flex items-center gap-1 text-muted-foreground">
+                <Loader2 className="w-3 h-3 animate-spin" /> {t("doctors.status_loading")}
               </span>
             ) : error ? (
-              <span className="text-orange-500">⚠️ Offline Mode</span>
+              <span className="text-destructive/70">⚠️ {t("doctors.status_offline")}</span>
             ) : (
-              <span className="text-green-500">✓ Live Data</span>
+              <span className="text-primary">✓ {t("doctors.status_live")}</span>
             )}
           </div>
         </div>
 
         {loading && (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="w-10 h-10 text-primary animate-spin" />
+          <div className="flex justify-center items-center py-16">
+            <Loader2 className="w-8 h-8 text-primary animate-spin" />
           </div>
         )}
 
         {!loading && (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filteredDoctors.map((doctor, idx) => {
-              const delay = idx * 100;
+              const delay = idx * 80;
               return (
                 <div
                   key={doctor.id}
-                  className={`group bg-card border border-border rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-2 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`}
+                  className={`group bg-card border border-border/60 rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-lg transition-all duration-500 hover:-translate-y-1 ${
+                    isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                  }`}
                   style={{ transitionDelay: `${150 + delay}ms` }}
                 >
-                  {/* Doctor Image */}
-                  <div className="relative w-full h-56 overflow-hidden bg-gradient-to-br from-primary/10 to-secondary/10">
-                    {doctor.photoUrl && !imageFailed[doctor.id] ? (
-                      <Image
-                        src={doctor.photoUrl}
-                        alt={doctor.name}
-                        fill
-                        unoptimized
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                        onError={() => setImageFailed((p) => ({ ...p, [doctor.id]: true }))}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-primary/30 bg-muted">
-                        {doctor.name.split(' ').map((n) => n[0]).join('')}
-                      </div>
-                    )}
+                  {/* Doctor Image - Circular */}
+                  <div className="relative w-full pt-8 pb-4 flex items-center justify-center bg-gradient-to-b from-primary/5 via-background to-background">
+                    <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full overflow-hidden ring-4 ring-primary/10 group-hover:ring-primary/30 transition-all duration-300 bg-muted shadow-md">
+                      {doctor.photoUrl && !imageFailed[doctor.id] ? (
+                        <Image
+                          src={doctor.photoUrl}
+                          alt={doctor.name}
+                          fill
+                          unoptimized
+                          className="object-cover transition-transform duration-500 group-hover:scale-110"
+                          onError={() => setImageFailed((p) => ({ ...p, [doctor.id]: true }))}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-primary/30 bg-muted">
+                          {doctor.name.split(' ').map((n) => n[0]).join('')}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  {/* Doctor Info */}
-                  <div className="p-5 space-y-3">
-                    <h3 className="text-lg font-bold text-foreground">
+                  {/* Doctor Info - Clean Minimal Style like the image */}
+                  <div className="p-5 pt-2 space-y-3 text-center">
+                    {/* Name */}
+                    <h3 className="text-lg font-bold text-foreground leading-tight">
                       {doctor.name}
                     </h3>
-                    <p className="text-sm font-semibold text-primary">
+                    
+                    {/* Title/Specialty */}
+                    <p className="text-sm font-medium text-primary">
                       {doctor.title}
                     </p>
-                    <p className="text-sm text-foreground/70 leading-relaxed line-clamp-2">
-                      {doctor.bio}
-                    </p>
-                    <div className="flex flex-wrap gap-2 text-xs text-foreground/60">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {doctor.location}
-                      </span>
-                      <span className="text-border">|</span>
-                      <span>{doctor.experience}+ years</span>
-                      <span className="text-border">|</span>
-                      <span className="font-medium text-primary">
-                        ETB {doctor.consultationFee}
-                      </span>
-                    </div>
-                    <div className="text-xs text-foreground/50">
-                      Available: {doctor.availability}
+
+                    {/* Divider */}
+                    <div className="w-12 h-0.5 bg-primary/30 mx-auto rounded-full" />
+
+                    {/* Experience */}
+                    <div className="space-y-0.5">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                        EXPERIENCE
+                      </p>
+                      <p className="text-sm font-bold text-foreground">
+                        {doctor.experience}+ yrs
+                      </p>
                     </div>
 
-                    {/* ✅ ACTION BUTTONS WITH PAGE REDIRECT */}
-                    <div className="flex gap-2 pt-2">
-                      <button
-                        onClick={() => handleBookAppointment(doctor.id)}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded-lg transition-all duration-300 hover:bg-primary/90 shadow-sm"
-                      >
-                        <Calendar className="w-4 h-4" />
-                        <span className="text-xs font-semibold">
-                          {t("doctors.book") || "Book Appointment"}
-                        </span>
-                      </button>
-                      <a
-                        href={`mailto:${doctor.email}`}
-                        className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-muted hover:bg-muted/80 text-foreground/70 rounded-lg transition-all duration-300"
-                      >
-                        <Mail className="w-4 h-4" />
-                        <span className="text-xs font-semibold">Email</span>
-                      </a>
+                    {/* Availability */}
+                    <div className="space-y-0.5">
+                      <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                        AVAILABLE
+                      </p>
+                      <p className="text-sm font-medium text-emerald-600 dark:text-emerald-400">
+                        {doctor.availability}
+                      </p>
+                    </div>
+
+                    {/* Location/Affiliation - Bottom of card like "© Afilas General Hospital" */}
+                    <div className="pt-3 mt-2 border-t border-border/40">
+                      <p className="text-[11px] text-muted-foreground/60 font-medium">
+                        © {doctor.location}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -420,17 +439,21 @@ export function DoctorFinder() {
         )}
 
         {!loading && filteredDoctors.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-foreground/60 text-lg">
-              No doctors found matching your criteria.
+          <div className="text-center py-16">
+            <p className="text-muted-foreground text-sm">
+              {t("doctors.no_doctors")}
             </p>
           </div>
         )}
 
-        <div className={`text-center mt-12 transition-all duration-700 ease-out delay-300 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}>
-          <button className="px-8 py-3 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 hover:-translate-y-0.5">
+        <div className={`text-center mt-10 transition-all duration-600 ease-out delay-300 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+          <Link
+            href="/doctors"
+            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors"
+          >
             {t("doctors.view_all")}
-          </button>
+            <ChevronDown className="w-4 h-4 -rotate-90" />
+          </Link>
         </div>
       </div>
     </section>

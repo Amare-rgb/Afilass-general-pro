@@ -1,307 +1,264 @@
-'use client'
+'use client';
 
-import { useLanguage } from '@/contexts/LanguageProvider'
-import { useEffect, useRef, useState } from 'react'
-import { ShoppingCart, MapPin, Calendar, Package, Eye, Pill } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { useLanguage } from '@/contexts/LanguageProvider';
+import { Loader2, AlertCircle } from 'lucide-react';
 
-// Mock data in the exact backend format
-interface PharmaProduct {
-  id: string
-  name: string
-  description: string
-  price: number
-  duration: number
-  image: string | null
-  isActive: boolean
-  location: string
-  createdAt: string
-  updatedAt: string
-}
-
-const mockProducts: PharmaProduct[] = [
-  {
-    id: 'cms4huonf00059rzgheidhvnd',
-    name: 'Amoxicillin 500mg Capsules',
-    description: 'Broad-spectrum antibiotic for bacterial infections. Manufactured under GMP standards.',
-    price: 280,
-    duration: 30,
-    image: null,
-    isActive: true,
-    location: 'Afilas Drug Manufacturing',
-    createdAt: '2026-07-28T10:09:25.323Z',
-    updatedAt: '2026-07-28T10:09:25.323Z',
-  },
-  {
-    id: 'cms4huonf00059rzgheidhvne',
-    name: 'Metformin 850mg Tablets',
-    description: 'First-line medication for type 2 diabetes management. Quality assured formulation.',
-    price: 450,
-    duration: 60,
-    image: null,
-    isActive: true,
-    location: 'Afilas Drug Manufacturing',
-    createdAt: '2026-07-25T08:30:00.000Z',
-    updatedAt: '2026-07-25T08:30:00.000Z',
-  },
-  {
-    id: 'cms4huonf00059rzgheidhvnf',
-    name: 'Paracetamol 500mg Tablets',
-    description: 'Effective pain relief and fever reduction. Locally produced, internationally certified.',
-    price: 120,
-    duration: 30,
-    image: null,
-    isActive: true,
-    location: 'Afilas Drug Manufacturing',
-    createdAt: '2026-07-20T14:15:00.000Z',
-    updatedAt: '2026-07-20T14:15:00.000Z',
-  },
-  {
-    id: 'cms4huonf00059rzgheidhvng',
-    name: 'Omeprazole 20mg Capsules',
-    description: 'Proton pump inhibitor for acid reflux and gastric ulcer treatment.',
-    price: 350,
-    duration: 30,
-    image: null,
-    isActive: true,
-    location: 'Afilas Drug Manufacturing',
-    createdAt: '2026-07-18T09:00:00.000Z',
-    updatedAt: '2026-07-18T09:00:00.000Z',
-  },
-  {
-    id: 'cms4huonf00059rzgheidhvnh',
-    name: 'Ciprofloxacin 500mg Tablets',
-    description: 'Fluoroquinolone antibiotic for urinary, respiratory, and skin infections.',
-    price: 520,
-    duration: 14,
-    image: null,
-    isActive: true,
-    location: 'Afilas Drug Manufacturing',
-    createdAt: '2026-07-15T11:45:00.000Z',
-    updatedAt: '2026-07-15T11:45:00.000Z',
-  },
-  {
-    id: 'cms4huonf00059rzgheidhvni',
-    name: 'Ibuprofen 400mg Tablets',
-    description: 'Non-steroidal anti-inflammatory drug for pain, inflammation, and fever.',
-    price: 180,
-    duration: 30,
-    image: null,
-    isActive: true,
-    location: 'Afilas Drug Manufacturing',
-    createdAt: '2026-07-12T16:20:00.000Z',
-    updatedAt: '2026-07-12T16:20:00.000Z',
-  },
-]
-
-// Generate deterministic gradient colors based on product name
-function getProductGradient(name: string): string {
-  const gradients = [
-    'from-teal-500/30 via-emerald-400/20 to-cyan-500/10',
-    'from-blue-500/30 via-indigo-400/20 to-purple-500/10',
-    'from-emerald-500/30 via-green-400/20 to-teal-500/10',
-    'from-amber-500/30 via-orange-400/20 to-yellow-500/10',
-    'from-rose-500/30 via-pink-400/20 to-red-500/10',
-    'from-violet-500/30 via-purple-400/20 to-indigo-500/10',
-  ]
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return gradients[Math.abs(hash) % gradients.length]
-}
-
-function getProductIcon(name: string): string {
-  const icons = ['💊', '🧬', '🏥', '⚕️', '🩺', '💉']
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return icons[Math.abs(hash) % icons.length]
-}
-
-function formatDate(dateStr: string): string {
-  const date = new Date(dateStr)
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
+interface PharmaService {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  duration?: number;
+  image?: string | null;
+  isActive?: boolean;
+  location?: string;
 }
 
 export function PharmaCatalog() {
-  const { t } = useLanguage()
-  const headerRef = useRef<HTMLDivElement>(null)
-  const [headerVisible, setHeaderVisible] = useState(false)
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([])
-  const [visibleCards, setVisibleCards] = useState<boolean[]>(
-    new Array(mockProducts.length).fill(false)
-  )
+  const { t } = useLanguage();
+  const [services, setServices] = useState<PharmaService[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [imageFailed, setImageFailed] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
-    const el = headerRef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setHeaderVisible(true)
-          observer.unobserve(el)
-        }
-      },
-      { threshold: 0.3 }
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
+    let isMounted = true;
 
-  useEffect(() => {
-    const observers: IntersectionObserver[] = []
-    cardRefs.current.forEach((el, idx) => {
-      if (!el) return
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            setVisibleCards(prev => {
-              const next = [...prev]
-              next[idx] = true
-              return next
-            })
-            observer.unobserve(el)
+    async function fetchServices() {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          'http://localhost:5000/api/services?location=Afilas%20Drug%20Manufacturing'
+        );
+        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+        const result = await response.json();
+
+        if (result.success && Array.isArray(result.data) && result.data.length > 0) {
+          const active = result.data.filter((s: any) => s.isActive !== false);
+          if (active.length > 0 && isMounted) {
+            setServices(active.slice(0, 4));
+            setError(null);
+          } else if (isMounted) {
+            setServices(getFallbackServices());
           }
-        },
-        { threshold: 0.15, rootMargin: '0px 0px -30px 0px' }
-      )
-      observer.observe(el)
-      observers.push(observer)
-    })
-    return () => observers.forEach(o => o.disconnect())
-  }, [])
+        } else if (isMounted) {
+          setServices(getFallbackServices());
+        }
+      } catch (err) {
+        if (isMounted) {
+          setServices(getFallbackServices());
+          setError('Offline mode - displaying featured manufacturing services');
+        }
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    }
 
-  const activeProducts = mockProducts.filter(p => p.isActive)
+    fetchServices();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+function getAppointmentLink(service: PharmaService) {
+  const loc = service.location || 'Afilas Drug Manufacturing';
+  let basePath = '/appointments/hospital';
+  if (loc === 'Afilas Diagnosis Center') {
+    basePath = '/appointments/diagnosis';
+  } else if (loc === 'Afilas Drug Manufacturing') {
+    basePath = '/appointments/pharma';
+  }
+  const param = service.name ? `${service.name} - ${loc}` : loc;
+  return `${basePath}?${encodeURIComponent(param)}`;
+}
+
+  function getFallbackServices(): PharmaService[] {
+    return [
+      {
+        id: 'fallback-pharma-1',
+        name: 'Amoxicillin 500mg Capsules',
+        description: 'Broad-spectrum antibiotic formulation for systemic bacterial infection treatment. Produced under strict GMP guidelines.',
+        price: 280,
+        duration: 30,
+        location: 'Afilas Drug Manufacturing',
+        image: null,
+        isActive: true,
+      },
+      {
+        id: 'fallback-pharma-2',
+        name: 'Metformin 850mg Tablets',
+        description: 'First-line metabolic therapy for blood glucose management. High-purity oral solid dosage form.',
+        price: 450,
+        duration: 60,
+        location: 'Afilas Drug Manufacturing',
+        image: null,
+        isActive: true,
+      },
+      {
+        id: 'fallback-pharma-3',
+        name: 'Paracetamol 500mg Tablets',
+        description: 'Analgesic and antipyretic formulation for pain management and fever reduction. ISO certified.',
+        price: 120,
+        duration: 30,
+        location: 'Afilas Drug Manufacturing',
+        image: null,
+        isActive: true,
+      },
+      {
+        id: 'fallback-pharma-4',
+        name: 'Omeprazole 20mg Capsules',
+        description: 'Proton pump inhibitor for gastrointestinal acidity and peptic ulcer therapeutic care.',
+        price: 350,
+        duration: 30,
+        location: 'Afilas Drug Manufacturing',
+        image: null,
+        isActive: true,
+      },
+    ];
+  }
 
   return (
-    <section id="catalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+    <section id="catalog" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
       {/* Section Header */}
-      <div
-        ref={headerRef}
-        className={`text-center mb-16 transition-all duration-1000 ease-out ${
-          headerVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-        }`}
-      >
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
-          <Pill className="w-4 h-4 text-primary" />
-          <span className="text-sm font-semibold text-primary tracking-wide uppercase">
-            {t('pharma.catalog.badge')}
-          </span>
-        </div>
-
-        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-4">
+      <div className="text-center max-w-3xl mx-auto mb-16">
+        <span className="text-xs font-bold tracking-widest text-primary uppercase bg-primary/10 px-4 py-1.5 rounded-full">
+          {t('pharma.catalog.badge')}
+        </span>
+        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mt-4 mb-3">
           {t('pharma.catalog.title')}
         </h2>
-        <p className="text-foreground/70 text-lg max-w-2xl mx-auto">
+        <p className="text-muted-foreground text-base sm:text-lg">
           {t('pharma.catalog.subtitle')}
         </p>
+        {error && (
+          <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-2 flex items-center justify-center gap-1">
+            <AlertCircle className="w-4 h-4" /> {error}
+          </p>
+        )}
       </div>
 
-      {/* Products Grid */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {activeProducts.map((product, idx) => (
-          <div
-            key={product.id}
-            ref={el => { cardRefs.current[idx] = el }}
-            className={`group relative bg-card border border-border rounded-3xl overflow-hidden transition-all duration-700 ease-out hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-2 ${
-              visibleCards[idx]
-                ? 'opacity-100 translate-y-0'
-                : 'opacity-0 translate-y-12'
-            }`}
-            style={{ transitionDelay: `${(idx % 3) * 100}ms` }}
-          >
-            {/* Product Image / Gradient Placeholder */}
-            <div
-              className={`relative w-full h-52 bg-gradient-to-br ${getProductGradient(
-                product.name
-              )} flex items-center justify-center overflow-hidden`}
-            >
-              {product.image ? (
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="flex flex-col items-center gap-3">
-                  <span className="text-5xl">{getProductIcon(product.name)}</span>
-                  <span className="text-xs font-bold text-foreground/40 uppercase tracking-widest">
-                    {product.location}
-                  </span>
+      {/* Loading State */}
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="w-10 h-10 text-primary animate-spin" />
+        </div>
+      ) : (
+        <>
+          {/* Services Cards (Max 4, split layout per card) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {services.slice(0, 4).map((service) => {
+              const photoUrl = service.image
+                ? /^https?:\/\//i.test(service.image)
+                  ? service.image
+                  : `http://localhost:5000/${service.image.replace(/^\/+/, '')}`
+                : null;
+
+              return (
+                <div
+                  key={service.id}
+                  className="bg-card border border-border rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-stretch gap-6 shadow-xl hover:shadow-2xl hover:border-primary/30 transition-all duration-300 group"
+                >
+                  {/* Left Column: Product Image Card Container */}
+                  <div className="relative w-full sm:w-48 sm:h-auto aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-primary/10 via-teal-500/5 to-emerald-500/10 border border-border flex-shrink-0 flex items-center justify-center shadow-md">
+                    {photoUrl && !imageFailed[service.id] ? (
+                      <Image
+                        src={photoUrl}
+                        alt={service.name}
+                        fill
+                        unoptimized
+                        className="object-cover group-hover:scale-105 transition-transform duration-500 rounded-2xl"
+                        onError={() =>
+                          setImageFailed((prev) => ({ ...prev, [service.id]: true }))
+                        }
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center bg-gradient-to-br from-primary/15 via-teal-500/10 to-emerald-500/20">
+                        <div className="w-12 h-12 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center mb-2">
+                          <span className="text-xs font-bold text-primary uppercase">GMP</span>
+                        </div>
+                        <span className="text-[11px] font-bold text-foreground/50 uppercase tracking-wider line-clamp-1">
+                          {service.location || 'Afilas Pharma'}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Right Column: Details & Book Action */}
+                  <div className="flex-1 flex flex-col justify-between w-full">
+                    <div>
+                      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                        <h3 className="text-xl sm:text-2xl font-bold text-foreground group-hover:text-primary transition-colors">
+                          {service.name}
+                        </h3>
+                      </div>
+
+                      {/* Location Badge */}
+                      <p className="text-xs font-semibold text-primary/80 uppercase tracking-wider mb-3">
+                        {service.location || 'Afilas Drug Manufacturing'}
+                      </p>
+
+                      {/* Price Display */}
+                      <div className="mb-3">
+                        <span className="text-xs text-muted-foreground block mb-0.5">
+                          {t('pharma.catalog.price')}
+                        </span>
+                        <span className="text-2xl sm:text-3xl font-black text-primary">
+                          ETB {Number(service.price).toLocaleString()}
+                        </span>
+                      </div>
+
+                      {/* Description */}
+                      <p className="text-sm text-muted-foreground leading-relaxed line-clamp-3 mb-4">
+                        {service.description}
+                      </p>
+                    </div>
+
+                    {/* Book / Get Button linking dynamically based on location */}
+                    <div className="pt-4 border-t border-border/60">
+                      <Link
+                        href={getAppointmentLink(service)}
+                        className="inline-flex items-center justify-center w-full sm:w-auto px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-bold rounded-xl shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        {t('pharma.catalog.book_btn')}
+                      </Link>
+                    </div>
+                  </div>
                 </div>
-              )}
-
-              {/* Status badge */}
-              <div className="absolute top-4 right-4">
-                <span className="px-3 py-1 text-xs font-bold rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 backdrop-blur-sm border border-emerald-500/20">
-                  {t('pharma.catalog.active')}
-                </span>
-              </div>
-
-              {/* Duration badge */}
-              <div className="absolute top-4 left-4">
-                <span className="inline-flex items-center gap-1 px-3 py-1 text-xs font-semibold rounded-full bg-foreground/10 text-foreground/70 backdrop-blur-sm border border-foreground/10">
-                  <Calendar className="w-3 h-3" />
-                  {product.duration} {t('pharma.catalog.days')}
-                </span>
-              </div>
-            </div>
-
-            {/* Card Content */}
-            <div className="p-6 space-y-4">
-              {/* Name + Location */}
-              <div>
-                <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
-                  {product.name}
-                </h3>
-                <div className="flex items-center gap-1.5 mt-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-foreground/40" />
-                  <p className="text-xs text-foreground/50">{product.location}</p>
-                </div>
-              </div>
-
-              {/* Description */}
-              <p className="text-sm text-foreground/70 leading-relaxed line-clamp-2">
-                {product.description}
-              </p>
-
-              {/* Meta info */}
-              <div className="flex items-center gap-4 text-xs text-foreground/40">
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {formatDate(product.createdAt)}
-                </span>
-              </div>
-
-              {/* Price + Action */}
-              <div className="flex items-center justify-between pt-4 border-t border-border">
-                <div>
-                  <p className="text-xs text-foreground/50">{t('pharma.catalog.price')}</p>
-                  <p className="text-2xl font-bold text-foreground">
-                    ETB {product.price.toLocaleString()}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button className="p-3 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl transition-all duration-200 hover:scale-105">
-                    <Eye className="w-5 h-5" />
-                  </button>
-                  <button className="p-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl transition-all duration-200 hover:scale-105 hover:shadow-lg hover:shadow-primary/25">
-                    <ShoppingCart className="w-5 h-5" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Hover accent line */}
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary/0 via-primary/60 to-primary/0 scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+              );
+            })}
           </div>
-        ))}
-      </div>
+
+          {/* View All Services Button */}
+          <div className="text-center mt-12">
+            <Link
+              href="/services?location=Afilas%20Drug%20Manufacturing"
+              className="inline-flex items-center gap-2 border border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2.5 font-medium transition-colors duration-300"
+            >
+              <span>{t('pharma.catalog.view_all_btn')}</span>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </Link>
+          </div>
+        </>
+      )}
+
+      {!loading && services.length === 0 && !error && (
+        <p className="text-center text-muted-foreground py-8">
+          No services available at the moment.
+        </p>
+      )}
     </section>
-  )
+  );
 }
