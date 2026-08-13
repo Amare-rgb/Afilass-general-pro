@@ -1,4 +1,3 @@
-// src/app/appointments/diagnosis/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,21 +8,17 @@ import { z } from 'zod';
 import {
   Check,
   Loader2,
-  User,
-  Phone,
-  Mail,
-  Stethoscope,
-  FileText,
-  MapPin,
-  Crosshair,
-  Navigation,
+  UserCircle,
+  Users,
   Home,
   ChevronRight,
   ChevronLeft,
-  UserCircle,
-  Users,
+  Crosshair,
+  Navigation,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { Header } from '@/components/Header';
+import { useLanguage } from '@/contexts/LanguageProvider';
 import api from '@/lib/api';
 import { Appointment } from '@/lib/types';
 
@@ -56,6 +51,9 @@ type DiagnosisBookingData = z.infer<typeof diagnosisBookingSchema>;
 // ============================================================
 export default function DiagnosisBookingPage() {
   const router = useRouter();
+  const { language } = useLanguage();
+  const isAm = language === 'am';
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -63,6 +61,72 @@ export default function DiagnosisBookingPage() {
   const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
   const [loadingData, setLoadingData] = useState(true);
   const [errorDetails, setErrorDetails] = useState<string>('');
+
+  const t = (key: string): string => {
+    const dict: Record<string, { en: string; am: string }> = {
+      title: { en: 'Afilas Diagnosis Center', am: 'አፊላስ የምርመራ ማዕከል' },
+      subtitle: { en: 'Book your lab test & imaging appointment', am: 'የምርመራ እና ላብራቶሪ ቀጠሮዎን ይያዙ' },
+      step1: { en: 'Personal Info', am: 'የግል መረጃ' },
+      step2: { en: 'Visit Details', am: 'የጉብኝት ዝርዝር' },
+      personalTitle: { en: 'Personal Information', am: 'የግል መረጃዎ' },
+      personalSubtitle: { en: 'Please provide your personal details', am: 'እባክዎን የግል መረጃዎን ያስገቡ' },
+      fullName: { en: 'Full Name *', am: 'ሙሉ ስም *' },
+      fullNamePlaceholder: { en: 'Enter your full name', am: 'ሙሉ ስምዎን ያስገቡ' },
+      phone: { en: 'Phone Number *', am: 'ስልክ ቁጥር *' },
+      phonePlaceholder: { en: '+251 9XX XXX XXX', am: '+251 9XX XXX XXX' },
+      email: { en: 'Email Address *', am: 'ኢሜይል አድራሻ *' },
+      emailPlaceholder: { en: 'your@email.com', am: 'እርስዎ@ኢሜይል.ኮም' },
+      age: { en: 'Age', am: 'ዕድሜ' },
+      agePlaceholder: { en: 'Enter your age', am: 'ዕድሜዎን ያስገቡ' },
+      gender: { en: 'Gender', am: 'ጾታ' },
+      selectGender: { en: 'Select Gender', am: 'ጾታ ይምረጡ' },
+      male: { en: 'Male', am: 'ወንድ' },
+      female: { en: 'Female', am: 'ሴት' },
+      other: { en: 'Other', am: 'ሌላ' },
+      next: { en: 'Next', am: 'ቀጣይ' },
+      visitTitle: { en: 'Visit Details', am: 'የጉብኝት ዝርዝር' },
+      visitSubtitle: { en: 'Tell us about your diagnostic visit', am: 'ስለ ምስረመራ ጉብኝትዎ ይንገሩን' },
+      visitType: { en: 'Visit Type *', am: 'የጉብኝት ዓይነት *' },
+      hospitalVisit: { en: 'Center Visit', am: 'የማዕከል ጉብኝት' },
+      homeVisit: { en: 'Home Sample 🏠', am: 'የቤት ናሙና 🏠' },
+      homeAddressTitle: { en: 'Home Address Details', am: 'የቤት አድራሻ ዝርዝር' },
+      homeAddressSubtitle: { en: 'Please provide your home address', am: 'እባክዎን የቤት አድራሻዎን ያስገቡ' },
+      city: { en: 'City', am: 'ከተማ' },
+      cityPlaceholder: { en: 'Bahir Dar', am: 'ባሕር ዳር' },
+      subCity: { en: 'Sub-City', am: 'ክፍለ ከተማ' },
+      subCityPlaceholder: { en: 'Kebele 13', am: 'ቀበሌ 13' },
+      woreda: { en: 'Woreda', am: 'ወረዳ' },
+      woredaPlaceholder: { en: 'Woreda 03', am: 'ወረዳ 03' },
+      gpsPin: { en: 'GPS Pin / Location', am: 'ጂፒኤስ / ቦታ' },
+      gpsPlaceholder: { en: 'Click crosshair to get location', am: 'ቦታ ለማግኘት መስቀለኛውን ይጫኑ' },
+      gpsHelp: { en: "Click the crosshair to use your device's GPS", am: 'የመሳሪያዎን ጂፒኤስ ለመጠቀም መስቀለኛውን ይጫኑ' },
+      detailedAddress: { en: 'Detailed Address', am: 'ዝርዝር አድራሻ' },
+      detailedAddressPlaceholder: { en: 'House number, building, landmarks...', am: 'የቤት ቁጥር፣ ሕንፃ፣ ምልክት...' },
+      symptoms: { en: 'Test / Symptoms', am: 'የምርመራ ዓይነት / ምልክት' },
+      symptomsPlaceholder: { en: 'Describe tests required or symptoms (e.g., Blood test, MRI...)', am: 'የሚፈልጉትን የምርመራ ዓይነት ይግለጹ...' },
+      notes: { en: 'Additional Notes', am: 'ተጨማሪ ማስታወሻዎች' },
+      notesPlaceholder: { en: 'Fasting status, doctor referral, special requests...', am: 'ተጨማሪ መረጃ...' },
+      back: { en: 'Back', am: 'ተመለስ' },
+      book: { en: 'Book', am: 'ያዝ' },
+      booking: { en: 'Booking...', am: 'በመያዝ ላይ...' },
+      confirmed: { en: 'Confirmed! ✅', am: 'ተረጋግጧል! ✅' },
+      confirmedSubtitle: { en: 'Your diagnostic appointment has been booked.', am: 'የምርመራ ቀጠሮዎ በተሳካ ሁኔታ ተይዟል።' },
+      patientLabel: { en: 'Patient:', am: 'ታካሚ፡' },
+      emailLabel: { en: 'Email:', am: 'ኢሜይል፡' },
+      phoneLabel: { en: 'Phone:', am: 'ስልክ፡' },
+      ageLabel: { en: 'Age:', am: 'ዕድሜ፡' },
+      genderLabel: { en: 'Gender:', am: 'ጾታ፡' },
+      visitTypeLabel: { en: 'Visit Type:', am: 'የጉብኝት ዓይነት፡' },
+      dateLabel: { en: 'Date:', am: 'ቀን፡' },
+      timeLabel: { en: 'Time:', am: 'ሰዓት፡' },
+      bookingIdLabel: { en: 'Booking ID:', am: 'የቀጠሮ መለያ፡' },
+      homeBtn: { en: 'Home', am: 'መነሻ' },
+      printBtn: { en: 'Print', am: 'አትም' },
+      termsText: { en: 'By booking, you agree to our terms and conditions', am: 'በመመዝገብ በውሎቻችን እና ሁኔታዎቻችን ይስማማሉ' },
+      loadingText: { en: 'Loading...', am: 'በመጫን ላይ...' },
+    };
+    return dict[key]?.[isAm ? 'am' : 'en'] || key;
+  };
 
   const { register, handleSubmit, watch, setValue, trigger, formState: { errors } } = useForm<DiagnosisBookingData>({
     resolver: zodResolver(diagnosisBookingSchema),
@@ -91,17 +155,17 @@ export default function DiagnosisBookingPage() {
 
   const getCurrentLocation = () => {
     if ('geolocation' in navigator) {
-      toast.info('Getting your location...');
+      toast.info(isAm ? 'ቦታዎን በማግኘት ላይ...' : 'Getting your location...');
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
           const gpsString = `${latitude.toFixed(6)}° N, ${longitude.toFixed(6)}° E`;
           setValue('gpsPin', gpsString);
-          toast.success('Location captured successfully! 📍');
+          toast.success(isAm ? 'ቦታው ተይዟል! 📍' : 'Location captured successfully! 📍');
         },
         (error) => {
           console.error('Geolocation error:', error);
-          toast.error('Unable to get location. Please enter manually.');
+          toast.error(isAm ? 'ቦታ ማግኘት አልተቻለም' : 'Failed to get your location.');
         },
         {
           enableHighAccuracy: true,
@@ -110,7 +174,7 @@ export default function DiagnosisBookingPage() {
         }
       );
     } else {
-      toast.error('Geolocation is not supported by your browser.');
+      toast.error(isAm ? 'ጂኦሎኬሽን በብራውዘርዎ አልተደገፈም' : 'Geolocation is not supported by your browser.');
     }
   };
 
@@ -133,35 +197,26 @@ export default function DiagnosisBookingPage() {
     setErrorDetails('');
 
     try {
-      // Get current date and time
+      const location = 'Afilas Diagnosis Center';
       const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const appointmentDate = `${year}-${month}-${day}`;
+      const appointmentDate = now.toISOString().split('T')[0];
       const hours = String(now.getHours()).padStart(2, '0');
       const minutes = String(now.getMinutes()).padStart(2, '0');
       const timeSlot = `${hours}:${minutes}`;
 
-      // 🔥 CRITICAL FIX: ALWAYS use 'Afilas Diagnosis Center' as the location
-      // Whether it's HOSPITAL or HOME visit, the location is the branch
-      const location = 'Afilas Diagnosis Center';
-
-      // Build payload
       const payload: Record<string, unknown> = {
         patientName: data.patientName.trim(),
         patientEmail: data.patientEmail.trim(),
         patientPhone: data.patientPhone.trim(),
         date: appointmentDate,
         time: timeSlot,
-        location: location, // ALWAYS the branch name
+        location: location,
         notes: data.notes?.trim() || '',
         symptoms: data.symptoms?.trim() || '',
         isEmergency: false,
-        visitType: data.visitType, // 'HOSPITAL' or 'HOME'
+        visitType: data.visitType,
       };
-      
-      // Add age and gender if provided
+
       if (data.patientAge) {
         payload.patientAge = parseInt(data.patientAge);
       }
@@ -169,8 +224,6 @@ export default function DiagnosisBookingPage() {
         payload.patientGender = data.patientGender;
       }
 
-      // 🔥 CRITICAL FIX: For HOME visits, send the address fields
-      // These will be stored separately from the location
       if (data.visitType === 'HOME') {
         payload.city = data.city || null;
         payload.subCity = data.subCity || null;
@@ -179,39 +232,19 @@ export default function DiagnosisBookingPage() {
         payload.homeAddress = data.homeAddress || null;
       }
 
-      console.log(' Submitting DIAGNOSIS appointment payload:', JSON.stringify(payload, null, 2));
-
       const response = await api.post('/appointments', payload, false);
-
-      console.log('✅ Diagnosis appointment created:', response);
-
       const appointmentData = api.extractData<Appointment>(response);
 
       setCreatedAppointment(appointmentData);
       setBookingData(data);
       setShowConfirmation(true);
-      toast.success('Diagnosis appointment booked successfully! 🎉');
+      toast.success(isAm ? 'የምርመራ ቀጠሮዎ በተሳካ ሁኔታ ተይዟል! 🎉' : 'Diagnostic appointment booked successfully! 🎉');
     } catch (error: any) {
-      console.error('❌ Booking error:', error);
-      
-      let errorMessage = 'Failed to book appointment. Please try again.';
-      
-      if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      if (error.data && error.data.errors) {
-        const validationErrors = error.data.errors.map((e: any) => {
-          const field = e.param || e.field || e.path || 'field';
-          return `${field}: ${e.msg || e.message}`;
-        }).join(', ');
-        errorMessage = `Validation failed: ${validationErrors}`;
-      }
-      
-      if (error.data && error.data.error) {
-        errorMessage = error.data.error;
-      }
-      
+      console.error('Booking error:', error);
+      let errorMessage = isAm ? 'ቀጠሮ መያዝ አልተቻለም። እባክዎን ደግመው ይሞክሩ።' : 'Failed to book appointment. Please try again.';
+      if (error.message) errorMessage = error.message;
+      if (error.data && error.data.error) errorMessage = error.data.error;
+
       setErrorDetails(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -221,102 +254,99 @@ export default function DiagnosisBookingPage() {
 
   if (showConfirmation && bookingData) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-        <div className="max-w-sm w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-200 dark:border-gray-700">
-          <div className="text-center">
-            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-2">
-              <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
-            </div>
-            <h1 className="text-lg font-bold text-gray-900 dark:text-white">Confirmed! ✅</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Your diagnosis appointment has been booked.</p>
-            <div className="mt-3 p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-left space-y-0.5 max-h-48 overflow-y-auto">
-              <p className="text-xs text-gray-600 dark:text-gray-300">
-                <span className="font-medium">Patient:</span> {bookingData.patientName}
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-300">
-                <span className="font-medium">Email:</span> {bookingData.patientEmail}
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-300">
-                <span className="font-medium">Phone:</span> {bookingData.patientPhone}
-              </p>
-              {bookingData.patientAge && (
-                <p className="text-xs text-gray-600 dark:text-gray-300">
-                  <span className="font-medium">Age:</span> {bookingData.patientAge}
+      <div className="min-h-screen bg-background text-foreground">
+        <Header />
+        <div className="flex items-center justify-center p-4 pt-32 pb-12">
+          <div className="max-w-md w-full bg-card text-card-foreground rounded-2xl shadow-xl p-6 border border-border">
+            <div className="text-center">
+              <div className="w-14 h-14 bg-green-500/10 dark:bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Check className="w-7 h-7 text-green-600 dark:text-green-400" />
+              </div>
+              <h1 className="text-xl font-bold text-foreground">{t('confirmed')}</h1>
+              <p className="text-xs text-muted-foreground mt-1">{t('confirmedSubtitle')}</p>
+              
+              <div className="mt-4 p-4 bg-muted/50 rounded-xl text-left space-y-2 max-h-60 overflow-y-auto border border-border">
+                <p className="text-xs text-foreground">
+                  <span className="font-semibold text-muted-foreground">{t('patientLabel')}</span> {bookingData.patientName}
                 </p>
-              )}
-              {bookingData.patientGender && (
-                <p className="text-xs text-gray-600 dark:text-gray-300">
-                  <span className="font-medium">Gender:</span> {bookingData.patientGender}
-              </p>
-              )}
-              <p className="text-xs text-gray-600 dark:text-gray-300">
-                <span className="font-medium">Visit Type:</span> {bookingData.visitType === 'HOSPITAL' ? 'Hospital' : '🏠 Home Visit'}
-              </p>
-              {bookingData.visitType === 'HOME' && (
-                <>
-                  {bookingData.city && (
-                    <p className="text-xs text-gray-600 dark:text-gray-300">
-                      <span className="font-medium">City:</span> {bookingData.city}
-                    </p>
-                  )}
-                  {bookingData.subCity && (
-                    <p className="text-xs text-gray-600 dark:text-gray-300">
-                      <span className="font-medium">Sub-City:</span> {bookingData.subCity}
-                    </p>
-                  )}
-                  {bookingData.woreda && (
-                    <p className="text-xs text-gray-600 dark:text-gray-300">
-                      <span className="font-medium">Woreda:</span> {bookingData.woreda}
-                    </p>
-                  )}
-                  {bookingData.homeAddress && (
-                    <p className="text-xs text-gray-600 dark:text-gray-300">
-                      <span className="font-medium">Address:</span> {bookingData.homeAddress}
-                    </p>
-                  )}
-                  {bookingData.gpsPin && (
-                    <p className="text-xs text-gray-600 dark:text-gray-300">
-                      <span className="font-medium">GPS Pin:</span> {bookingData.gpsPin}
-                    </p>
-                  )}
-                </>
-              )}
-              <p className="text-xs text-gray-600 dark:text-gray-300">
-                <span className="font-medium">Date:</span> {new Date().toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </p>
-              <p className="text-xs text-gray-600 dark:text-gray-300">
-                <span className="font-medium">Time:</span> {new Date().toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </p>
-              {createdAppointment && (
-                <p className="text-xs text-gray-600 dark:text-gray-300">
-                  <span className="font-medium">Booking ID:</span>{' '}
-                  <span className="font-mono text-blue-600 dark:text-blue-400">
-                    {createdAppointment.id?.slice(0, 8) || 'N/A'}
-                  </span>
+                <p className="text-xs text-foreground">
+                  <span className="font-semibold text-muted-foreground">{t('emailLabel')}</span> {bookingData.patientEmail}
                 </p>
-              )}
-            </div>
-            <div className="mt-3 flex flex-col sm:flex-row gap-2 justify-center">
-            <button
-              onClick={() => router.push('/')}
-                className="px-3 py-1.5 bg-black text-white text-xs rounded-lg hover:bg-gray-800 transition"
-            >
-                Home
-            </button>
-            <button
-              onClick={() => window.print()}
-                className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-            >
-                Print
-            </button>
+                <p className="text-xs text-foreground">
+                  <span className="font-semibold text-muted-foreground">{t('phoneLabel')}</span> {bookingData.patientPhone}
+                </p>
+                {bookingData.patientAge && (
+                  <p className="text-xs text-foreground">
+                    <span className="font-semibold text-muted-foreground">{t('ageLabel')}</span> {bookingData.patientAge}
+                  </p>
+                )}
+                {bookingData.patientGender && (
+                  <p className="text-xs text-foreground">
+                    <span className="font-semibold text-muted-foreground">{t('genderLabel')}</span> {bookingData.patientGender}
+                  </p>
+                )}
+                <p className="text-xs text-foreground">
+                  <span className="font-semibold text-muted-foreground">{t('visitTypeLabel')}</span> {bookingData.visitType === 'HOSPITAL' ? t('hospitalVisit') : t('homeVisit')}
+                </p>
+                {bookingData.visitType === 'HOME' && (
+                  <>
+                    {bookingData.city && (
+                      <p className="text-xs text-foreground">
+                        <span className="font-semibold text-muted-foreground">{t('city')}:</span> {bookingData.city}
+                      </p>
+                    )}
+                    {bookingData.subCity && (
+                      <p className="text-xs text-foreground">
+                        <span className="font-semibold text-muted-foreground">{t('subCity')}:</span> {bookingData.subCity}
+                      </p>
+                    )}
+                    {bookingData.woreda && (
+                      <p className="text-xs text-foreground">
+                        <span className="font-semibold text-muted-foreground">{t('woreda')}:</span> {bookingData.woreda}
+                      </p>
+                    )}
+                    {bookingData.homeAddress && (
+                      <p className="text-xs text-foreground">
+                        <span className="font-semibold text-muted-foreground">{t('detailedAddress')}:</span> {bookingData.homeAddress}
+                      </p>
+                    )}
+                    {bookingData.gpsPin && (
+                      <p className="text-xs text-foreground">
+                        <span className="font-semibold text-muted-foreground">{t('gpsPin')}:</span> {bookingData.gpsPin}
+                      </p>
+                    )}
+                  </>
+                )}
+                <p className="text-xs text-foreground">
+                  <span className="font-semibold text-muted-foreground">{t('dateLabel')}</span> {new Date().toLocaleDateString(isAm ? 'am-ET' : 'en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                </p>
+                <p className="text-xs text-foreground">
+                  <span className="font-semibold text-muted-foreground">{t('timeLabel')}</span> {new Date().toLocaleTimeString(isAm ? 'am-ET' : 'en-US', { hour: '2-digit', minute: '2-digit' })}
+                </p>
+                {createdAppointment && (
+                  <p className="text-xs text-foreground">
+                    <span className="font-semibold text-muted-foreground">{t('bookingIdLabel')}</span>{' '}
+                    <span className="font-mono text-primary font-bold">
+                      {createdAppointment.id?.slice(0, 8) || 'N/A'}
+                    </span>
+                  </p>
+                )}
+              </div>
+
+              <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={() => router.push('/')}
+                  className="px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl hover:bg-primary/90 transition-all shadow-md"
+                >
+                  {t('homeBtn')}
+                </button>
+                <button
+                  onClick={() => window.print()}
+                  className="px-4 py-2 bg-secondary text-secondary-foreground font-semibold text-xs rounded-xl hover:bg-secondary/80 transition-all"
+                >
+                  {t('printBtn')}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -325,350 +355,363 @@ export default function DiagnosisBookingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-2 px-4 flex items-center justify-center">
-      <div className="w-full max-w-sm">
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-[#73787E]">
-            <h1 className="text-sm font-bold text-white text-center">
-              Diagnosis Center
-          </h1>
-            <p className="text-[11px] text-gray-200 text-center">
-              Book your appointment
-          </p>
-        </div>
+    <div className="min-h-screen bg-background text-foreground">
+      <Header />
+      <div className="py-8 px-4 flex items-center justify-center pt-28 sm:pt-32 pb-12">
+        <div className="w-full max-w-md">
+          <div className="bg-card text-card-foreground rounded-2xl shadow-xl border border-border overflow-hidden">
+            {/* Header Banner */}
+            <div className="px-5 py-3.5 border-b border-border bg-primary text-primary-foreground">
+              <h1 className="text-base font-bold text-center">
+                {t('title')}
+              </h1>
+              <p className="text-xs text-primary-foreground/80 text-center mt-0.5">
+                {t('subtitle')}
+              </p>
+            </div>
 
-          <div className="p-2.5">
-            {loadingData ? (
-              <div className="flex items-center justify-center py-3">
-                <Loader2 className="w-5 h-5 animate-spin text-gray-600 dark:text-gray-400" />
-                <span className="ml-2 text-xs text-gray-500">Loading...</span>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-                <div className="flex items-center justify-between px-1">
-                  <div className="flex items-center gap-2">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
-                      currentStep >= 1 ? 'bg-black text-white' : 'bg-gray-200 text-gray-500'
-                    }`}>
-                      1
-                    </div>
-                    <span className={`text-xs ${currentStep === 1 ? 'text-black dark:text-white font-medium' : 'text-gray-400'}`}>
-                      Personal Info
-                    </span>
-                  </div>
-                  <div className="flex-1 h-0.5 mx-2 bg-gray-200">
-                    <div className={`h-full bg-black transition-all duration-300 ${
-                      currentStep === 2 ? 'w-full' : 'w-0'
-                    }`} />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${
-                      currentStep >= 2 ? 'bg-black text-white' : 'bg-gray-200 text-gray-500'
-                    }`}>
-                      2
-                    </div>
-                    <span className={`text-xs ${currentStep === 2 ? 'text-black dark:text-white font-medium' : 'text-gray-400'}`}>
-                      Visit Details
-                    </span>
-                  </div>
+            <div className="p-4 sm:p-5">
+              {loadingData ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  <span className="ml-2.5 text-xs text-muted-foreground">{t('loadingText')}</span>
                 </div>
-
-                {currentStep === 1 && (
-                  <div className="space-y-1.5">
-                    <div className="border-b border-gray-200 dark:border-gray-700 pb-0.5">
-                      <h3 className="text-xs font-semibold text-gray-900 dark:text-white flex items-center gap-1">
-                        <UserCircle className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                        Personal Information
-                      </h3>
-                      <p className="text-[10px] text-gray-400 dark:text-gray-500">
-                        Please provide your personal details
-                      </p>
-          </div>
-
-                    <div className="space-y-1.5">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                          Full Name *
-                        </label>
-                        <input
-                          {...register('patientName')}
-                          type="text"
-                          placeholder="Enter your full name"
-                          className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
-                        />
-                        {errors.patientName && (
-                          <p className="mt-0.5 text-[10px] text-red-600">{errors.patientName.message}</p>
-                        )}
-        </div>
-
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                          Phone Number *
-                        </label>
-                        <input
-                          {...register('patientPhone')}
-                          type="tel"
-                          placeholder="+251 9XX XXX XXX"
-                          className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
-                        />
-                        {errors.patientPhone && (
-                          <p className="mt-0.5 text-[10px] text-red-600">{errors.patientPhone.message}</p>
-                        )}
-          </div>
-
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                          Email Address *
-                        </label>
-                        <input
-                          {...register('patientEmail')}
-                          type="email"
-                          placeholder="your@email.com"
-                          className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
-                        />
-                        {errors.patientEmail && (
-                          <p className="mt-0.5 text-[10px] text-red-600">{errors.patientEmail.message}</p>
-                        )}
+              ) : (
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                  {/* Step indicators */}
+                  <div className="flex items-center justify-between px-2">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                        currentStep >= 1 ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-muted text-muted-foreground'
+                      }`}>
+                        1
                       </div>
-
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                          Age
-                        </label>
-                        <input
-                          {...register('patientAge')}
-                          type="number"
-                          placeholder="Enter your age"
-                          min="0"
-                          max="150"
-                          className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
-                        />
+                      <span className={`text-xs font-semibold ${currentStep === 1 ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>
+                        {t('step1')}
+                      </span>
+                    </div>
+                    <div className="flex-1 h-0.5 mx-3 bg-border">
+                      <div className={`h-full bg-primary transition-all duration-300 ${
+                        currentStep === 2 ? 'w-full' : 'w-0'
+                      }`} />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
+                        currentStep >= 2 ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-muted text-muted-foreground'
+                      }`}>
+                        2
                       </div>
-
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                          Gender
-                        </label>
-                        <select
-                          {...register('patientGender')}
-                          className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
-            >
-                          <option value="">Select Gender</option>
-                          <option value="MALE">Male</option>
-                          <option value="FEMALE">Female</option>
-                          <option value="OTHER">Other</option>
-                        </select>
-                      </div>
-
-              <button
-                type="button"
-                        onClick={nextStep}
-                        className="w-full flex items-center justify-center gap-1.5 px-4 py-2 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-all text-xs mt-2"
-              >
-                Next
-                <ChevronRight className="w-4 h-4" />
-              </button>
+                      <span className={`text-xs font-semibold ${currentStep === 2 ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>
+                        {t('step2')}
+                      </span>
                     </div>
                   </div>
-                )}
 
-                {currentStep === 2 && (
-                  <div className="space-y-1.5">
-                    <div className="border-b border-gray-200 dark:border-gray-700 pb-0.5">
-                      <h3 className="text-xs font-semibold text-gray-900 dark:text-white flex items-center gap-1">
-                        <Users className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                        Visit Details
-                      </h3>
-                      <p className="text-[10px] text-gray-400 dark:text-gray-500">
-                        Tell us about your visit
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                        Visit Type *
-                      </label>
-                      <div className="grid grid-cols-2 gap-1.5">
-                        <button
-                          type="button"
-                          onClick={() => setValue('visitType', 'HOSPITAL')}
-                          className={`py-2 text-xs border rounded-lg transition ${
-                            visitType === 'HOSPITAL'
-                              ? 'border-black bg-gray-100 dark:bg-gray-700 text-black dark:text-white'
-                              : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-400'
-                          }`}
-                        >
-                          Hospital Visit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setValue('visitType', 'HOME')}
-                          className={`py-2 text-xs border rounded-lg transition ${
-                            visitType === 'HOME'
-                              ? 'border-black bg-gray-100 dark:bg-gray-700 text-black dark:text-white'
-                              : 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:border-gray-400'
-                          }`}
-                        >
-                          Home Visit
-                        </button>
+                  {/* Step 1 */}
+                  {currentStep === 1 && (
+                    <div className="space-y-3 pt-1">
+                      <div className="border-b border-border pb-1.5">
+                        <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                          <UserCircle className="w-4 h-4 text-primary" />
+                          {t('personalTitle')}
+                        </h3>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {t('personalSubtitle')}
+                        </p>
                       </div>
-                      {errors.visitType && (
-                        <p className="mt-0.5 text-[10px] text-red-600">{errors.visitType.message}</p>
-                      )}
-                    </div>
 
-                    {visitType === 'HOME' && (
-                      <div className="space-y-1.5 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                        <div className="border-b border-gray-200 dark:border-gray-700 pb-0.5">
-                          <h3 className="text-xs font-semibold text-gray-900 dark:text-white flex items-center gap-1">
-                            <Home className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                            Home Address Details
-                          </h3>
-                          <p className="text-[10px] text-gray-400 dark:text-gray-500">
-                            Please provide your home address
-                          </p>
+                      <div className="space-y-2.5">
+                        <div>
+                          <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                            {t('fullName')}
+                          </label>
+                          <input
+                            {...register('patientName')}
+                            type="text"
+                            placeholder={t('fullNamePlaceholder')}
+                            dir="ltr"
+                            className="w-full px-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
+                          />
+                          {errors.patientName && (
+                            <p className="mt-1 text-[10px] text-destructive font-medium">{errors.patientName.message}</p>
+                          )}
                         </div>
 
-                        <div className="space-y-1.5">
+                        <div>
+                          <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                            {t('phone')}
+                          </label>
+                          <input
+                            {...register('patientPhone')}
+                            type="tel"
+                            placeholder={t('phonePlaceholder')}
+                            dir="ltr"
+                            className="w-full px-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
+                          />
+                          {errors.patientPhone && (
+                            <p className="mt-1 text-[10px] text-destructive font-medium">{errors.patientPhone.message}</p>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                            {t('email')}
+                          </label>
+                          <input
+                            {...register('patientEmail')}
+                            type="email"
+                            placeholder={t('emailPlaceholder')}
+                            dir="ltr"
+                            className="w-full px-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
+                          />
+                          {errors.patientEmail && (
+                            <p className="mt-1 text-[10px] text-destructive font-medium">{errors.patientEmail.message}</p>
+                          )}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2.5">
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                              City
+                            <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                              {t('age')}
                             </label>
                             <input
-                              {...register('city')}
-                              type="text"
-                              placeholder="Bahir Dar"
-                              className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
+                              {...register('patientAge')}
+                              type="number"
+                              placeholder={t('agePlaceholder')}
+                              min="0"
+                              max="150"
+                              dir="ltr"
+                              className="w-full px-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
                             />
                           </div>
+
                           <div>
-                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                              Sub-City
+                            <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                              {t('gender')}
                             </label>
-                            <input
-                              {...register('subCity')}
-                              type="text"
-                              placeholder="Kebele 13"
-                              className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
-                            />
+                            <select
+                              {...register('patientGender')}
+                              className="w-full px-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
+                            >
+                              <option value="">{t('selectGender')}</option>
+                              <option value="MALE">{t('male')}</option>
+                              <option value="FEMALE">{t('female')}</option>
+                              <option value="OTHER">{t('other')}</option>
+                            </select>
                           </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                              Woreda
-                            </label>
-                            <input
-                              {...register('woreda')}
-                              type="text"
-                              placeholder="Woreda 03"
-                              className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                              GPS Pin / Location
-                            </label>
-                            <div className="relative">
-                              <input
-                                {...register('gpsPin')}
-                                type="text"
-                                placeholder="Click crosshair to get location"
-                                className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white pr-8 transition"
-                                readOnly
-                              />
-                              <button
-                                type="button"
-                                onClick={getCurrentLocation}
-                                className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
-                                title="Get current location"
-                              >
-                                <Crosshair className="w-4 h-4" />
-                              </button>
-                            </div>
-                            <p className="text-[9px] text-gray-400 dark:text-gray-500 mt-0.5 flex items-center gap-1">
-                              <Navigation className="w-3 h-3" />
-                              Click the crosshair to use your device's GPS
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={nextStep}
+                          className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-all text-xs shadow-md mt-3"
+                        >
+                          {t('next')}
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Step 2 */}
+                  {currentStep === 2 && (
+                    <div className="space-y-3 pt-1">
+                      <div className="border-b border-border pb-1.5">
+                        <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                          <Users className="w-4 h-4 text-primary" />
+                          {t('visitTitle')}
+                        </h3>
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                          {t('visitSubtitle')}
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                          {t('visitType')}
+                        </label>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setValue('visitType', 'HOSPITAL')}
+                            className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all ${
+                              visitType === 'HOSPITAL'
+                                ? 'border-primary bg-primary/10 text-primary shadow-sm'
+                                : 'border-border bg-background text-muted-foreground hover:text-foreground hover:border-primary/50'
+                            }`}
+                          >
+                            {t('hospitalVisit')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setValue('visitType', 'HOME')}
+                            className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all ${
+                              visitType === 'HOME'
+                                ? 'border-primary bg-primary/10 text-primary shadow-sm'
+                                : 'border-border bg-background text-muted-foreground hover:text-foreground hover:border-primary/50'
+                            }`}
+                          >
+                            {t('homeVisit')}
+                          </button>
+                        </div>
+                        {errors.visitType && (
+                          <p className="mt-1 text-[10px] text-destructive font-medium">{errors.visitType.message}</p>
+                        )}
+                      </div>
+
+                      {visitType === 'HOME' && (
+                        <div className="space-y-2 p-3 bg-muted/40 rounded-xl border border-border">
+                          <div className="border-b border-border pb-1">
+                            <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                              <Home className="w-4 h-4 text-primary" />
+                              {t('homeAddressTitle')}
+                            </h3>
+                            <p className="text-[10px] text-muted-foreground">
+                              {t('homeAddressSubtitle')}
                             </p>
                           </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                              Detailed Address
-                            </label>
-                            <textarea
-                              {...register('homeAddress')}
-                              rows={1}
-                              placeholder="House number, building, landmarks..."
-                              className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition resize-none"
-                            />
+
+                          <div className="space-y-2">
+                            <div>
+                              <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                                {t('city')}
+                              </label>
+                              <input
+                                {...register('city')}
+                                type="text"
+                                placeholder={t('cityPlaceholder')}
+                                className="w-full px-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                                {t('subCity')}
+                              </label>
+                              <input
+                                {...register('subCity')}
+                                type="text"
+                                placeholder={t('subCityPlaceholder')}
+                                className="w-full px-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                                {t('woreda')}
+                              </label>
+                              <input
+                                {...register('woreda')}
+                                type="text"
+                                placeholder={t('woredaPlaceholder')}
+                                className="w-full px-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                                {t('gpsPin')}
+                              </label>
+                              <div className="relative">
+                                <input
+                                  {...register('gpsPin')}
+                                  type="text"
+                                  placeholder={t('gpsPlaceholder')}
+                                  className="w-full px-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary pr-9 transition outline-none"
+                                  readOnly
+                                />
+                                <button
+                                  type="button"
+                                  onClick={getCurrentLocation}
+                                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-primary transition-colors"
+                                  title={t('gpsHelp')}
+                                >
+                                  <Crosshair className="w-4 h-4" />
+                                </button>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground mt-1 flex items-center gap-1">
+                                <Navigation className="w-3 h-3 text-primary" />
+                                {t('gpsHelp')}
+                              </p>
+                            </div>
+                            <div>
+                              <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                                {t('detailedAddress')}
+                              </label>
+                              <textarea
+                                {...register('homeAddress')}
+                                rows={2}
+                                placeholder={t('detailedAddressPlaceholder')}
+                                className="w-full px-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none resize-none"
+                              />
+                            </div>
                           </div>
                         </div>
+                      )}
+
+                      <div>
+                        <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                          {t('symptoms')}
+                        </label>
+                        <textarea
+                          {...register('symptoms')}
+                          rows={2}
+                          placeholder={t('symptomsPlaceholder')}
+                          className="w-full px-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none resize-none"
+                        />
                       </div>
-                    )}
 
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                        Symptoms
-                      </label>
-                      <textarea
-                        {...register('symptoms')}
-                        rows={1}
-                        placeholder="Describe your symptoms (e.g., Headache, fever, cough...)"
-                        className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition resize-none"
-                      />
+                      <div>
+                        <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                          {t('notes')}
+                        </label>
+                        <textarea
+                          {...register('notes')}
+                          rows={2}
+                          placeholder={t('notesPlaceholder')}
+                          className="w-full px-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none resize-none"
+                        />
+                      </div>
+
+                      <div className="flex gap-2.5 pt-2">
+                        <button
+                          type="button"
+                          onClick={prevStep}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-secondary text-secondary-foreground font-semibold rounded-xl hover:bg-secondary/80 transition-all text-xs"
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          {t('back')}
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={isSubmitting || loadingData}
+                          className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              {t('booking')}
+                            </>
+                          ) : (
+                            <>
+                              <Check className="w-4 h-4" />
+                              {t('book')}
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
+                  )}
 
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                        Additional Notes
-                      </label>
-                      <textarea
-                        {...register('notes')}
-                        rows={1}
-                        placeholder="Allergies, medical history, special requests..."
-                        className="w-full px-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition resize-none"
-                      />
+                  {errorDetails && (
+                    <div className="p-2.5 bg-destructive/10 border border-destructive/30 text-destructive rounded-xl">
+                      <p className="text-[10px] font-medium">{errorDetails}</p>
                     </div>
+                  )}
 
-                    <div className="flex gap-2 pt-1">
-                      <button
-                        type="button"
-                        onClick={prevStep}
-                        className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-all text-xs"
-                      >
-                        <ChevronLeft className="w-4 h-4" />
-                        Back
-                      </button>
-              <button
-                type="submit"
-                        disabled={isSubmitting || loadingData}
-                        className="flex-1 flex items-center justify-center gap-1.5 px-4 py-2 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-all shadow-sm hover:shadow disabled:opacity-50 disabled:cursor-not-allowed text-xs"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Booking...
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-4 h-4" />
-                            Book
-                  </>
-                )}
-              </button>
-                    </div>
-                  </div>
-                )}
-
-                {errorDetails && (
-                  <div className="p-1.5 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-[10px] text-red-600">{errorDetails}</p>
-                  </div>
-                )}
-
-                <p className="text-center text-[9px] text-gray-400 dark:text-gray-500">
-                  By booking, you agree to our terms and conditions
-                </p>
-              </form>
-            )}
+                  <p className="text-center text-[10px] text-muted-foreground pt-1">
+                    {t('termsText')}
+                  </p>
+                </form>
+              )}
+            </div>
           </div>
         </div>
       </div>

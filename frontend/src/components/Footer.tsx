@@ -130,7 +130,7 @@ export function Footer() {
               <li className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-[#888888] dark:text-slate-400 shrink-0 mt-0.5" />
                 <span className="hover:opacity-75 transition-opacity">
-                  Bahir Dar, Kebele 13, Around Felege Hiwot Hospital
+                  {t("footer.address")}
                 </span>
               </li>
               <li className="flex items-start gap-2">
@@ -158,12 +158,12 @@ export function Footer() {
                 <div className="flex items-start gap-2">
                   <PhoneCall className="w-4 h-4 text-red-500 dark:text-red-400 shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-medium">Emergency Hotline</p>
+                    <p className="font-medium">{t("footer.emergency_hotline_label")}</p>
                     <p className="text-lg font-bold text-red-600 dark:text-red-400">
                       8560
                     </p>
                     <p className="text-xs text-[#888888] dark:text-slate-400">
-                      24/7 Available
+                      {t("footer.available_24_7")}
                     </p>
                   </div>
                 </div>
@@ -195,58 +195,37 @@ export function Footer() {
                   </div>
                 </div>
               </li>
-              {/* Admin Login Button - Added Here */}
-              <li>
-                <Link
-                  href="/admin/login"
-                  className="flex items-center gap-2 mt-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white text-sm font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-teal-600/30 w-full justify-center"
-                >
-                  <Shield className="w-4 h-4" />
-                  Admin Login
-                </Link>
-              </li>
             </ul>
           </div>
         </div>
 
         {/* Bottom Section: Copyright & Compliance Badges */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-[#777777] dark:text-slate-400 text-sm pt-8 border-t border-[#E2E2E2] dark:border-slate-700">
-          {/* Copyright & Legal Links */}
           <div className="flex flex-wrap items-center gap-6">
-            <span>© 2026 Afilas Group. {t("footer.rights_reserved")}</span>
+            <span>{t("footer.copyright")} {t("footer.rights_reserved")}</span>
             <Link
               href="/privacy"
               className="hover:text-[#1A1A1A] dark:hover:text-white transition-colors"
             >
-              Privacy Policy
+              {t("footer.privacy_policy")}
             </Link>
             <Link
               href="/terms"
               className="hover:text-[#1A1A1A] dark:hover:text-white transition-colors"
             >
-              Terms of Use
+              {t("footer.terms_of_use")}
             </Link>
           </div>
 
-          {/* Compliance Badges */}
+          {/* Compliance Badges - unchanged */}
           <div className="flex items-center gap-3">
-            {/* ISO/GMP Badge */}
             <div className="flex items-center bg-[#2B2B2B] dark:bg-slate-700 text-white text-[10px] font-bold tracking-wider px-2.5 py-1 rounded-sm gap-1.5">
-              <svg
-                width="12"
-                height="14"
-                viewBox="0 0 12 14"
-                fill="currentColor"
-              >
+              <svg width="12" height="14" viewBox="0 0 12 14" fill="currentColor">
                 <path d="M6 0L0 2.5V6.5C0 10.2 2.6 13.6 6 14C9.4 13.6 12 10.2 12 6.5V2.5L6 0ZM6 7V11H5V7H3V6H9V7H6Z" />
               </svg>
               <span>ISO</span>
-              <span className="text-[8px] font-light tracking-normal opacity-80">
-                GMP
-              </span>
+              <span className="text-[8px] font-light tracking-normal opacity-80">GMP</span>
             </div>
-
-            {/* Quality Badge */}
             <div className="w-6 h-6 rounded-full bg-[#1A1A1A] dark:bg-slate-700 flex items-center justify-center text-white text-[6px] font-bold relative">
               <span>Q</span>
               <div className="absolute inset-0 border border-dashed border-white/40 rounded-full scale-110" />

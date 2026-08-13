@@ -53,7 +53,7 @@ export function PharmaHero() {
     : "opacity-0";
 
   return (
-    <div ref={heroRef} className="relative min-h-screen py-12 lg:py-0 overflow-hidden flex items-center justify-center">
+    <div ref={heroRef} className="relative min-h-screen py-12 lg:py-16 overflow-hidden flex items-center justify-center">
       {/* Background pattern overlay - retained pattern with high-contrast primary tint */}
       <div
         className="absolute inset-0 z-0 opacity-15 dark:opacity-20 pointer-events-none"

@@ -4,26 +4,50 @@
 import { useState, useRef, useEffect } from "react";
 import { useLanguage } from "@/contexts/LanguageProvider";
 import {
-  Star, MapPin, Search, ChevronDown, Loader2, Calendar, Briefcase, Clock
+  Star, MapPin, Search, ChevronDown, Loader2, Calendar, Briefcase, Clock,
+  X, Phone, Mail, Stethoscope, DollarSign, GraduationCap
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+
+// Day mapping helper for scheduleSlots
+const dayNames: Record<number, string> = {
+  0: "Sun", 1: "Mon", 2: "Tue", 3: "Wed", 4: "Thu", 5: "Fri", 6: "Sat", 7: "Sun"
+};
+
+function formatScheduleSlots(slots: any[]): string {
+  if (!Array.isArray(slots) || slots.length === 0) return "";
+  const activeSlots = slots.filter(s => s.isAvailable !== false);
+  if (activeSlots.length === 0) return "";
+  
+  const days = activeSlots.map(s => dayNames[s.dayOfWeek] || `Day ${s.dayOfWeek}`);
+  const uniqueDays = Array.from(new Set(days));
+  return uniqueDays.join(", ");
+}
 
 // ============================================================
 // TYPES (Based on your Backend API)
 // ============================================================
 interface BackendDoctor {
   id: string;
-  userId: string;
+  userId?: string;
+  name?: string;
+  title?: string;
   specialization: string;
   experience: number;
-  education: string;
+  education?: string;
   bio: string;
   consultationFee: number;
-  rating: number;
-  isAvailable: boolean;
+  rating?: number;
+  active?: boolean;
+  isAvailable?: boolean;
   location: string;
-  image: string | null;
+  image?: string | null;
+  photoUrl?: string | null;
+  email?: string;
+  phone?: string;
+  scheduleSlots?: any[];
   user?: {
     firstName: string;
     lastName: string;
@@ -52,6 +76,7 @@ const mockDoctors = [
     consultationFee: 1500,
     location: "Afilas General Hospital",
     availability: "Mon - Fri",
+    scheduleSlots: [],
   },
   {
     id: "2",
@@ -69,6 +94,7 @@ const mockDoctors = [
     consultationFee: 1200,
     location: "Afilas General Hospital",
     availability: "Mon - Fri",
+    scheduleSlots: [],
   },
   {
     id: "3",
@@ -86,6 +112,7 @@ const mockDoctors = [
     consultationFee: 2000,
     location: "Afilas General Hospital",
     availability: "Mon - Fri",
+    scheduleSlots: [],
   },
   {
     id: "4",
@@ -103,6 +130,7 @@ const mockDoctors = [
     consultationFee: 1000,
     location: "Afilas General Hospital",
     availability: "Mon - Fri",
+    scheduleSlots: [],
   },
   {
     id: "5",
@@ -120,6 +148,7 @@ const mockDoctors = [
     consultationFee: 1800,
     location: "Afilas Diagnosis Center",
     availability: "Mon - Fri",
+    scheduleSlots: [],
   },
   {
     id: "6",
@@ -137,6 +166,7 @@ const mockDoctors = [
     consultationFee: 1600,
     location: "Afilas General Hospital",
     availability: "Mon - Fri",
+    scheduleSlots: [],
   },
 ];
 
@@ -172,13 +202,15 @@ export function DoctorFinder({
   showHeader = true 
 }: DoctorFinderProps = {}) {
   const { t } = useLanguage();
+  const router = useRouter();
   const sectionRef = useRef<HTMLElement>(null);
   const isInView = useInView(sectionRef);
 
-  const [doctors, setDoctors] = useState(mockDoctors);
+  const [doctors, setDoctors] = useState<any[]>(mockDoctors);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [imageFailed, setImageFailed] = useState<Record<string, boolean>>({});
+  const [selectedDoctor, setSelectedDoctor] = useState<any | null>(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
@@ -205,7 +237,7 @@ export function DoctorFinder({
 
         if (apiDoctors.length > 0) {
           const formattedDoctors = apiDoctors.map((doc: any) => {
-            const rawImage: string | null = doc.image || doc.photoUrl || null;
+            const rawImage: string | null = doc.photoUrl || doc.image || null;
             let photoUrl: string | null = null;
             if (rawImage) {
               if (/^https?:\/\//i.test(rawImage)) {
@@ -216,22 +248,27 @@ export function DoctorFinder({
               }
             }
 
+            const rawName = doc.name || (doc.user ? `${doc.user.firstName} ${doc.user.lastName}` : "Doctor");
+            const displayName = rawName.startsWith("Dr.") ? rawName : `Dr. ${rawName}`;
+            const computedAvail = doc.availability || formatScheduleSlots(doc.scheduleSlots) || "Mon - Fri";
+
             return {
               id: doc.id,
-              name: doc.user ? `Dr. ${doc.user.firstName} ${doc.user.lastName}` : doc.name || "Doctor",
-              title: doc.specialization || doc.title || "Specialist",
+              name: displayName,
+              title: doc.title || doc.specialization || "Specialist",
               bio: doc.bio || "Experienced medical professional dedicated to patient care.",
               photoUrl: photoUrl,
-              active: doc.isAvailable !== undefined ? doc.isAvailable : !!doc.active,
-              email: doc.user?.email || doc.email || "",
-              phone: doc.user?.phone || doc.phone || "",
+              active: doc.active !== undefined ? doc.active : doc.isAvailable !== undefined ? doc.isAvailable : true,
+              email: doc.email || doc.user?.email || "",
+              phone: doc.phone || doc.user?.phone || "",
               specialization: doc.specialization || doc.title || "General",
               experience: doc.experience || 0,
               education: doc.education || "",
-              rating: doc.rating || 4.5,
+              rating: doc.rating || 4.8,
               consultationFee: doc.consultationFee || 0,
               location: doc.location || "Afilas General Hospital",
-              availability: doc.availability || "Mon - Fri",
+              availability: computedAvail,
+              scheduleSlots: doc.scheduleSlots || [],
             };
           });
 
@@ -365,7 +402,8 @@ export function DoctorFinder({
               return (
                 <div
                   key={doctor.id}
-                  className={`group bg-card border border-border/60 rounded-2xl overflow-hidden hover:border-primary/30 hover:shadow-lg transition-all duration-500 hover:-translate-y-1 ${
+                  onClick={() => setSelectedDoctor(doctor)}
+                  className={`group bg-card border border-border/60 rounded-2xl overflow-hidden hover:border-primary/50 hover:shadow-xl transition-all duration-500 hover:-translate-y-1 cursor-pointer ${
                     isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
                   }`}
                   style={{ transitionDelay: `${150 + delay}ms` }}
@@ -384,16 +422,16 @@ export function DoctorFinder({
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-primary/30 bg-muted">
-                          {doctor.name.split(' ').map((n) => n[0]).join('')}
+                          {doctor.name.split(' ').map((n: string) => n[0]).join('')}
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Doctor Info - Clean Minimal Style like the image */}
+                  {/* Doctor Info */}
                   <div className="p-5 pt-2 space-y-3 text-center">
                     {/* Name */}
-                    <h3 className="text-lg font-bold text-foreground leading-tight">
+                    <h3 className="text-lg font-bold text-foreground leading-tight group-hover:text-primary transition-colors">
                       {doctor.name}
                     </h3>
                     
@@ -425,7 +463,7 @@ export function DoctorFinder({
                       </p>
                     </div>
 
-                    {/* Location/Affiliation - Bottom of card like "© Afilas General Hospital" */}
+                    {/* Location/Affiliation */}
                     <div className="pt-3 mt-2 border-t border-border/40">
                       <p className="text-[11px] text-muted-foreground/60 font-medium">
                         © {doctor.location}
@@ -446,16 +484,233 @@ export function DoctorFinder({
           </div>
         )}
 
-        <div className={`text-center mt-10 transition-all duration-600 ease-out delay-300 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
-          <Link
-            href="/doctors"
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            {t("doctors.view_all")}
-            <ChevronDown className="w-4 h-4 -rotate-90" />
-          </Link>
-        </div>
+        {showHeader && (
+          <div className={`text-center mt-10 transition-all duration-600 ease-out delay-300 ${isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"}`}>
+            <Link
+              href="/doctors"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              {t("doctors.view_all")}
+              <ChevronDown className="w-4 h-4 -rotate-90" />
+            </Link>
+          </div>
+        )}
       </div>
+
+      {/* ============================================================
+          DOCTOR DETAILS MODAL (CLICKABLE CARD DETAILED VIEW)
+         ============================================================ */}
+      {selectedDoctor && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-md animate-fadeIn">
+          {/* Backdrop click to close */}
+          <div 
+            className="absolute inset-0" 
+            onClick={() => setSelectedDoctor(null)} 
+          />
+          
+          {/* Modal Card */}
+          <div className="relative w-full max-w-2xl bg-card border border-border rounded-3xl shadow-2xl overflow-hidden z-10 max-h-[90vh] flex flex-col transition-all">
+            {/* Modal Header */}
+            <div className="relative p-6 sm:p-8 bg-gradient-to-r from-primary/20 via-primary/10 to-background border-b border-border flex items-start justify-between gap-4">
+              <div className="flex items-center gap-4 sm:gap-6">
+                {/* Doctor Avatar */}
+                <div className="relative w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden ring-4 ring-primary/20 shrink-0 bg-muted shadow-md">
+                  {selectedDoctor.photoUrl && !imageFailed[selectedDoctor.id] ? (
+                    <Image
+                      src={selectedDoctor.photoUrl}
+                      alt={selectedDoctor.name}
+                      fill
+                      unoptimized
+                      className="object-cover"
+                      onError={() => setImageFailed((p) => ({ ...p, [selectedDoctor.id]: true }))}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-primary/40 bg-muted">
+                      {selectedDoctor.name.split(' ').map((n: string) => n[0]).join('')}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold mb-1">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>{t("doctors.modal.active_status")}</span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-extrabold text-foreground leading-tight">
+                    {selectedDoctor.name}
+                  </h3>
+                  <p className="text-sm font-semibold text-primary mt-0.5">
+                    {selectedDoctor.title}
+                  </p>
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setSelectedDoctor(null)}
+                aria-label={t("doctors.modal.close")}
+                className="p-2 rounded-full bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Body - Scrollable Details */}
+            <div className="p-6 sm:p-8 overflow-y-auto space-y-6 flex-1 text-sm">
+              {/* Bio */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                  {t("doctors.modal.title")}
+                </h4>
+                <p className="text-foreground/90 text-sm leading-relaxed bg-muted/30 p-4 rounded-xl border border-border/50">
+                  {selectedDoctor.bio}
+                </p>
+              </div>
+
+              {/* Info Cards Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="p-3.5 bg-card border border-border/80 rounded-xl flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10 text-primary shrink-0">
+                    <Stethoscope className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium">{t("doctors.modal.specialization")}</p>
+                    <p className="text-sm font-bold text-foreground mt-0.5">{selectedDoctor.specialization}</p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 bg-card border border-border/80 rounded-xl flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 shrink-0">
+                    <Briefcase className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium">{t("doctors.modal.experience")}</p>
+                    <p className="text-sm font-bold text-foreground mt-0.5">{selectedDoctor.experience}+ Years</p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 bg-card border border-border/80 rounded-xl flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+                    <MapPin className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium">{t("doctors.modal.location")}</p>
+                    <p className="text-sm font-bold text-foreground mt-0.5">{selectedDoctor.location}</p>
+                  </div>
+                </div>
+
+                <div className="p-3.5 bg-card border border-border/80 rounded-xl flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                    <DollarSign className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium">{t("doctors.modal.fee")}</p>
+                    <p className="text-sm font-bold text-foreground mt-0.5">
+                      {selectedDoctor.consultationFee > 0 ? `ETB ${selectedDoctor.consultationFee}` : t("doctors.modal.free_fee")}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Education (if present) */}
+              {selectedDoctor.education && (
+                <div className="p-3.5 bg-card border border-border/80 rounded-xl flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400 shrink-0">
+                    <GraduationCap className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground font-medium">{t("doctors.modal.education")}</p>
+                    <p className="text-sm font-semibold text-foreground mt-0.5">{selectedDoctor.education}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Contact Information */}
+              {(selectedDoctor.phone || selectedDoctor.email) && (
+                <div>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                    {t("doctors.modal.contact")}
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {selectedDoctor.phone && (
+                      <a
+                        href={`tel:${selectedDoctor.phone}`}
+                        className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border hover:border-primary/40 text-foreground text-xs font-medium transition-colors"
+                      >
+                        <Phone className="w-4 h-4 text-primary shrink-0" />
+                        <span>{selectedDoctor.phone}</span>
+                      </a>
+                    )}
+                    {selectedDoctor.email && (
+                      <a
+                        href={`mailto:${selectedDoctor.email}`}
+                        className="flex items-center gap-3 p-3 rounded-xl bg-card border border-border hover:border-primary/40 text-foreground text-xs font-medium transition-colors"
+                      >
+                        <Mail className="w-4 h-4 text-primary shrink-0" />
+                        <span className="truncate">{selectedDoctor.email}</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Schedule Slots */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">
+                  {t("doctors.modal.schedule")}
+                </h4>
+                {Array.isArray(selectedDoctor.scheduleSlots) && selectedDoctor.scheduleSlots.length > 0 ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {selectedDoctor.scheduleSlots.map((slot: any) => {
+                      const dayStr = dayNames[slot.dayOfWeek] || `Day ${slot.dayOfWeek}`;
+                      return (
+                        <div
+                          key={slot.id || Math.random()}
+                          className="flex items-center justify-between p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 text-xs"
+                        >
+                          <span className="font-bold text-foreground flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                            {dayStr}
+                          </span>
+                          <span className="font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                            {slot.startTime} - {slot.endTime}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 p-3.5 rounded-xl bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-semibold text-xs border border-emerald-500/20">
+                    <Clock className="w-4 h-4 shrink-0" />
+                    <span>{selectedDoctor.availability || "Mon - Fri"}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer Actions */}
+            <div className="p-4 sm:p-6 bg-muted/40 border-t border-border flex flex-wrap items-center justify-end gap-3">
+              <button
+                onClick={() => setSelectedDoctor(null)}
+                className="px-5 py-2.5 rounded-xl border border-border text-foreground font-semibold text-xs hover:bg-muted transition-colors"
+              >
+                {t("doctors.modal.close")}
+              </button>
+              {/* <button
+                onClick={() => {
+                  const docId = selectedDoctor.id;
+                  setSelectedDoctor(null);
+                  router.push(`/appointments/doctor?doctorId=${docId}`);
+                }}
+                className="px-6 py-2.5 rounded-xl bg-primary text-primary-foreground font-bold text-xs hover:bg-primary/90 transition-all shadow-md active:scale-95 flex items-center gap-2"
+              >
+                <Calendar className="w-4 h-4" />
+                <span>{t("doctors.modal.book")}</span>
+              </button> */}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

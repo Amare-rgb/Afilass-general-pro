@@ -315,8 +315,13 @@ function getAppointmentLink(service: any) {
   return (
     <>
       <Header />
-      <main className="bg-background text-foreground min-h-screen">
-        <DiagnosticsHero />
+      <main 
+        className="bg-background text-foreground min-h-screen"
+        style={{ paddingTop: 'var(--header-offset, 140px)' }}
+      >
+        <div className="relative">
+          <DiagnosticsHero />
+        </div>
 
         {/* Health Packages Section */}
         <section id="packages" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 sm:pt-24 pb-16">

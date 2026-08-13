@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { MessageCircle, X } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useLanguage } from '@/contexts/LanguageProvider';
 
 declare global {
   interface Window {
