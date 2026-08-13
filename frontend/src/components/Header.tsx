@@ -70,12 +70,14 @@ export function Header() {
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [appointmentDropdownOpen, setAppointmentDropdownOpen] = useState(false);
   const [authDropdownOpen, setAuthDropdownOpen] = useState(false);
+  const [quickLinksOpen, setQuickLinksOpen] = useState(false);
 
   const groupDropdownRef = useRef<HTMLDivElement>(null);
   const languageDropdownRef = useRef<HTMLDivElement>(null);
   const themeDropdownRef = useRef<HTMLDivElement>(null);
   const appointmentDropdownRef = useRef<HTMLDivElement>(null);
   const authDropdownRef = useRef<HTMLDivElement>(null);
+  const quickLinksRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const { theme, setTheme } = useTheme();
@@ -101,6 +103,7 @@ export function Header() {
     setAppointmentDropdownOpen(false),
   );
   useClickOutside(authDropdownRef, () => setAuthDropdownOpen(false));
+  useClickOutside(quickLinksRef, () => setQuickLinksOpen(false));
   useClickOutside(mobileMenuRef, () => setMobileOpen(false));
 
   useEffect(() => setMounted(true), []);
@@ -217,6 +220,7 @@ export function Header() {
     setMobileOpen(false);
     setAppointmentDropdownOpen(false);
     setAuthDropdownOpen(false);
+    setQuickLinksOpen(false);
   };
 
   const goHome = () => router.push("/");
@@ -346,7 +350,6 @@ export function Header() {
                 Share Company
               </span>
             </Link>
-          </div>
 
           {/* DESKTOP NAVIGATION */}
           <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-start ml-4 xl:ml-6">
@@ -436,9 +439,11 @@ export function Header() {
                         );
                       })}
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
+            </div>
+          </div>
 
               {/* BRANCH-SPECIFIC MENU */}
               {isBranchPage && activeBranchItem && (
@@ -474,6 +479,18 @@ export function Header() {
                         {t("nav.doctors") || "Doctors"}
                       </Link>
                     </div>
+                    <Link href="/services" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
+                      Services
+                    </Link>
+                    <Link href="/doctors" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
+                      Doctors
+                    </Link>
+                    <Link href="/aboutUs" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
+                      About Us
+                    </Link>
+                    <Link href="/blogs" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
+                      Blog
+                    </Link>
                   </div>
                 </div>
               )}

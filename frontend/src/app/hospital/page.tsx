@@ -16,9 +16,9 @@ import {
   Ambulance,
   ChevronLeft, 
   ChevronRight,
-  Loader2,       // new
+  Loader2,
   AlertCircle,
-  MapPin,   // optional for error
+  MapPin,
 } from "lucide-react";
 
 const departments = [
@@ -523,6 +523,7 @@ useEffect(() => {
            5. FEATURE 2: HOSPITAL AMENITIES (Template Section 7)
            ========================================================================== */}
 <section className="py-12 sm:py-16 bg-background border-t border-border/40">
+  {/* ✅ FIXED HYDRATION ERROR: ALL &#x27; CHANGED TO ' */}
   <style>{`
   .amenity-card {
     position: relative;
