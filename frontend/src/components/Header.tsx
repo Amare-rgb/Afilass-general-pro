@@ -67,12 +67,14 @@ export function Header() {
   const [themeDropdownOpen, setThemeDropdownOpen] = useState(false);
   const [appointmentDropdownOpen, setAppointmentDropdownOpen] = useState(false);
   const [authDropdownOpen, setAuthDropdownOpen] = useState(false);
+  const [quickLinksOpen, setQuickLinksOpen] = useState(false);
 
   const groupDropdownRef = useRef<HTMLDivElement>(null);
   const languageDropdownRef = useRef<HTMLDivElement>(null);
   const themeDropdownRef = useRef<HTMLDivElement>(null);
   const appointmentDropdownRef = useRef<HTMLDivElement>(null);
   const authDropdownRef = useRef<HTMLDivElement>(null);
+  const quickLinksRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   const { theme, setTheme } = useTheme();
@@ -91,6 +93,7 @@ export function Header() {
   useClickOutside(themeDropdownRef, () => setThemeDropdownOpen(false));
   useClickOutside(appointmentDropdownRef, () => setAppointmentDropdownOpen(false));
   useClickOutside(authDropdownRef, () => setAuthDropdownOpen(false));
+  useClickOutside(quickLinksRef, () => setQuickLinksOpen(false));
   useClickOutside(mobileMenuRef, () => setMobileOpen(false));
 
   useEffect(() => setMounted(true), []);
@@ -155,6 +158,7 @@ export function Header() {
     setMobileOpen(false);
     setAppointmentDropdownOpen(false);
     setAuthDropdownOpen(false);
+    setQuickLinksOpen(false);
   };
 
   const goHome = () => router.push("/");
@@ -213,10 +217,12 @@ export function Header() {
       >
         <div className={`absolute inset-0 -z-10 rounded-2xl transition-all duration-300 ${isSolid ? "border border-slate-200/80 bg-white/95 shadow-lg shadow-slate-200/50 backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-900/95 dark:shadow-slate-900/50" : "border-transparent bg-transparent shadow-none"}`} />
 
-        <nav className="relative flex w-full items-center justify-between gap-2 px-2 py-2 sm:px-4 lg:px-6">
+        <nav className="relative flex w-full items-center justify-between px-2 py-2 sm:px-4 lg:px-6">
           
-          {/* LOGO (Always on left) */}
-          <div className="flex flex-1 items-center justify-start gap-2 overflow-hidden">
+          {/* LEFT SECTION: LOGO + HOME + AFILAS GROUP */}
+          <div className="flex items-center gap-2 sm:gap-3 relative z-[60]">
+            
+            {/* LOGO */}
             <Link href="/" className="flex flex-col items-start gap-0 flex-shrink-0" aria-label="Afilas Group Logo" translate="no" onClick={goHome}>
               <div className="relative h-6 w-auto sm:h-9">
                 <Image src="/Afilas-Logo-Light.png" alt="Afilas Share Company Logo" width={190} height={49} className="object-contain block dark:hidden" priority style={{ height: 'auto', width: 'auto', maxHeight: '24px' }} />
@@ -224,88 +230,105 @@ export function Header() {
               </div>
               <span className={`mt-0.5 text-[6px] sm:text-[10px] font-medium tracking-wide uppercase ${isSolid ? "text-slate-500 dark:text-slate-400" : "text-white/70"}`}>Share Company</span>
             </Link>
-          </div>
 
-          {/* DESKTOP NAVIGATION - MOVED TO THE FAR LEFT */}
-          <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-start ml-4 xl:ml-6">
-            <div className="flex items-center gap-1 xl:gap-2">
-              
-              {/* HOME BUTTON */}
-              <Link href="/" className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`}>
-                {t("nav.home") || "Home"}
-              </Link>
+            {/* DESKTOP LEFT NAVIGATION */}
+            <div className="hidden lg:flex lg:items-center">
+              <div className="flex items-center gap-1 xl:gap-2">
+                
+                {/* HOME BUTTON */}
+                <Link href="/" className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`}>
+                  {t("nav.home") || "Home"}
+                </Link>
 
-              {/* AFILAS GROUP BRANCH DROPDOWN */}
-              <div className="relative" ref={groupDropdownRef}>
-                <button type="button" onClick={() => setGroupDropdownOpen(!groupDropdownOpen)} className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"} ${groupDropdownOpen ? (isSolid ? "bg-slate-100 dark:bg-slate-800" : "bg-white/20") : ""}`} aria-haspopup="menu" aria-expanded={groupDropdownOpen}>
-                  {t("nav.group") || "Afilas Group"}
-                  <ChevronDown className={`ml-1 h-4 w-4 transition-transform duration-200 ${groupDropdownOpen ? "rotate-180" : ""}`} />
-                </button>
-
-                {groupDropdownOpen && (
-                  <div className={`absolute left-0 top-full z-50 mt-3 w-[800px] max-w-[90vw] rounded-2xl p-6 transition-all duration-300 shadow-2xl ${isSolid ? "bg-white/95 backdrop-blur-xl border border-slate-200/80 dark:bg-slate-900/95 dark:border-slate-700/80" : "bg-white/10 backdrop-blur-2xl border border-white/25"}`} role="menu">
-                    <div className="text-center mb-6">
-                      <p className={`text-sm font-bold tracking-wide uppercase ${isSolid ? "text-slate-800 dark:text-slate-200" : "text-white"}`}>Explore Our Divisions</p>
-                      <div className={`w-12 h-0.5 mx-auto mt-2 rounded-full ${isSolid ? "bg-teal-600" : "bg-white/50"}`}></div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-5">
-                      {pillarItems.map((item) => {
-                        const IconComponent = item.icon;
-                        const isSelected = activeBranchItem?.id === item.id;
-                        return (
-                          <button key={item.id} onClick={() => handleBranchSelect(item.href)} className={`group flex flex-col items-center text-center rounded-xl p-6 transition-all duration-300 hover:scale-[1.02] ${isSolid ? `hover:bg-slate-100 dark:hover:bg-slate-800 border-2 ${isSelected ? 'border-teal-500 dark:border-teal-400 bg-slate-100 dark:bg-slate-800' : 'border-transparent'}` : `hover:bg-white/20 border-2 ${isSelected ? 'border-white/60 bg-white/20' : 'border-transparent'}`}`}>
-                            <div className={`mb-4 flex h-16 w-16 items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 ${isSolid ? "bg-slate-100 dark:bg-slate-800" : "bg-white/20"}`}>
-                              <IconComponent className={`h-8 w-8 ${isSolid ? "text-slate-700 dark:text-slate-300" : "text-white"}`} />
-                            </div>
-                            <div className="space-y-1.5">
-                              <p className={`text-sm font-bold uppercase tracking-wide ${isSolid ? "text-slate-800 dark:text-slate-200" : "text-white"}`}>{item.label}</p>
-                              <p className={`text-[10px] leading-relaxed max-w-[180px] mx-auto ${isSolid ? "text-slate-500 dark:text-slate-400" : "text-white/80"}`}>{item.description}</p>
-                              {isSelected && <span className="inline-block mt-2 px-3 py-0.5 text-[9px] font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 rounded-full border border-teal-200 dark:border-teal-800">✓ Currently Active</span>}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* PER-BRANCH DROPDOWN MENU (Contact, Services, Doctors) */}
-              {isBranchPage && activeBranchItem && (
-                <div className="relative group">
-                  <button className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`}>
-                    {activeBranchItem.label.split(" ").slice(1).join(" ")} Menu
-                    <ChevronDown className="ml-1 h-4 w-4 transition-transform duration-200 group-hover:rotate-180" />
+                {/* AFILAS GROUP DROPDOWN */}
+                <div className="relative z-[60]" ref={groupDropdownRef}>
+                  <button type="button" onClick={() => setGroupDropdownOpen(!groupDropdownOpen)} className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"} ${groupDropdownOpen ? (isSolid ? "bg-slate-100 dark:bg-slate-800" : "bg-white/20") : ""}`} aria-haspopup="menu" aria-expanded={groupDropdownOpen}>
+                    {t("nav.group") || "Afilas Group"}
+                    <ChevronDown className={`ml-1 h-4 w-4 transition-transform duration-200 ${groupDropdownOpen ? "rotate-180" : ""}`} />
                   </button>
-                  <div className="absolute left-0 top-full z-50 mt-2 w-[240px] rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-xl border border-slate-200/80 bg-white/95 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/95 p-2">
-                    <div className="flex flex-col gap-1">
-                      <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 mb-1">Quick Links</div>
-                      <Link href="/contact" className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
-                        Contact & Emergency
-                      </Link>
-                      <Link href="/services" className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
-                        Services
-                      </Link>
-                      <Link href="/doctors" className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
-                        Doctors
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              )}
 
-              {/* Global Links (Always Visible) */}
-              <Link href="/aboutUs" className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`}>About Us</Link>
-              <Link href="/blogs" className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`}>Blog</Link>
+                  {groupDropdownOpen && (
+                    <div className={`absolute left-0 top-full z-[70] mt-3 w-[800px] max-w-[90vw] rounded-2xl p-6 transition-all duration-300 shadow-2xl ${isSolid ? "bg-white/95 backdrop-blur-xl border border-slate-200/80 dark:bg-slate-900/95 dark:border-slate-700/80" : "bg-white/10 backdrop-blur-2xl border border-white/25"}`} role="menu">
+                      <div className="text-center mb-6">
+                        <p className={`text-sm font-bold tracking-wide uppercase ${isSolid ? "text-slate-800 dark:text-slate-200" : "text-white"}`}>Explore Our Divisions</p>
+                        <div className={`w-12 h-0.5 mx-auto mt-2 rounded-full ${isSolid ? "bg-teal-600" : "bg-white/50"}`}></div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-5">
+                        {pillarItems.map((item) => {
+                          const IconComponent = item.icon;
+                          const isSelected = activeBranchItem?.id === item.id;
+                          return (
+                            <button key={item.id} onClick={() => handleBranchSelect(item.href)} className={`group flex flex-col items-center text-center rounded-xl p-6 transition-all duration-300 hover:scale-[1.02] ${isSolid ? `hover:bg-slate-100 dark:hover:bg-slate-800 border-2 ${isSelected ? 'border-teal-500 dark:border-teal-400 bg-slate-100 dark:bg-slate-800' : 'border-transparent'}` : `hover:bg-white/20 border-2 ${isSelected ? 'border-white/60 bg-white/20' : 'border-transparent'}`}`}>
+                              <div className={`mb-4 flex h-16 w-16 items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 ${isSolid ? "bg-slate-100 dark:bg-slate-800" : "bg-white/20"}`}>
+                                <IconComponent className={`h-8 w-8 ${isSolid ? "text-slate-700 dark:text-slate-300" : "text-white"}`} />
+                              </div>
+                              <div className="space-y-1.5">
+                                <p className={`text-sm font-bold uppercase tracking-wide ${isSolid ? "text-slate-800 dark:text-slate-200" : "text-white"}`}>{item.label}</p>
+                                <p className={`text-[10px] leading-relaxed max-w-[180px] mx-auto ${isSolid ? "text-slate-500 dark:text-slate-400" : "text-white/80"}`}>{item.description}</p>
+                                {isSelected && <span className="inline-block mt-2 px-3 py-0.5 text-[9px] font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 rounded-full border border-teal-200 dark:border-teal-800">✓ Currently Active</span>}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Right Controls */}
-          <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
+          {/* MIDDLE SECTION: QUICK LINKS DROPDOWN */}
+          <div className="hidden lg:flex flex-1 items-center justify-center relative z-[50]">
+            <div className="relative" ref={quickLinksRef}>
+              <button 
+                type="button" 
+                onClick={() => setQuickLinksOpen(!quickLinksOpen)}
+                className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"} ${quickLinksOpen ? (isSolid ? "bg-slate-100 dark:bg-slate-800" : "bg-white/20") : ""}`}
+              >
+                Quick Links
+                <ChevronDown className={`ml-1 h-4 w-4 transition-transform duration-200 ${quickLinksOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {quickLinksOpen && (
+                <div className={`absolute left-1/2 -translate-x-1/2 top-full z-[50] mt-2 w-[240px] rounded-xl opacity-100 visible transition-all duration-200 shadow-xl border border-slate-200/80 bg-white/95 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/95 p-2`}>
+                  <div className="flex flex-col gap-1">
+                    <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 mb-1">
+                      Quick Links
+                    </div>
+                    <Link href="/services" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
+                      Services
+                    </Link>
+                    <Link href="/doctors" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
+                      Doctors
+                    </Link>
+                    <Link href="/aboutUs" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
+                      About Us
+                    </Link>
+                    <Link href="/blogs" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
+                      Blog
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* RIGHT SECTION: Controls */}
+          <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0 relative z-10">
             
-            {/* Appointment (Book) Button */}
+            {/* CONTACT & EMERGENCY - MOVED TO RIGHT SIDE (Next to Book) */}
+            <Link
+              href="/contact"
+              className={`hidden lg:inline-flex items-center justify-center min-w-[80px] rounded-lg border px-1.5 sm:px-3 py-0.5 sm:py-1.5 text-[9px] sm:text-xs lg:text-sm font-medium transition-colors whitespace-nowrap ${isSolid ? "border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" : "border-white/30 text-white hover:bg-white/20"}`}
+            >
+              <Phone className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5 mr-1" />
+              <span className="hidden sm:inline">Emergency</span>
+            </Link>
+
+            {/* Book Button */}
             <div className="relative" ref={appointmentDropdownRef}>
-              <button type="button" onClick={() => setAppointmentDropdownOpen(!appointmentDropdownOpen)} className={`inline-flex items-center rounded-lg px-1.5 sm:px-3 py-0.5 sm:py-1.5 text-[9px] sm:text-xs lg:text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg whitespace-nowrap ${isSolid ? "bg-gradient-to-r from-teal-600 to-teal-700 hover:shadow-teal-600/30 dark:from-teal-500 dark:to-teal-600" : "bg-gradient-to-r from-white/30 to-white/20 backdrop-blur-sm hover:bg-white/40 hover:shadow-white/20"} ${appointmentDropdownOpen ? (isSolid ? "ring-2 ring-teal-400" : "ring-2 ring-white/50") : ""}`} aria-haspopup="true" aria-expanded={appointmentDropdownOpen}>
+              <button type="button" onClick={() => setAppointmentDropdownOpen(!appointmentDropdownOpen)} className={`inline-flex items-center justify-center min-w-[80px] rounded-lg px-1.5 sm:px-3 py-0.5 sm:py-1.5 text-[9px] sm:text-xs lg:text-sm font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg whitespace-nowrap ${isSolid ? "bg-gradient-to-r from-teal-600 to-teal-700 hover:shadow-teal-600/30 dark:from-teal-500 dark:to-teal-600" : "bg-gradient-to-r from-white/30 to-white/20 backdrop-blur-sm hover:bg-white/40 hover:shadow-white/20"} ${appointmentDropdownOpen ? (isSolid ? "ring-2 ring-teal-400" : "ring-2 ring-white/50") : ""}`} aria-haspopup="true" aria-expanded={appointmentDropdownOpen}>
                 <Calendar className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" />
                 <span className="text-[7px] sm:text-xs lg:text-sm whitespace-nowrap ml-0.5 sm:ml-1">Book</span>
                 <ChevronDown className={`h-1.5 w-1.5 sm:h-3 sm:w-3 ml-0.5 sm:ml-1 transition-transform duration-200 ${appointmentDropdownOpen ? "rotate-180" : ""}`} />
@@ -325,13 +348,13 @@ export function Header() {
               )}
             </div>
 
-            {/* NEW: Login / Register Dropdown (Next to Book button) */}
+            {/* Account Dropdown */}
             {mounted && (
               <div className="relative" ref={authDropdownRef}>
                 <button 
                   type="button" 
                   onClick={() => setAuthDropdownOpen(!authDropdownOpen)}
-                  className={`inline-flex items-center gap-1 rounded-lg border px-1.5 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-xs lg:text-sm font-medium transition-colors ${isSolid ? "border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" : "border-white/30 text-white hover:bg-white/20"} ${authDropdownOpen ? (isSolid ? "bg-slate-100 dark:bg-slate-800" : "bg-white/20") : ""}`}
+                  className={`inline-flex items-center justify-center min-w-[80px] rounded-lg border px-1.5 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-xs lg:text-sm font-medium transition-colors ${isSolid ? "border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" : "border-white/30 text-white hover:bg-white/20"} ${authDropdownOpen ? (isSolid ? "bg-slate-100 dark:bg-slate-800" : "bg-white/20") : ""}`}
                 >
                   <User className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" />
                   <span className="hidden sm:inline text-xs">Account</span>
@@ -352,7 +375,7 @@ export function Header() {
 
             {/* Language */}
             <div className="relative" ref={languageDropdownRef}>
-              <button type="button" onClick={() => { setLanguageDropdownOpen(!languageDropdownOpen); setThemeDropdownOpen(false); }} className={`inline-flex items-center gap-0.5 sm:gap-1 rounded-lg border px-1 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-xs lg:text-sm font-medium transition-colors ${isSolid ? "border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" : "border-white/30 text-white hover:bg-white/20"} ${languageDropdownOpen ? (isSolid ? "bg-slate-100 dark:bg-slate-800" : "bg-white/20") : ""}`} aria-label="Change language">
+              <button type="button" onClick={() => { setLanguageDropdownOpen(!languageDropdownOpen); setThemeDropdownOpen(false); }} className={`inline-flex items-center justify-center min-w-[80px] rounded-lg border px-1 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-xs lg:text-sm font-medium transition-colors ${isSolid ? "border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" : "border-white/30 text-white hover:bg-white/20"} ${languageDropdownOpen ? (isSolid ? "bg-slate-100 dark:bg-slate-800" : "bg-white/20") : ""}`} aria-label="Change language">
                 <Globe className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" />
                 <span className="hidden sm:inline text-xs">{getLanguageLabel()}</span>
                 <ChevronDown className={`h-1.5 w-1.5 sm:h-3 sm:w-3 transition-transform duration-200 ${languageDropdownOpen ? "rotate-180" : ""}`} />
@@ -372,7 +395,7 @@ export function Header() {
             {/* Theme */}
             {mounted && (
               <div className="relative" ref={themeDropdownRef}>
-                <button type="button" onClick={() => { setThemeDropdownOpen(!themeDropdownOpen); setLanguageDropdownOpen(false); }} className={`inline-flex items-center gap-0.5 sm:gap-1 rounded-lg border px-1 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-xs lg:text-sm font-medium transition-colors ${isSolid ? "border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" : "border-white/30 text-white hover:bg-white/20"} ${themeDropdownOpen ? (isSolid ? "bg-slate-100 dark:bg-slate-800" : "bg-white/20") : ""}`} aria-label="Toggle theme">
+                <button type="button" onClick={() => { setThemeDropdownOpen(!themeDropdownOpen); setLanguageDropdownOpen(false); }} className={`inline-flex items-center justify-center min-w-[80px] rounded-lg border px-1 sm:px-2 py-0.5 sm:py-1 text-[9px] sm:text-xs lg:text-sm font-medium transition-colors ${isSolid ? "border-slate-200 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" : "border-white/30 text-white hover:bg-white/20"} ${themeDropdownOpen ? (isSolid ? "bg-slate-100 dark:bg-slate-800" : "bg-white/20") : ""}`} aria-label="Toggle theme">
                   {theme === "light" ? <Sun className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" /> : theme === "dark" ? <Moon className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" /> : <Monitor className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" />}
                   <span className="hidden sm:inline text-xs">{getThemeLabel()}</span>
                   <ChevronDown className={`h-1.5 w-1.5 sm:h-3 sm:w-3 transition-transform duration-200 ${themeDropdownOpen ? "rotate-180" : ""}`} />
@@ -405,7 +428,7 @@ export function Header() {
         <div ref={mobileMenuRef} className={`${mobileOpen ? "max-h-[85vh] opacity-100" : "max-h-0 opacity-0"} absolute left-0 right-0 top-full mt-2 overflow-hidden overflow-y-auto rounded-2xl transition-all duration-300 lg:hidden ${isSolid ? "border border-slate-200/80 bg-white/95 shadow-lg dark:border-slate-700/80 dark:bg-slate-900/95" : "border border-white/20 bg-white/10 backdrop-blur-md shadow-lg"}`}>
           <div className="flex flex-col gap-0.5 p-4">
             
-            {/* HOME BUTTON (First in Mobile too) */}
+            {/* HOME BUTTON (First in Mobile) */}
             <Link href="/" className={`flex items-center rounded-lg p-3 font-medium transition-colors ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
               {t("nav.home") || "Home"}
             </Link>
@@ -432,39 +455,43 @@ export function Header() {
                 })}
               </div>
             )}
-            
-            <Link href="/aboutUs" className={`flex items-center rounded-lg p-3 font-medium transition-colors ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
-              {t("nav.about_us") || "About Us"}
-            </Link>
-            <Link href="/blogs" className={`flex items-center rounded-lg p-3 font-medium transition-colors ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
-              {t("nav.blog") || "Blog"}
-            </Link>
-            
-            {/* Branch-specific Mobile Links (Contact, Services, Doctors) */}
-            {isBranchPage && (
-               <div className="ml-4 space-y-1 border-l-2 border-teal-500 dark:border-teal-400 pl-2 mt-2">
-                 <p className="text-xs font-bold text-teal-600 dark:text-teal-400 px-3 py-1">Branch Links</p>
-                 <Link href="/contact" className={`flex items-center rounded-lg p-3 font-medium transition-colors ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
-                   Contact & Emergency
-                 </Link>
-                 <Link href="/services" className={`flex items-center rounded-lg p-3 font-medium transition-colors ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
-                   Services
-                 </Link>
-                 <Link href="/doctors" className={`flex items-center rounded-lg p-3 font-medium transition-colors ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
-                   Doctors
-                 </Link>
-               </div>
-            )}
 
+            {/* MOBILE QUICK LINKS DROPDOWN (About Us & Blog are inside this) */}
+            <button type="button" onClick={() => setQuickLinksOpen(!quickLinksOpen)} className={`flex w-full items-center justify-between rounded-lg p-3 font-medium transition-colors ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`}>
+              <span>Quick Links</span>
+              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${quickLinksOpen ? "rotate-180" : ""}`} />
+            </button>
+            {quickLinksOpen && (
+              <div className="ml-4 space-y-1 border-l-2 border-teal-500 dark:border-teal-400 pl-2">
+                <Link href="/services" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
+                  Services
+                </Link>
+                <Link href="/doctors" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
+                  Doctors
+                </Link>
+                <Link href="/aboutUs" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
+                  About Us
+                </Link>
+                <Link href="/blogs" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
+                  Blog
+                </Link>
+              </div>
+            )}
+            
+            {/* CONTACT & EMERGENCY (Mobile Standalone - at the top for importance) */}
+            <Link href="/contact" onClick={closeAll} className={`flex items-center gap-2 rounded-lg p-3 font-medium transition-colors bg-primary/10 text-primary hover:bg-primary/20 ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`}>
+              <Phone className="h-4 w-4" /> {t("nav.contact_emergency") || "Contact & Emergency"}
+            </Link>
+            
             <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 px-1">Book Services</p>
               <Link href="/appointments/hospital" className={`flex items-center rounded-lg p-3 transition-colors ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
                 <div><div className="font-medium">General Hospital</div><div className="text-xs opacity-70">Book at Afilas General Hospital</div></div>
               </Link>
-              <Link href="/appointments/diagnosis" className={`flex items-center rounded-lg p-3 transition-colors ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
+              <Link href="/appointments/diagnosis" onClick={() => setAppointmentDropdownOpen(false)} className={`flex w-full items-center rounded-lg p-3 transition-colors ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
                 <div><div className="font-medium">Diagnosis Center</div><div className="text-xs opacity-70">Book lab tests & scans</div></div>
               </Link>
-              <Link href="/orders/pharma" className={`flex items-center rounded-lg p-3 transition-colors ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
+              <Link href="/orders/pharma" onClick={() => setAppointmentDropdownOpen(false)} className={`flex w-full items-center rounded-lg p-3 transition-colors ${isSolid ? "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
                 <div><div className="font-medium">Drug Manufacturing</div><div className="text-xs opacity-70">Order medications & supplies</div></div>
               </Link>
             </div>

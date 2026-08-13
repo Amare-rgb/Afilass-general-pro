@@ -218,12 +218,14 @@ enum Role {
   USER
 }
 
+// ✅ FIXED: Added MISSED here!
 enum AppointmentStatus {
   PENDING
   CONFIRMED
   COMPLETED
   CANCELLED
   RESCHEDULED
+  MISSED
 }
 
 // 🔥 NEW: Pharma Order Status Enum

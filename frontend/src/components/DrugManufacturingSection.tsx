@@ -46,23 +46,23 @@ export default function DrugManufacturingSection() {
   const capabilities = [
     {
       icon: ClipboardList,
-      title: t("pharma.card1_title"),
-      description: t("pharma.card1_desc"),
+      title: "Manufacturing Capabilities",
+      description: "Dosage forms produced include Tablets, Capsules, Liquids, and Ointments designed for safe, reliable patient use.",
     },
     {
       icon: ShieldCheck,
-      title: t("pharma.card2_title"),
-      description: t("pharma.card2_desc"),
+      title: "Quality Assurance & Compliance",
+      description: "Strict adherence to GMP standards and regulatory approvals ensures every product meets international safety and quality benchmarks.",
     },
     {
       icon: Archive,
-      title: t("pharma.card3_title"),
-      description: t("pharma.card3_desc"),
+      title: "Product Catalog",
+      description: "A searchable directory for healthcare providers, pharmacies, and distributors to quickly find suitable formulations and products.",
     },
     {
       icon: Handshake,
-      title: t("pharma.card4_title"),
-      description: t("pharma.card4_desc"),
+      title: "Partnership & B2B Inquiry",
+      description: "Support for supply requests, contract manufacturing, and institutional distribution across public and private health networks.",
     },
   ];
 
@@ -100,7 +100,7 @@ export default function DrugManufacturingSection() {
           </div>
           <div>
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
-              {t("pharma.title")}
+              {t("pharma.title") || "Afilas Drug Manufacturing"}
             </h2>
           </div>
         </div>
@@ -109,6 +109,7 @@ export default function DrugManufacturingSection() {
             ROW 2: Two Columns – Image (Left) | Capabilities (Right)
             ============================================================ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start mb-10">
+          
           {/* LEFT COLUMN – Image only */}
           <div
             className={`transition-all duration-700 ease-out delay-100 ${
@@ -128,9 +129,8 @@ export default function DrugManufacturingSection() {
               </div>
             </div>
           </div>
-        </div>
 
-          {/* RIGHT COLUMN – Capabilities only (no title, no CTA) */}
+          {/* RIGHT COLUMN – Capabilities Displayed on the Right Side */}
           <div
             className={`space-y-6 transition-all duration-700 ease-out delay-200 ${
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
@@ -159,6 +159,8 @@ export default function DrugManufacturingSection() {
             })}
           </div>
 
+        </div> {/* ✅ This closing div is now CORRECT. It wraps BOTH columns. */}
+
         {/* ============================================================
             ROW 3: CTA Button perfectly CENTERED inside its container
             ============================================================ */}
@@ -167,7 +169,7 @@ export default function DrugManufacturingSection() {
             href="/pharma"
             className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 bg-[#1A7B7F] hover:bg-[#16686B] text-[#E8E5DC] font-medium text-base rounded-full transition-all duration-300 group shadow-[0_4px_6px_rgba(0,0,0,0.3)] hover:shadow-[0_6px_10px_rgba(0,0,0,0.4)] hover:scale-[1.02] active:scale-95"
           >
-            <span>{t("pharma.cta")}</span>
+            <span>{t("pharma.cta") || "Go to Pharma Page"}</span>
             <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 text-[#E8E5DC]" />
           </Link>
         </div>
