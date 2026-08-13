@@ -367,50 +367,53 @@ useEffect(() => {
       {/* Top Header - Kept untouched */}
       <Header />
 
-      <main className="pt-20 sm:pt-28 bg-background text-foreground transition-colors duration-300">
-     
-{/* ==========================================================================
-   1. HERO SECTION – Hourglass Shape, Full Width, Thin Border
-   ========================================================================== */}
-<section className="hero-wrapper container mx-auto px-4 sm:px-6 lg:px-8 text-center pt-6 pb-16 relative">
-  <div className="hero-content reveal-up max-w-4xl mx-auto">
-    
-    <h1 className="headline text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-6 text-foreground">
-      {t("hospital.hero.headline_prefix")}<br className="hidden sm:block" />
-      <span className="text-primary">{t("hospital.hero.headline_span")}</span>
-    </h1>
-
-    <div className="hero-ctas flex flex-wrap justify-center items-center gap-4 mb-4">
-      <a
-        href="appointments/hospital"
-        className="btn btn-primary px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-lg shadow-lg hover:bg-primary/90 hover:scale-105 transition-all duration-200"
+      <main 
+        className="bg-background text-foreground transition-colors duration-300 min-h-screen"
+        style={{ paddingTop: 'var(--header-offset, 140px)' }}
       >
-        {t("hospital.hero.book_btn")}
-      </a>
-      <a
-        href="#services"
-        className="btn btn-secondary px-8 py-3.5 bg-card text-foreground font-bold rounded-lg border border-border hover:bg-accent/10 transition-all duration-200 block"
-      >
-        {t("hospital.hero.view_services_btn")}
-      </a>
-    </div>
+        <div className="relative">
+          {/* ==========================================================================
+             1. HERO SECTION – Hourglass Shape, Full Width, Thin Border
+             ========================================================================== */}
+          <section className="hero-wrapper container mx-auto px-4 sm:px-6 lg:px-8 text-center pt-12 lg:pt-16 pb-16 relative">
+            <div className="hero-content reveal-up max-w-4xl mx-auto">
+              <h1 className="headline text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight mb-6 text-foreground">
+                {t("hospital.hero.headline_prefix")}<br className="hidden sm:block" />
+                <span className="text-primary">{t("hospital.hero.headline_span")}</span>
+              </h1>
 
-    <p className="pricing-note text-xs text-muted-foreground mb-10">
-      {/* 24/7 Emergency Care • JCI Accredited • 50+ Senior Medical Specialists */}
-    </p>
+              <div className="hero-ctas flex flex-wrap justify-center items-center gap-4 mb-4">
+                <a
+                  href="appointments/hospital"
+                  className="btn btn-primary px-8 py-3.5 bg-primary text-primary-foreground font-bold rounded-lg shadow-lg hover:bg-primary/90 hover:scale-105 transition-all duration-200"
+                >
+                  {t("hospital.hero.book_btn")}
+                </a>
+                <a
+                  href="#services"
+                  className="btn btn-secondary px-8 py-3.5 bg-card text-foreground font-bold rounded-lg border border-border hover:bg-accent/10 transition-all duration-200 block"
+                >
+                  {t("hospital.hero.view_services_btn")}
+                </a>
+              </div>
 
-    {/* Hero Facility Showcase Mockup */}
-    <div className="mockup-container reveal-up delay-1 max-w-4xl mx-auto h-[260px] sm:h-[420px] relative rounded-2xl overflow-hidden border border-border shadow-2xl group">
-      <Image
-        src="/afilas.jpg"
-        alt={t("hospital.hero.img_alt")}
-        fill
-        priority
-        className="object-cover group-hover:scale-105 transition-transform duration-700"
-      />
-    </div>
-  </div>
-</section>
+              <p className="pricing-note text-xs text-muted-foreground mb-10">
+                {/* 24/7 Emergency Care • JCI Accredited • 50+ Senior Medical Specialists */}
+              </p>
+
+              {/* Hero Facility Showcase Mockup */}
+              <div className="mockup-container reveal-up delay-1 max-w-4xl mx-auto h-[260px] sm:h-[420px] relative rounded-2xl overflow-hidden border border-border shadow-2xl group">
+                <Image
+                  src="/afilas.jpg"
+                  alt={t("hospital.hero.img_alt")}
+                  fill
+                  priority
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                />
+              </div>
+            </div>
+          </section>
+        </div>
 
         {/* ==========================================================================
            2. LOGOS / TRUST SECTION (Template Section 4)

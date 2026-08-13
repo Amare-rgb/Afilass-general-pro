@@ -6,7 +6,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { User, Mail, Phone, Lock, Eye, EyeOff, CheckCircle, ArrowRight, Home, ArrowLeft, Building2 } from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useLanguage } from '@/contexts/LanguageProvider';
 import { api } from '@/lib/api';
 import { toast } from 'sonner';
 
@@ -96,7 +96,6 @@ export function RegisterForm() {
     if (!validate()) return;
     setIsLoading(true);
     try {
-      // ✅ Send data with correct field names matching backend
       const payload = {
         name: formData.name.trim(),
         email: formData.email.trim().toLowerCase(),
@@ -106,23 +105,15 @@ export function RegisterForm() {
         role: 'USER',
         isActive: true
       };
-
-      console.log('📝 Registration payload:', payload);
-
-      const response = await api.post('/users', payload, false);
-
-      console.log('✅ Registration response:', response);
-
+      await api.post('/users', payload, false);
       toast.success('Registration successful! 🎉');
       setIsSuccess(true);
-      
       setTimeout(() => {
         setFormData({ name: '', email: '', phone: '', location: '', password: '', confirmPassword: '' });
         setIsSuccess(false);
         router.push('/login');
       }, 3000);
     } catch (error: any) {
-      console.error('❌ Registration failed:', error);
       const errorMsg = error.message || error.error || 'Registration failed. Please try again.';
       toast.error(errorMsg);
       setErrors({ submit: errorMsg });
@@ -138,30 +129,34 @@ export function RegisterForm() {
   };
 
   const inpClass = (field: string) => {
-    const base = "w-full pl-8 pr-3 py-1.5 rounded-lg border-2 transition-all outline-none bg-white/80 text-sm";
-    const err = errors[field] ? 'border-red-300 bg-red-50/50' : '';
-    const focus = focusedField === field ? 'border-[#C5A059] shadow-sm shadow-[#C5A059]/20' : 'border-gray-200 hover:border-[#C5A059]/50';
+    const base = "w-full pl-8 pr-3 py-1.5 rounded-lg border-2 transition-all outline-none bg-background text-foreground text-sm";
+    const err = errors[field] ? 'border-destructive bg-destructive/10' : '';
+    const focus = focusedField === field ? 'border-primary shadow-sm shadow-primary/20' : 'border-border hover:border-primary/50';
     return `${base} ${err || focus}`;
   };
 
   const selClass = (field: string) => {
-    const base = "w-full pl-8 pr-8 py-1.5 rounded-lg border-2 transition-all outline-none bg-white/80 text-sm appearance-none";
-    const err = errors[field] ? 'border-red-300 bg-red-50/50' : '';
-    const focus = focusedField === field ? 'border-[#C5A059] shadow-sm shadow-[#C5A059]/20' : 'border-gray-200 hover:border-[#C5A059]/50';
+    const base = "w-full pl-8 pr-8 py-1.5 rounded-lg border-2 transition-all outline-none bg-background text-foreground text-sm appearance-none";
+    const err = errors[field] ? 'border-destructive bg-destructive/10' : '';
+    const focus = focusedField === field ? 'border-primary shadow-sm shadow-primary/20' : 'border-border hover:border-primary/50';
     return `${base} ${err || focus}`;
   };
 
   if (isSuccess) {
     return (
       <div className="w-full max-w-sm">
-        <div className="bg-white rounded-2xl shadow-lg p-4 border border-gray-100">
-          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-4 text-center">
-            <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-1.5" strokeWidth={1.5} />
-            <h3 className={`text-base font-bold text-green-700 ${isAm ? 'font-medium' : ''}`}>{t('success')}</h3>
-            <p className={`text-green-600 mt-0.5 text-xs ${isAm ? 'font-medium' : ''}`}>{t('welcome')}</p>
+        <div className="bg-card rounded-2xl shadow-lg p-4 border border-border">
+          <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-xl p-4 text-center">
+            <CheckCircle className="w-12 h-12 text-green-500 dark:text-green-400 mx-auto mb-1.5" strokeWidth={1.5} />
+            <h3 className={`text-base font-bold text-green-700 dark:text-green-300 ${isAm ? 'font-medium' : ''}`}>{t('success')}</h3>
+            <p className={`text-green-600 dark:text-green-400 mt-0.5 text-xs ${isAm ? 'font-medium' : ''}`}>{t('welcome')}</p>
             <div className="flex flex-col gap-1.5 mt-2.5">
-              <button onClick={() => router.push('/login')} className="px-4 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 text-xs">{t('continue')}</button>
-              <Link href="/" className="px-4 py-1 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-xs flex items-center justify-center gap-1"><Home className="w-3 h-3" />{t('backHome')}</Link>
+              <button onClick={() => router.push('/login')} className="px-4 py-1 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 text-xs transition-colors">
+                {t('continue')}
+              </button>
+              <Link href="/" className="px-4 py-1 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 text-xs flex items-center justify-center gap-1 transition-colors">
+                <Home className="w-3 h-3" />{t('backHome')}
+              </Link>
             </div>
           </div>
         </div>
@@ -171,94 +166,94 @@ export function RegisterForm() {
 
   return (
     <div className="w-full max-w-sm">
-      <div className="bg-white rounded-2xl shadow-lg p-4 border border-gray-100">
-        <Link href="/" className="inline-flex items-center gap-1 text-gray-500 hover:text-[#C5A059] text-xs font-medium mb-2">
+      <div className="bg-card rounded-2xl shadow-lg p-4 border border-border">
+        <Link href="/" className="inline-flex items-center gap-1 text-muted-foreground hover:text-primary text-xs font-medium mb-2 transition-colors">
           <ArrowLeft className="w-3 h-3" />{t('backHome')}
-          </Link>
+        </Link>
 
         <div className="text-center mb-3">
           <Image src="/logo-header-190x49-1.png" alt="Afilas" width={120} height={30} className="mx-auto mb-1" priority style={{ width: '120px', height: 'auto' }} />
-          <h2 className={`text-base font-bold text-gray-800 ${isAm ? 'font-medium' : ''}`}>{t('title')}</h2>
-          <p className={`text-[10px] text-gray-500 ${isAm ? 'font-medium' : ''}`}>{t('subtitle')}</p>
+          <h2 className={`text-base font-bold text-foreground ${isAm ? 'font-medium' : ''}`}>{t('title')}</h2>
+          <p className={`text-[10px] text-muted-foreground ${isAm ? 'font-medium' : ''}`}>{t('subtitle')}</p>
         </div>
 
         <form onSubmit={submit} className="space-y-2">
-          {/* Full Name */}
           <div>
-            <label className={`block text-[10px] font-semibold text-gray-700 mb-0.5 ${isAm ? 'font-medium' : ''}`}>{t('fullName')}</label>
+            <label className={`block text-[10px] font-semibold text-foreground/80 mb-0.5 ${isAm ? 'font-medium' : ''}`}>{t('fullName')}</label>
             <div className="relative">
-              <User className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
-              <input type="text" name="name" value={formData.name} onChange={change} onFocus={() => setFocusedField('name')} onBlur={() => setFocusedField(null)} className={inpClass('name')} placeholder={t('fullNamePlaceholder')} dir={isAm ? 'rtl' : 'ltr'} />
+              <User className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+              <input type="text" name="name" value={formData.name} onChange={change} onFocus={() => setFocusedField('name')} onBlur={() => setFocusedField(null)} className={inpClass('name')} placeholder={t('fullNamePlaceholder')} dir="ltr" />
             </div>
-            {errors.name && <p className={`mt-0.5 text-[9px] text-red-500 ${isAm ? 'font-medium' : ''}`}>{errors.name}</p>}
+            {errors.name && <p className={`mt-0.5 text-[9px] text-destructive ${isAm ? 'font-medium' : ''}`}>{errors.name}</p>}
           </div>
 
-          {/* Email */}
           <div>
-            <label className={`block text-[10px] font-semibold text-gray-700 mb-0.5 ${isAm ? 'font-medium' : ''}`}>{t('email')}</label>
+            <label className={`block text-[10px] font-semibold text-foreground/80 mb-0.5 ${isAm ? 'font-medium' : ''}`}>{t('email')}</label>
             <div className="relative">
-              <Mail className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
-              <input type="email" name="email" value={formData.email} onChange={change} onFocus={() => setFocusedField('email')} onBlur={() => setFocusedField(null)} className={inpClass('email')} placeholder={t('emailPlaceholder')} dir={isAm ? 'rtl' : 'ltr'} />
+              <Mail className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+              <input type="email" name="email" value={formData.email} onChange={change} onFocus={() => setFocusedField('email')} onBlur={() => setFocusedField(null)} className={inpClass('email')} placeholder={t('emailPlaceholder')} dir="ltr" />
             </div>
-            {errors.email && <p className={`mt-0.5 text-[9px] text-red-500 ${isAm ? 'font-medium' : ''}`}>{errors.email}</p>}
+            {errors.email && <p className={`mt-0.5 text-[9px] text-destructive ${isAm ? 'font-medium' : ''}`}>{errors.email}</p>}
           </div>
 
-          {/* Phone */}
           <div>
-            <label className={`block text-[10px] font-semibold text-gray-700 mb-0.5 ${isAm ? 'font-medium' : ''}`}>{t('phone')}</label>
+            <label className={`block text-[10px] font-semibold text-foreground/80 mb-0.5 ${isAm ? 'font-medium' : ''}`}>{t('phone')}</label>
             <div className="relative">
-              <Phone className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
-              <input type="tel" name="phone" value={formData.phone} onChange={change} onFocus={() => setFocusedField('phone')} onBlur={() => setFocusedField(null)} className={inpClass('phone')} placeholder={t('phonePlaceholder')} dir={isAm ? 'rtl' : 'ltr'} />
+              <Phone className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+              <input type="tel" name="phone" value={formData.phone} onChange={change} onFocus={() => setFocusedField('phone')} onBlur={() => setFocusedField(null)} className={inpClass('phone')} placeholder={t('phonePlaceholder')} dir="ltr" />
             </div>
-            {errors.phone && <p className={`mt-0.5 text-[9px] text-red-500 ${isAm ? 'font-medium' : ''}`}>{errors.phone}</p>}
+            {errors.phone && <p className={`mt-0.5 text-[9px] text-destructive ${isAm ? 'font-medium' : ''}`}>{errors.phone}</p>}
           </div>
 
-          {/* Location Dropdown */}
           <div>
-            <label className={`block text-[10px] font-semibold text-gray-700 mb-0.5 ${isAm ? 'font-medium' : ''}`}>{t('location')}</label>
+            <label className={`block text-[10px] font-semibold text-foreground/80 mb-0.5 ${isAm ? 'font-medium' : ''}`}>{t('location')}</label>
             <div className="relative">
-              <Building2 className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
-              <select name="location" value={formData.location} onChange={change} onFocus={() => setFocusedField('location')} onBlur={() => setFocusedField(null)} className={selClass('location')} dir={isAm ? 'rtl' : 'ltr'}>
+              <Building2 className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+              <select name="location" value={formData.location} onChange={change} onFocus={() => setFocusedField('location')} onBlur={() => setFocusedField(null)} className={selClass('location')} dir="ltr">
                 <option value="">{t('locationPlaceholder')}</option>
                 {LOCATIONS.map((loc) => <option key={loc.value} value={loc.value}>{getLabel(loc)}</option>)}
               </select>
               <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
-                <svg className="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                <svg className="w-3 h-3 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
               </div>
             </div>
-            {errors.location && <p className={`mt-0.5 text-[9px] text-red-500 ${isAm ? 'font-medium' : ''}`}>{errors.location}</p>}
+            {errors.location && <p className={`mt-0.5 text-[9px] text-destructive ${isAm ? 'font-medium' : ''}`}>{errors.location}</p>}
           </div>
 
-          {/* Password */}
           <div>
-            <label className={`block text-[10px] font-semibold text-gray-700 mb-0.5 ${isAm ? 'font-medium' : ''}`}>{t('password')}</label>
+            <label className={`block text-[10px] font-semibold text-foreground/80 mb-0.5 ${isAm ? 'font-medium' : ''}`}>{t('password')}</label>
             <div className="relative">
-              <Lock className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
-              <input type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={change} onFocus={() => setFocusedField('password')} onBlur={() => setFocusedField(null)} className={`${inpClass('password')} pr-7`} placeholder={t('passwordPlaceholder')} dir={isAm ? 'rtl' : 'ltr'} />
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 -translate-y-1/2">{showPassword ? <EyeOff className="w-3 h-3 text-gray-400 hover:text-gray-600" /> : <Eye className="w-3 h-3 text-gray-400 hover:text-gray-600" />}</button>
+              <Lock className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+              <input type={showPassword ? 'text' : 'password'} name="password" value={formData.password} onChange={change} onFocus={() => setFocusedField('password')} onBlur={() => setFocusedField(null)} className={`${inpClass('password')} pr-7`} placeholder={t('passwordPlaceholder')} dir="ltr" />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-2 top-1/2 -translate-y-1/2">
+                {showPassword ? <EyeOff className="w-3 h-3 text-muted-foreground hover:text-foreground" /> : <Eye className="w-3 h-3 text-muted-foreground hover:text-foreground" />}
+              </button>
             </div>
-            {errors.password && <p className={`mt-0.5 text-[9px] text-red-500 ${isAm ? 'font-medium' : ''}`}>{errors.password}</p>}
+            {errors.password && <p className={`mt-0.5 text-[9px] text-destructive ${isAm ? 'font-medium' : ''}`}>{errors.password}</p>}
           </div>
 
-          {/* Confirm Password */}
           <div>
-            <label className={`block text-[10px] font-semibold text-gray-700 mb-0.5 ${isAm ? 'font-medium' : ''}`}>{t('confirmPassword')}</label>
+            <label className={`block text-[10px] font-semibold text-foreground/80 mb-0.5 ${isAm ? 'font-medium' : ''}`}>{t('confirmPassword')}</label>
             <div className="relative">
-              <Lock className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400" />
-              <input type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={change} onFocus={() => setFocusedField('confirmPassword')} onBlur={() => setFocusedField(null)} className={`${inpClass('confirmPassword')} pr-7`} placeholder={t('confirmPlaceholder')} dir={isAm ? 'rtl' : 'ltr'} />
-              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-2 top-1/2 -translate-y-1/2">{showConfirmPassword ? <EyeOff className="w-3 h-3 text-gray-400 hover:text-gray-600" /> : <Eye className="w-3 h-3 text-gray-400 hover:text-gray-600" />}</button>
+              <Lock className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+              <input type={showConfirmPassword ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword} onChange={change} onFocus={() => setFocusedField('confirmPassword')} onBlur={() => setFocusedField(null)} className={`${inpClass('confirmPassword')} pr-7`} placeholder={t('confirmPlaceholder')} dir="ltr" />
+              <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-2 top-1/2 -translate-y-1/2">
+                {showConfirmPassword ? <EyeOff className="w-3 h-3 text-muted-foreground hover:text-foreground" /> : <Eye className="w-3 h-3 text-muted-foreground hover:text-foreground" />}
+              </button>
             </div>
-            {errors.confirmPassword && <p className={`mt-0.5 text-[9px] text-red-500 ${isAm ? 'font-medium' : ''}`}>{errors.confirmPassword}</p>}
+            {errors.confirmPassword && <p className={`mt-0.5 text-[9px] text-destructive ${isAm ? 'font-medium' : ''}`}>{errors.confirmPassword}</p>}
           </div>
 
-          {/* Submit Button */}
-          <button type="submit" disabled={isLoading} className={`w-full py-1.5 rounded-lg bg-gradient-to-r from-[#C5A059] to-[#B8963A] text-white font-semibold text-sm transition-all ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:shadow-md hover:scale-[1.01]'} ${isAm ? 'font-medium' : ''}`}>
-            {isLoading ? <><svg className="animate-spin h-3.5 w-3.5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> {t('creating')}</> : <>{t('create')} <ArrowRight className="w-3.5 h-3.5 inline" /></>}
+          <button type="submit" disabled={isLoading} className={`w-full py-1.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm transition-all ${isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-primary/90 hover:shadow-md hover:scale-[1.01]'} ${isAm ? 'font-medium' : ''}`}>
+            {isLoading ? (
+              <><svg className="animate-spin h-3.5 w-3.5 text-primary-foreground inline mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> {t('creating')}</>
+            ) : (
+              <>{t('create')} <ArrowRight className="w-3.5 h-3.5 inline" /></>
+            )}
           </button>
 
-          {/* Login Link */}
-          <p className={`text-center text-[10px] text-gray-600 ${isAm ? 'font-medium' : ''}`}>
-            {t('already')} <Link href="/login" className="text-[#C5A059] hover:text-[#B8963A] font-semibold hover:underline">{t('signin')}</Link>
+          <p className={`text-center text-[10px] text-muted-foreground ${isAm ? 'font-medium' : ''}`}>
+            {t('already')} <Link href="/login" className="text-primary hover:text-primary/80 font-semibold hover:underline transition-colors">{t('signin')}</Link>
           </p>
         </form>
       </div>

@@ -62,8 +62,10 @@ export default function DoctorsPage() {
       {/* Navigation Header */}
       <Header />
 
-      <main className="pt-24 sm:pt-28 bg-background text-foreground transition-colors duration-300 min-h-screen">
-        {/* ==========================================================================
+<main 
+  className="bg-background text-foreground min-h-screen"
+  style={{ paddingTop: 'var(--header-offset, 120px)' }}
+>        {/* ==========================================================================
            1. HERO / HEADER SECTION
            ========================================================================== */}
         <section className="relative overflow-hidden bg-gradient-to-b from-primary/10 via-background to-background border-b border-border/50 py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
@@ -146,10 +148,10 @@ export default function DoctorsPage() {
                     )}
 
                     <div>
-                      {/* Icon */}
+                      {/* Icon
                       <div className={`w-12 h-12 ${pillar.bgColor} rounded-xl flex items-center justify-center mb-3 group-hover:scale-105 transition-transform`}>
                         <IconComponent className={`w-6 h-6 ${pillar.color}`} />
-                      </div>
+                      </div> */}
 
                       {/* Location Name */}
                       <h3 className={`text-base font-bold transition-colors ${isSelected ? "text-primary" : "text-foreground group-hover:text-primary"}`}>

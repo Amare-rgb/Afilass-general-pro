@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Header } from '@/components/Header';
+import { useLanguage } from '@/contexts/LanguageProvider';
 import { pharmaService } from '@/lib/pharma';
 import { PharmaOrder } from '@/lib/types';
 
@@ -46,22 +47,54 @@ const defaultValues: PharmaOrderFormData = {
 // ============================================================
 export default function PharmaOrderPage() {
   const router = useRouter();
+  const { language } = useLanguage();
+  const isAm = language === 'am';
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [orderData, setOrderData] = useState<PharmaOrder | null>(null);
+
+  const t = (key: string): string => {
+    const dict: Record<string, { en: string; am: string }> = {
+      title: { en: 'Afilas Drug Manufacturing', am: 'አፊላስ የመድኃኒት ማምረቻ' },
+      subtitle: { en: 'Order pharmaceutical products & supplies', am: 'የመድኃኒት ውጤቶችን እና አቅርቦቶችን ይዘዙ' },
+      customerName: { en: 'Full Name *', am: 'ሙሉ ስም *' },
+      customerNamePlaceholder: { en: 'Enter your full name', am: 'ሙሉ ስምዎን ያስገቡ' },
+      customerEmail: { en: 'Email Address *', am: 'ኢሜይል አድራሻ *' },
+      customerEmailPlaceholder: { en: 'your@email.com', am: 'እርስዎ@ኢሜይል.ኮም' },
+      customerPhone: { en: 'Phone Number *', am: 'ስልክ ቁጥር *' },
+      customerPhonePlaceholder: { en: '+251 9XX XXX XXX', am: '+251 9XX XXX XXX' },
+      drugName: { en: 'Drug / Medicine Name *', am: 'የመድኃኒት ስም *' },
+      drugNamePlaceholder: { en: 'e.g., Amoxicillin 500mg, Paracetamol...', am: 'ምሳሌ፡ ፓራሲታሞል፣ አሞክሳሲሊን...' },
+      quantity: { en: 'Quantity *', am: 'ብዛት *' },
+      quantityPlaceholder: { en: 'Enter quantity', am: 'ብዛት ያስገቡ' },
+      placeOrder: { en: 'Place Order', am: 'ትዕዛዝ ያስገቡ' },
+      placingOrder: { en: 'Placing Order...', am: 'ትዕዛዝ በመላክ ላይ...' },
+      confirmed: { en: 'Confirmed! ✅', am: 'ተረጋግጧል! ✅' },
+      confirmedSubtitle: { en: 'Your pharmaceutical order has been placed.', am: 'የመድኃኒት ትዕዛዝዎ በተሳካ ሁኔታ ተልኳል።' },
+      customerLabel: { en: 'Customer:', am: 'ደንበኛ፡' },
+      emailLabel: { en: 'Email:', am: 'ኢሜይል፡' },
+      phoneLabel: { en: 'Phone:', am: 'ስልክ፡' },
+      drugLabel: { en: 'Drug Name:', am: 'የመድኃኒቱ ስም፡' },
+      quantityLabel: { en: 'Quantity:', am: 'ብዛት፡' },
+      statusLabel: { en: 'Status:', am: 'ሁኔታ፡' },
+      processingStatus: { en: 'PROCESSING', am: 'በሂደት ላይ' },
+      orderIdLabel: { en: 'Order ID:', am: 'የትዕዛዝ መለያ፡' },
+      homeBtn: { en: 'Home', am: 'መነሻ' },
+      printBtn: { en: 'Print', am: 'አትም' },
+      termsText: { en: 'By placing an order, you agree to our terms and conditions', am: 'ትዕዛዝ በማስገባት በውሎቻችን እና ሁኔታዎቻችን ይስማማሉ' },
+    };
+    return dict[key]?.[isAm ? 'am' : 'en'] || key;
+  };
 
   const { register, handleSubmit, formState: { errors } } = useForm<PharmaOrderFormData>({
     resolver: zodResolver(pharmaOrderSchema),
     defaultValues: defaultValues,
   });
 
-  // ✅ ACTUALLY SEND TO API
   const onSubmit = async (data: PharmaOrderFormData) => {
     setIsSubmitting(true);
     try {
-      console.log('📡 Sending order to API:', data);
-      
-      // 🔥 USE PHARMA SERVICE TO CREATE ORDER
       const order = await pharmaService.createOrder({
         customerName: data.customerName,
         customerEmail: data.customerEmail,
@@ -70,14 +103,12 @@ export default function PharmaOrderPage() {
         quantity: data.quantity,
       });
       
-      console.log('✅ Order created:', order);
-      
       setOrderData(order);
       setShowConfirmation(true);
-      toast.success('Order placed successfully! 🎉');
+      toast.success(isAm ? 'ትዕዛዝዎ በተሳካ ሁኔታ ተልኳል! 🎉' : 'Order placed successfully! 🎉');
     } catch (error: any) {
-      console.error('❌ Failed to place order:', error);
-      toast.error(error.message || 'Failed to place order');
+      console.error('Failed to place order:', error);
+      toast.error(error.message || (isAm ? 'ትዕዛዝ ማስገባት አልተቻለም' : 'Failed to place order'));
     } finally {
       setIsSubmitting(false);
     }
@@ -86,205 +117,184 @@ export default function PharmaOrderPage() {
   // Confirmation Screen
   if (showConfirmation && orderData) {
     return (
-      <>
+      <div className="min-h-screen bg-background text-foreground">
         <Header />
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4 pt-32">
-          <div className="max-w-sm w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg p-4 border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-center p-4 pt-32 pb-12">
+          <div className="max-w-md w-full bg-card text-card-foreground rounded-2xl shadow-xl p-6 border border-border">
             <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Check className="w-6 h-6 text-green-600 dark:text-green-400" />
+              <div className="w-14 h-14 bg-green-500/10 dark:bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Check className="w-7 h-7 text-green-600 dark:text-green-400" />
               </div>
-              <h1 className="text-lg font-bold text-gray-900 dark:text-white">Confirmed! ✅</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Your pharmaceutical order has been placed.</p>
+              <h1 className="text-xl font-bold text-foreground">{t('confirmed')}</h1>
+              <p className="text-xs text-muted-foreground mt-1">{t('confirmedSubtitle')}</p>
               
-              <div className="mt-3 p-2 bg-gray-50 dark:bg-gray-700/50 rounded-lg text-left space-y-0.5 max-h-48 overflow-y-auto">
-                <p className="text-xs text-gray-600 dark:text-gray-300">
-                  <span className="font-medium">Customer:</span> {orderData.customerName}
+              <div className="mt-4 p-4 bg-muted/50 rounded-xl text-left space-y-2 max-h-60 overflow-y-auto border border-border">
+                <p className="text-xs text-foreground">
+                  <span className="font-semibold text-muted-foreground">{t('customerLabel')}</span> {orderData.customerName}
                 </p>
-                <p className="text-xs text-gray-600 dark:text-gray-300">
-                  <span className="font-medium">Email:</span> {orderData.customerEmail}
+                <p className="text-xs text-foreground">
+                  <span className="font-semibold text-muted-foreground">{t('emailLabel')}</span> {orderData.customerEmail}
                 </p>
-                <p className="text-xs text-gray-600 dark:text-gray-300">
-                  <span className="font-medium">Phone:</span> {orderData.customerPhone}
+                <p className="text-xs text-foreground">
+                  <span className="font-semibold text-muted-foreground">{t('phoneLabel')}</span> {orderData.customerPhone}
                 </p>
-                <p className="text-xs text-gray-600 dark:text-gray-300">
-                  <span className="font-medium">Drug:</span> {orderData.drugName}
+                <p className="text-xs text-foreground">
+                  <span className="font-semibold text-muted-foreground">{t('drugLabel')}</span> {orderData.drugName}
                 </p>
-                <p className="text-xs text-gray-600 dark:text-gray-300">
-                  <span className="font-medium">Quantity:</span> {orderData.quantity}
+                <p className="text-xs text-foreground">
+                  <span className="font-semibold text-muted-foreground">{t('quantityLabel')}</span> {orderData.quantity}
                 </p>
-                <p className="text-xs text-gray-600 dark:text-gray-300 border-t border-gray-200 dark:border-gray-600 pt-1 mt-1">
-                  <span className="font-medium">Order ID:</span>{' '}
-                  <span className="font-mono text-blue-600 dark:text-blue-400 text-[10px]">
-                    #{orderData.id}
-                  </span>
-                </p>
-                <p className="text-xs text-gray-600 dark:text-gray-300">
-                  <span className="font-medium">Status:</span>{' '}
-                  {/* 🔥 Changed from PENDING to PROCESSING */}
-                  <span className="text-blue-600 font-medium">
-                    PROCESSING
+                {orderData.id && (
+                  <p className="text-xs text-foreground">
+                    <span className="font-semibold text-muted-foreground">{t('orderIdLabel')}</span>{' '}
+                    <span className="font-mono text-primary font-bold">
+                      {orderData.id.slice(0, 8)}
+                    </span>
+                  </p>
+                )}
+                <p className="text-xs text-foreground">
+                  <span className="font-semibold text-muted-foreground">{t('statusLabel')}</span>{' '}
+                  <span className="text-primary font-semibold">
+                    {t('processingStatus')}
                   </span>
                 </p>
               </div>
 
-              <div className="mt-3 flex flex-col sm:flex-row gap-2 justify-center">
+              <div className="mt-5 flex flex-col sm:flex-row gap-3 justify-center">
                 <button
                   onClick={() => router.push('/')}
-                  className="px-3 py-1.5 bg-black text-white text-xs rounded-lg hover:bg-gray-800 transition"
+                  className="px-4 py-2 bg-primary text-primary-foreground font-semibold text-xs rounded-xl hover:bg-primary/90 transition-all shadow-md"
                 >
-                  Home
+                  {t('homeBtn')}
                 </button>
                 <button
                   onClick={() => window.print()}
-                  className="px-3 py-1.5 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                  className="px-4 py-2 bg-secondary text-secondary-foreground font-semibold text-xs rounded-xl hover:bg-secondary/80 transition-all"
                 >
-                  Print
+                  {t('printBtn')}
                 </button>
               </div>
             </div>
           </div>
         </div>
-      </>
+      </div>
     );
   }
 
   // Form
   return (
-    <>
+    <div className="min-h-screen bg-background text-foreground">
       <Header />
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-2 px-4 flex items-center justify-center pt-32">
-        <div className="w-full max-w-sm">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
-            {/* Header */}
-            <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700 bg-[#73787E]">
-              <h1 className="text-sm font-bold text-white text-center flex items-center justify-center gap-2">
-                <Pill className="w-4 h-4" />
-                Drug Manufacturing
+      <div className="py-8 px-4 flex items-center justify-center pt-28 sm:pt-32 pb-12">
+        <div className="w-full max-w-md">
+          <div className="bg-card text-card-foreground rounded-2xl shadow-xl border border-border overflow-hidden">
+            {/* Header Banner */}
+            <div className="px-5 py-3.5 border-b border-border bg-primary text-primary-foreground">
+              <h1 className="text-base font-bold text-center">
+                {t('title')}
               </h1>
-              <p className="text-[11px] text-gray-200 text-center">
-                Order medications & supplies
+              <p className="text-xs text-primary-foreground/80 text-center mt-0.5">
+                {t('subtitle')}
               </p>
             </div>
 
-            <div className="p-2.5">
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-                {/* Customer Information */}
-                <div className="space-y-1.5">
-                  <div className="border-b border-gray-200 dark:border-gray-700 pb-0.5">
-                    <h3 className="text-xs font-semibold text-gray-900 dark:text-white flex items-center gap-1">
-                      <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                      Customer Information
-                    </h3>
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500">
-                      Please provide your personal details
-                    </p>
+            <div className="p-4 sm:p-5">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                      {t('customerName')}
+                    </label>
+                    <div className="relative">
+                      <User className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        {...register('customerName')}
+                        type="text"
+                        placeholder={t('customerNamePlaceholder')}
+                        dir="ltr"
+                        className="w-full pl-9 pr-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
+                      />
+                    </div>
+                    {errors.customerName && (
+                      <p className="mt-1 text-[10px] text-destructive font-medium">{errors.customerName.message}</p>
+                    )}
                   </div>
 
-                  <div className="space-y-1.5">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                        Full Name *
-                      </label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                        <input
-                          {...register('customerName')}
-                          type="text"
-                          placeholder="Enter your full name"
-                          className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
-                        />
-                      </div>
-                      {errors.customerName && (
-                        <p className="mt-0.5 text-[10px] text-red-600">{errors.customerName.message}</p>
-                      )}
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                      {t('customerEmail')}
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        {...register('customerEmail')}
+                        type="email"
+                        placeholder={t('customerEmailPlaceholder')}
+                        dir="ltr"
+                        className="w-full pl-9 pr-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
+                      />
                     </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                        Email Address *
-                      </label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                        <input
-                          {...register('customerEmail')}
-                          type="email"
-                          placeholder="your@email.com"
-                          className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
-                        />
-                      </div>
-                      {errors.customerEmail && (
-                        <p className="mt-0.5 text-[10px] text-red-600">{errors.customerEmail.message}</p>
-                      )}
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                        Phone Number *
-                      </label>
-                      <div className="relative">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
-                        <input
-                          {...register('customerPhone')}
-                          type="tel"
-                          placeholder="+251 9XX XXX XXX"
-                          className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
-                        />
-                      </div>
-                      {errors.customerPhone && (
-                        <p className="mt-0.5 text-[10px] text-red-600">{errors.customerPhone.message}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Order Details */}
-                <div className="space-y-1.5">
-                  <div className="border-b border-gray-200 dark:border-gray-700 pb-0.5">
-                    <h3 className="text-xs font-semibold text-gray-900 dark:text-white flex items-center gap-1">
-                      <Pill className="w-4 h-4 text-gray-600 dark:text-gray-400" />
-                      Order Details
-                    </h3>
-                    <p className="text-[10px] text-gray-400 dark:text-gray-500">
-                      Tell us what you need
-                    </p>
+                    {errors.customerEmail && (
+                      <p className="mt-1 text-[10px] text-destructive font-medium">{errors.customerEmail.message}</p>
+                    )}
                   </div>
 
-                  <div className="space-y-1.5">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                        Drug / Medicine Name *
+                  <div>
+                    <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                      {t('customerPhone')}
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        {...register('customerPhone')}
+                        type="tel"
+                        placeholder={t('customerPhonePlaceholder')}
+                        dir="ltr"
+                        className="w-full pl-9 pr-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
+                      />
+                    </div>
+                    {errors.customerPhone && (
+                      <p className="mt-1 text-[10px] text-destructive font-medium">{errors.customerPhone.message}</p>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2.5">
+                    <div className="col-span-2">
+                      <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                        {t('drugName')}
                       </label>
                       <div className="relative">
-                        <Pill className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                        <Pill className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                           {...register('drugName')}
                           type="text"
-                          placeholder="e.g., Paracetamol 500mg"
-                          className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
+                          placeholder={t('drugNamePlaceholder')}
+                          dir="ltr"
+                          className="w-full pl-9 pr-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
                         />
                       </div>
                       {errors.drugName && (
-                        <p className="mt-0.5 text-[10px] text-red-600">{errors.drugName.message}</p>
+                        <p className="mt-1 text-[10px] text-destructive font-medium">{errors.drugName.message}</p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-0.5">
-                        Quantity *
+                      <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                        {t('quantity')}
                       </label>
                       <div className="relative">
-                        <Package className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+                        <Package className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
                           {...register('quantity', { valueAsNumber: true })}
                           type="number"
                           min="1"
-                          placeholder="Enter quantity"
-                          className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-gray-500 focus:border-gray-500 dark:bg-gray-700 dark:text-white transition"
+                          placeholder={t('quantityPlaceholder')}
+                          dir="ltr"
+                          className="w-full pl-9 pr-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
                         />
                       </div>
                       {errors.quantity && (
-                        <p className="mt-0.5 text-[10px] text-red-600">{errors.quantity.message}</p>
+                        <p className="mt-1 text-[10px] text-destructive font-medium">{errors.quantity.message}</p>
                       )}
                     </div>
                   </div>
@@ -294,29 +304,29 @@ export default function PharmaOrderPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-1.5 px-4 py-2 bg-black hover:bg-gray-800 text-white font-medium rounded-lg transition-all text-xs mt-2"
+                  className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-xs mt-3"
                 >
                   {isSubmitting ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
-                      Placing Order...
+                      {t('placingOrder')}
                     </>
                   ) : (
                     <>
                       <ShoppingCart className="w-4 h-4" />
-                      Place Order
+                      {t('placeOrder')}
                     </>
                   )}
                 </button>
 
-                <p className="text-center text-[9px] text-gray-400 dark:text-gray-500">
-                  By placing an order, you agree to our terms and conditions
+                <p className="text-center text-[10px] text-muted-foreground pt-1">
+                  {t('termsText')}
                 </p>
               </form>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -11,7 +11,10 @@ export default function PharmaPage() {
   return (
     <>
       <Header />
-      <main className="bg-background text-foreground min-h-screen">
+      <main 
+        className="bg-background text-foreground min-h-screen"
+        style={{ paddingTop: 'var(--header-offset, 140px)' }}
+      >
         {/* Main container */}
         <div className="relative">
           {/* Slide 1: Hero */}
