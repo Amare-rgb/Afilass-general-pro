@@ -17,8 +17,6 @@ import {
   PieChart as RechartsPieChart,
   Pie,
   Cell,
-  Area,
-  AreaChart,
   ComposedChart
 } from 'recharts';
 
@@ -73,7 +71,7 @@ interface DashboardData {
 
 const COLORS = ['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B', '#EF4444', '#EC4899', '#14B8A6', '#6366F1'];
 
-// Location options without "All Locations"
+// Location options
 const LOCATIONS = [
   { id: 'Afilas General Hospital', label: 'Afilas General Hospital' },
   { id: 'Afilas Diagnosis Center', label: 'Afilas Diagnosis Center' },
@@ -253,7 +251,9 @@ export default function AdminDashboardPage() {
 
   const { stats, appointmentsChart, usersChart } = data;
 
-  // Summary Cards without icons
+  // ============================================================
+  // ✅ UPDATED SUMMARY CARDS - "Today's Appointments" changed to "Website Reviews"
+  // ============================================================
   const summaryCards = [
     { 
       label: 'Total Appointments', 
@@ -261,9 +261,10 @@ export default function AdminDashboardPage() {
       color: 'from-green-500 to-emerald-600'
     },
     { 
-      label: "Today's Appointments", 
-      value: stats?.overview?.todayAppointments?.toString() || '0',
-      color: 'from-blue-500 to-indigo-600'
+      label: 'Website Reviews', 
+      value: stats?.reviews?.totalReviews?.toString() || '0',
+      color: 'from-yellow-500 to-orange-600',
+      rating: stats?.reviews?.averageRating || 0
     },
     { 
       label: 'Total Doctors', 
@@ -276,11 +277,15 @@ export default function AdminDashboardPage() {
       color: 'from-yellow-500 to-orange-600'
     },
     { 
-      label: 'Website Reviews', 
-      value: stats?.reviews?.totalReviews?.toString() || '0',
-      color: 'from-yellow-500 to-orange-600',
-      rating: stats?.reviews?.averageRating || 0
-    }
+      label: 'Total Services', 
+      value: stats?.overview?.totalServices?.toLocaleString() || '0',
+      color: 'from-cyan-500 to-teal-600'
+    },
+    { 
+      label: 'Blog Posts', 
+      value: stats?.overview?.totalNews?.toLocaleString() || '0',
+      color: 'from-pink-500 to-rose-600'
+    },
   ];
 
   // Status distribution for chart
@@ -319,7 +324,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Location Tabs - Full width with space between */}
+      {/* Location Tabs */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 flex flex-wrap gap-4">
         {LOCATIONS.map((location) => (
           <button
@@ -336,8 +341,8 @@ export default function AdminDashboardPage() {
         ))}
       </div>
 
-      {/* Summary Cards Grid with larger gap */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      {/* ✅ Summary Cards - 6 cards in a row */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
         {summaryCards.map((card, index) => (
           <div key={index} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between">
@@ -365,7 +370,7 @@ export default function AdminDashboardPage() {
         ))}
       </div>
 
-      {/* TWO CHARTS: Appointments Trend & Users by Role - larger gap */}
+      {/* TWO CHARTS: Appointments Trend & Users by Role */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Chart 1: Appointments Trend */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
@@ -444,7 +449,7 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Appointment Status Distribution & Recent Appointments - larger gap */}
+      {/* Appointment Status Distribution & Recent Appointments */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Appointment Status Distribution */}
         {statusData && statusData.length > 0 ? (

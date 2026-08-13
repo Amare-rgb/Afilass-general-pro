@@ -12,7 +12,7 @@ const router = express.Router();
 // ============================================================
 // GET all pharma orders (Admin only)
 // ============================================================
-router.get('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
+router.get('/', auth, authorize('ADMIN'), async (req, res) => {
   try {
     const { status, customerEmail, customerPhone } = req.query;
     const where = {};
@@ -49,7 +49,7 @@ router.get('/', auth, authorize('SUPER_ADMIN', 'ADMIN'), async (req, res) => {
 });
 
 // ============================================================
-// CREATE pharma order (Public - no auth)
+// ✅ FIXED: CREATE pharma order (Public - no auth)
 // ============================================================
 router.post('/', [
   body('customerName')
@@ -85,6 +85,12 @@ router.post('/', [
 
     console.log('📝 Creating pharma order:', { customerName, customerEmail, drugName, quantity });
 
+    // ✅ Get current date and time
+    const now = new Date();
+    const orderDate = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    const orderTime = now.toTimeString().split(' ')[0]; // HH:MM:SS
+
+    // ✅ Create order with ALL required fields
     const order = await prisma.pharmaOrder.create({
       data: {
         customerName: customerName.trim(),
@@ -92,7 +98,9 @@ router.post('/', [
         customerPhone: customerPhone.trim(),
         drugName: drugName.trim(),
         quantity: parseInt(quantity),
-        status: 'PENDING'
+        status: 'PENDING',
+        orderDate: orderDate,   // ✅ Required field
+        orderTime: orderTime,   // ✅ Required field
       }
     });
 
@@ -115,7 +123,7 @@ router.post('/', [
 // ============================================================
 // UPDATE status (Admin only) - WITH NOTIFICATIONS
 // ============================================================
-router.patch('/:id/status', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
+router.patch('/:id/status', auth, authorize('ADMIN'), [
   param('id').isString().withMessage('Invalid order ID'),
   body('status')
     .notEmpty()
@@ -216,7 +224,7 @@ router.patch('/:id/status', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
 // ============================================================
 // DELETE order (Admin only)
 // ============================================================
-router.delete('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
+router.delete('/:id', auth, authorize('ADMIN'), [
   param('id').isString().withMessage('Invalid order ID')
 ], async (req, res) => {
   try {
@@ -256,6 +264,38 @@ router.delete('/:id', auth, authorize('SUPER_ADMIN', 'ADMIN'), [
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to delete order'
+    });
+  }
+});
+
+// ============================================================
+// GET pharma order statistics (Admin only)
+// ============================================================
+router.get('/stats/summary', auth, authorize('ADMIN'), async (req, res) => {
+  try {
+    const [total, pending, processing, completed, cancelled] = await Promise.all([
+      prisma.pharmaOrder.count(),
+      prisma.pharmaOrder.count({ where: { status: 'PENDING' } }),
+      prisma.pharmaOrder.count({ where: { status: 'PROCESSING' } }),
+      prisma.pharmaOrder.count({ where: { status: 'COMPLETED' } }),
+      prisma.pharmaOrder.count({ where: { status: 'CANCELLED' } }),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        total,
+        pending,
+        processing,
+        completed,
+        cancelled
+      }
+    });
+  } catch (error) {
+    console.error('Get pharma orders stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch statistics'
     });
   }
 });

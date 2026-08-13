@@ -262,4 +262,3 @@ function getAppointmentLink(service: PharmaService) {
     </section>
   );
 }
-

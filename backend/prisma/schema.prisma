@@ -34,7 +34,7 @@ model Service {
   price       Float?
   duration    Int?
   image       String?
-  category    String?   // Added category field
+  category    String?
   isActive    Boolean   @default(true)
   location    String?   @default("Afilas General Hospital")
   createdAt   DateTime  @default(now())
@@ -62,7 +62,7 @@ model Doctor {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
-  appointments  Appointment[]
+  // 🔥 FIX: Remove @relation(onDelete: Cascade) from here
   workingHours  WorkingHour[]
   
   @@map("doctors")
@@ -78,7 +78,8 @@ model WorkingHour {
   updatedAt   DateTime @updatedAt
   
   doctorId    String
-  doctor      Doctor   @relation(fields: [doctorId], references: [id])
+  // ✅ onDelete: Cascade is HERE on the child side
+  doctor      Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   
   @@unique([doctorId, dayOfWeek])
   @@map("working_hours")
@@ -101,14 +102,37 @@ model Appointment {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
-  doctorId      String
-  doctor        Doctor   @relation(fields: [doctorId], references: [id])
   serviceId     String?
-  service       Service? @relation(fields: [serviceId], references: [id])
+  service       Service?  @relation(fields: [serviceId], references: [id])
   userId        String?
-  user          User?    @relation(fields: [userId], references: [id])
+  user          User?     @relation(fields: [userId], references: [id])
+  
+  // Home visit fields
+  visitType     String?   // 'HOSPITAL' or 'HOME'
+  city          String?
+  subCity       String?
+  woreda        String?
+  gpsPin        String?
+  homeAddress   String?
   
   @@map("appointments")
+}
+
+// 🔥 NEW: Pharma Order Model
+model PharmaOrder {
+  id            String    @id @default(cuid())
+  customerName  String
+  customerEmail String
+  customerPhone String
+  drugName      String
+  quantity      Int
+  status        PharmaOrderStatus @default(PENDING)
+  orderDate     String
+  orderTime     String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@map("pharma_orders")
 }
 
 model Gallery {
@@ -178,10 +202,14 @@ model Notification {
   updatedAt   DateTime        @updatedAt
   
   userId      String
-  user        User            @relation(fields: [userId], references: [id])
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@map("notifications")
 }
+
+// ============================================================
+// ENUMS
+// ============================================================
 
 enum Role {
   SUPER_ADMIN
@@ -196,6 +224,14 @@ enum AppointmentStatus {
   COMPLETED
   CANCELLED
   RESCHEDULED
+}
+
+// 🔥 NEW: Pharma Order Status Enum
+enum PharmaOrderStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  CANCELLED
 }
 
 enum GalleryType {

@@ -70,10 +70,6 @@ export function GeneralSec() {
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
               {t("general.title")}
             </h2>
-            {/* <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
-              {t("general.subtitle")}
-            </p> */}
           </div>
         </div>
 
@@ -85,18 +81,6 @@ export function GeneralSec() {
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
             }`}
           >
-            {/* Intro card with description (optional) */}
-            {/* <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-sm">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Heart className="w-5 h-5 text-primary" />
-                </div>
-                <p className="text-foreground/85 text-sm sm:text-base leading-relaxed">
-                  {t("general.intro")}
-                </p>
-              </div>
-            </div> */}
-
             {/* Feature list */}
             <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-sm space-y-3">
               {features.map((feature, idx) => {
@@ -114,19 +98,19 @@ export function GeneralSec() {
               })}
             </div>
 
-            {/* CTA */}
-<div className="mt-8">
-  <Link
-    href="/hospital"
-    className="underline-btn"
-  >
-    {t("general.cta")}
-    <ChevronRight className="btn-icon w-4 h-4" />
-  </Link>
-</div>
+            {/* CTA - Dark/Charcoal Button like your image */}
+            <div className="mt-8">
+              <Link
+                href="/hospital"
+                className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white font-medium text-sm rounded-full transition-all duration-300 group shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 hover:scale-[1.02] active:scale-95"
+              >
+                <span>{t("general.cta")}</span>
+                <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+              </Link>
+            </div>
           </div>
 
-          {/* Right column – Image with colorful gradient glow (no border, no badge) */}
+          {/* Right column – Image with colorful gradient glow */}
           <div
             className={`relative transition-all duration-700 ease-out delay-200 ${
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
@@ -137,7 +121,7 @@ export function GeneralSec() {
             <div className="absolute -bottom-6 -left-6 w-64 h-64 bg-secondary/30 rounded-full blur-3xl opacity-70" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
 
-            {/* Image container – no border */}
+            {/* Image container */}
             <div className="relative rounded-2xl overflow-hidden shadow-xl shadow-primary/10 bg-card">
               <div className="aspect-[4/3] relative">
                 <Image

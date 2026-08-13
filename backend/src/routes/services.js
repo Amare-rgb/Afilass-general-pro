@@ -9,10 +9,11 @@ const fs = require('fs');
 
 const router = express.Router();
 
-// Configure multer for file upload
+// Configure multer for file upload - FIXED PATH
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadDir = path.join(__dirname, '../../public/uploads/services');
+    // FIX: Use uploads directory directly (not public/uploads)
+    const uploadDir = path.join(__dirname, '../../uploads/services');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -145,11 +146,12 @@ function buildImageUrl(imagePath) {
   if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
     return imagePath;
   }
+  // FIX: Remove leading slash if it exists for proper URL construction
   let cleanPath = imagePath;
-  if (!cleanPath.startsWith('/')) {
-    cleanPath = `/${cleanPath}`;
+  if (cleanPath.startsWith('/')) {
+    cleanPath = cleanPath.substring(1);
   }
-  return `http://localhost:5000${cleanPath}`;
+  return `http://localhost:5000/${cleanPath}`;
 }
 
 // ============================================================
@@ -256,10 +258,12 @@ router.get('/:id', [
   }
 });
 
-// Create service (Admin only)
+// ============================================================
+// FIXED: Create service - Only ADMIN role required
+// ============================================================
 router.post('/',
   auth,
-  authorize('SUPER_ADMIN', 'ADMIN'),
+  authorize('ADMIN'), // FIXED: Removed SUPER_ADMIN
   upload.single('image'),
   [
     body('name')
@@ -300,6 +304,7 @@ router.post('/',
     try {
       console.log('📝 Request body:', req.body);
       console.log('📁 Uploaded file:', req.file);
+      console.log('👤 User:', req.user?.email, 'Role:', req.user?.role);
 
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -344,10 +349,12 @@ router.post('/',
         });
       }
 
-      // Handle image upload
+      // Handle image upload - FIXED PATH
       let imageUrl = null;
       if (req.file) {
+        // Store relative path without public
         imageUrl = `/uploads/services/${req.file.filename}`;
+        console.log('📁 Image saved:', imageUrl);
       } else {
         // Check if image is provided in the request body as base64 or URL
         if (req.body.image && req.body.image.startsWith('http')) {
@@ -395,10 +402,12 @@ router.post('/',
   }
 );
 
-// Update service (Admin only)
+// ============================================================
+// FIXED: Update service - Only ADMIN role required
+// ============================================================
 router.put('/:id',
   auth,
-  authorize('SUPER_ADMIN', 'ADMIN'),
+  authorize('ADMIN'), // FIXED: Removed SUPER_ADMIN
   upload.single('image'),
   [
     param('id').isString().withMessage('Invalid service ID'),
@@ -499,15 +508,16 @@ router.put('/:id',
         }
       }
 
-      // Handle image upload
+      // Handle image upload - FIXED PATH
       let imageUrl = existing.image;
       if (req.file) {
         // Delete old image if exists
         if (existing.image && !existing.image.startsWith('http')) {
-          const oldImagePath = path.join(__dirname, '../../public', existing.image);
+          const oldImagePath = path.join(__dirname, '../../uploads', existing.image.replace('/uploads/', ''));
           if (fs.existsSync(oldImagePath)) {
             try {
               fs.unlinkSync(oldImagePath);
+              console.log('🗑️ Old image deleted:', oldImagePath);
             } catch (unlinkError) {
               console.error('Failed to delete old image:', unlinkError);
             }
@@ -555,10 +565,12 @@ router.put('/:id',
   }
 );
 
-// Patch service (Admin only) - For partial updates
+// ============================================================
+// FIXED: Patch service - Only ADMIN role required
+// ============================================================
 router.patch('/:id',
   auth,
-  authorize('SUPER_ADMIN', 'ADMIN'),
+  authorize('ADMIN'), // FIXED: Removed SUPER_ADMIN
   [
     param('id').isString().withMessage('Invalid service ID'),
     body('isActive').optional().isBoolean().withMessage('isActive must be a boolean'),
@@ -615,10 +627,12 @@ router.patch('/:id',
   }
 );
 
-// Toggle service status (Admin only)
+// ============================================================
+// FIXED: Toggle service status - Only ADMIN role required
+// ============================================================
 router.patch('/:id/toggle-status',
   auth,
-  authorize('SUPER_ADMIN', 'ADMIN'),
+  authorize('ADMIN'), // FIXED: Removed SUPER_ADMIN
   [
     param('id').isString().withMessage('Invalid service ID'),
   ],
@@ -670,10 +684,12 @@ router.patch('/:id/toggle-status',
   }
 );
 
-// Delete service (Admin only)
+// ============================================================
+// FIXED: Delete service - Only ADMIN role required
+// ============================================================
 router.delete('/:id',
   auth,
-  authorize('SUPER_ADMIN', 'ADMIN'),
+  authorize('ADMIN'), // FIXED: Removed SUPER_ADMIN
   [
     param('id').isString().withMessage('Invalid service ID'),
   ],
@@ -716,12 +732,13 @@ router.delete('/:id',
         });
       }
 
-      // Delete image if exists
+      // Delete image if exists - FIXED PATH
       if (existing.image && !existing.image.startsWith('http')) {
-        const imagePath = path.join(__dirname, '../../public', existing.image);
+        const imagePath = path.join(__dirname, '../../uploads', existing.image.replace('/uploads/', ''));
         if (fs.existsSync(imagePath)) {
           try {
             fs.unlinkSync(imagePath);
+            console.log('🗑️ Image deleted:', imagePath);
           } catch (unlinkError) {
             console.error('Failed to delete image:', unlinkError);
           }
@@ -787,10 +804,12 @@ router.get('/department/:departmentId', [
   }
 });
 
-// Get services stats (Admin only)
+// ============================================================
+// FIXED: Get services stats - Only ADMIN role required
+// ============================================================
 router.get('/stats',
   auth,
-  authorize('SUPER_ADMIN', 'ADMIN'),
+  authorize('ADMIN'), // FIXED: Removed SUPER_ADMIN
   [
     query('location').optional().isString().withMessage('Location must be a string'),
   ],

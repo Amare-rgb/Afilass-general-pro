@@ -54,18 +54,29 @@ export function LoginForm() {
 
   const isAm = language === 'am';
 
-  // Centralized redirection function - redirect to home page which contains generalsec
+  // ============================================================
+  // ✅ REDIRECT BASED ON ROLE
+  // ============================================================
   const redirectBasedOnRole = (role: string) => {
     console.log(`🔄 Redirecting based on role: ${role}`);
     
     const normalizedRole = role.toUpperCase().trim();
-    console.log(`➡️ Redirecting to home page (/) with role: ${normalizedRole}`);
+    console.log(`➡️ Role: ${normalizedRole}`);
     
-    // Always redirect to home page where generalsec is rendered
-    // The generalsec component will handle showing different content based on role
+    // ✅ ADMIN → Admin Dashboard
+    if (normalizedRole === 'ADMIN' || normalizedRole === 'SUPER_ADMIN') {
+      console.log('🔑 Redirecting to admin dashboard...');
+      setTimeout(() => {
+        window.location.href = '/admin/dashboard';
+      }, 500);
+      return;
+    }
+    
+    // ✅ USER → Home Page (generalsec)
+    console.log('👤 Redirecting to home page...');
     setTimeout(() => {
       window.location.href = '/';
-    }, 300);
+    }, 500);
   };
 
   const validate = () => {
@@ -144,7 +155,7 @@ export function LoginForm() {
         
         toast.success(t('loginSuccess'));
         
-        // 🔥 Redirect to home page where generalsec is rendered
+        // ✅ Redirect based on role
         redirectBasedOnRole(role);
         
       } else {

@@ -78,7 +78,6 @@ export default function DrugManufacturingSection() {
       }}
     >
       {/* Background color – visible only in light mode */}
-      {/* Using a more visible color with higher opacity */}
       <div className="absolute inset-0 pointer-events-none z-0 bg-muted/70 dark:bg-transparent" />
 
       {/* Decorative blurred circles for depth */}
@@ -103,10 +102,6 @@ export default function DrugManufacturingSection() {
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
               {t("pharma.title")}
             </h2>
-            {/* <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
-              {t("pharma.subtitle")}
-            </p> */}
           </div>
         </div>
 
@@ -133,6 +128,7 @@ export default function DrugManufacturingSection() {
               </div>
             </div>
           </div>
+        </div>
 
           {/* RIGHT COLUMN – Capabilities only (no title, no CTA) */}
           <div
@@ -162,20 +158,19 @@ export default function DrugManufacturingSection() {
               );
             })}
           </div>
-        </div>
 
         {/* ============================================================
-            ROW 3: CTA (on its own, left aligned, below everything)
+            ROW 3: CTA Button perfectly CENTERED inside its container
             ============================================================ */}
-<div className="pt-2">
-  <Link
-    href="/pharma"
-    className="underline-btn"
-  >
-    {t("pharma.cta")}
-    <ChevronRight className="btn-icon w-4 h-4" />
-  </Link>
-</div>
+        <div className="pt-2 flex justify-center">
+          <Link
+            href="/pharma"
+            className="inline-flex items-center justify-center gap-2.5 px-8 py-3.5 bg-[#1A7B7F] hover:bg-[#16686B] text-[#E8E5DC] font-medium text-base rounded-full transition-all duration-300 group shadow-[0_4px_6px_rgba(0,0,0,0.3)] hover:shadow-[0_6px_10px_rgba(0,0,0,0.4)] hover:scale-[1.02] active:scale-95"
+          >
+            <span>{t("pharma.cta")}</span>
+            <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 text-[#E8E5DC]" />
+          </Link>
+        </div>
       </div>
     </section>
   );

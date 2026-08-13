@@ -1,4 +1,3 @@
-// app/admin/services/afilas-general/page.tsx
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -15,18 +14,15 @@ import {
   CheckCircle,
   XCircle,
   X,
-  Hospital,
   Clock,
   DollarSign,
   Search,
   ChevronDown,
   Edit,
   Save,
-  AlertCircle,
   Building2,
   Upload,
-  Image as ImageIcon,
-  PlusCircle
+  Image as ImageIcon
 } from 'lucide-react';
 
 interface Service {
@@ -148,7 +144,7 @@ const validateCategory = (value: string): string | null => {
 
 const validateImage = (file: File | null, currentImage?: string): string | null => {
   if (!file && !currentImage) {
-    return 'Image is required';
+    return null;
   }
   if (file) {
     const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
@@ -174,7 +170,7 @@ export default function AdminServicesAfilasGeneralPage() {
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [showNewCategory, setShowNewCategory] = useState(false);
@@ -297,33 +293,6 @@ export default function AdminServicesAfilasGeneralPage() {
     }
   };
 
-  const uploadImage = async (file: File): Promise<string> => {
-    const formData = new FormData();
-    formData.append('image', file);
-    
-    try {
-      const token = getToken();
-      if (!token) throw new Error('No authentication token found');
-      
-      const response = await fetch('http://localhost:5000/api/upload?type=services', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData,
-      });
-      
-      const data = await response.json();
-      if (response.status === 401) {
-        clearSession();
-        throw new Error('Session expired. Please login again.');
-      }
-      if (!response.ok) throw new Error(data.error || data.message || 'Upload failed');
-      return data.url;
-    } catch (error) {
-      console.error('❌ Upload error:', error);
-      throw error;
-    }
-  };
-
   const handleOpenModal = (service?: Service) => {
     if (service) {
       setEditingService(service);
@@ -338,6 +307,7 @@ export default function AdminServicesAfilasGeneralPage() {
         isActive: service.isActive
       });
       setImagePreview(service.image || '');
+      setImageFile(null);
       setShowNewCategory(false);
       setNewCategory('');
     } else {
@@ -402,10 +372,14 @@ export default function AdminServicesAfilasGeneralPage() {
     }
   };
 
+  // ============================================================
+  // FIXED: handleSubmit - Send everything as FormData
+  // ============================================================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
+    // Validate all fields
     const allTouched: Record<string, boolean> = {};
     Object.keys(formData).forEach(key => {
       allTouched[key] = true;
@@ -421,36 +395,66 @@ export default function AdminServicesAfilasGeneralPage() {
     }
 
     try {
-      let imageUrl = formData.image;
+      setUploading(true);
+      
+      // ✅ Create FormData - THIS IS THE KEY FIX
+      const formDataToSend = new FormData();
+      formDataToSend.append('name', formData.name);
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('price', String(formData.price));
+      formDataToSend.append('duration', String(formData.duration));
+      formDataToSend.append('category', formData.category);
+      formDataToSend.append('location', formData.location || LOCATION);
+      formDataToSend.append('isActive', String(formData.isActive));
+      
+      // ✅ Add image file if selected
       if (imageFile) {
-        setUploadingImage(true);
-        try {
-          imageUrl = await uploadImage(imageFile);
-        } catch (uploadError) {
-          setError(uploadError instanceof Error ? uploadError.message : 'Failed to upload image');
-          setUploadingImage(false);
-          return;
-        }
-        setUploadingImage(false);
+        formDataToSend.append('image', imageFile);
+        console.log('📁 Adding image to form data:', imageFile.name);
       }
       
-      const serviceData = {
-        ...formData,
-        image: imageUrl,
-        price: Number(formData.price),
-        duration: Number(formData.duration)
-      };
-
-      if (editingService) {
-        await api.put(`/services/${editingService.id}`, serviceData, true);
-        setSuccess('Service updated successfully!');
-      } else {
-        await api.post('/services', serviceData, true);
-        setSuccess('Service created successfully!');
+      const token = getToken();
+      if (!token) {
+        throw new Error('Authentication required. Please login again.');
       }
+      
+      const url = editingService 
+        ? `http://localhost:5000/api/services/${editingService.id}`
+        : 'http://localhost:5000/api/services';
+      
+      console.log(`📡 ${editingService ? 'PUT' : 'POST'} ${url}`);
+      
+      // ✅ Send as FormData, not JSON
+      const response = await fetch(url, {
+        method: editingService ? 'PUT' : 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formDataToSend,
+      });
+      
+      setUploading(false);
+      
+      if (!response.ok) {
+        let errorMessage = 'Failed to save service';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorData.message || errorMessage;
+          console.error('❌ Error response:', errorData);
+        } catch (e) {
+          console.error('❌ Could not parse error response');
+        }
+        throw new Error(errorMessage);
+      }
+      
+      const result = await response.json();
+      console.log('✅ Service saved:', result);
+      
+      setSuccess(editingService ? 'Service updated successfully!' : 'Service created successfully!');
       handleCloseModal();
       await loadServices();
     } catch (error: any) {
+      setUploading(false);
       console.error('❌ Failed to save service:', error);
       setError(error.message || 'Failed to save service');
     }
@@ -501,6 +505,13 @@ export default function AdminServicesAfilasGeneralPage() {
 
   const hasError = (field: keyof FormErrors) => {
     return formErrors[field] && touched[field];
+  };
+
+  // Helper to get full image URL
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) return null;
+    if (imagePath.startsWith('http')) return imagePath;
+    return `http://localhost:5000${imagePath}`;
   };
 
   return (
@@ -604,22 +615,25 @@ export default function AdminServicesAfilasGeneralPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredServices.map((service) => (
             <div key={service.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
-              {/* Service Image */}
+              {/* ✅ FIXED: Service Image with full URL */}
               <div className="relative h-40 bg-gray-100">
                 {service.image ? (
                   <Image
-                    src={service.image}
+                    src={getImageUrl(service.image) || ''}
                     alt={service.name}
                     fill
                     unoptimized
                     className="object-cover"
+                    onError={(e) => {
+                      console.error('Image failed to load:', service.image);
+                      e.currentTarget.style.display = 'none';
+                    }}
                   />
                 ) : (
                   <div className="flex items-center justify-center h-full">
                     <ImageIcon className="w-12 h-12 text-gray-300" />
                   </div>
                 )}
-                {/* Removed Active/Inactive button */}
               </div>
               
               <div className="p-4">
@@ -673,7 +687,7 @@ export default function AdminServicesAfilasGeneralPage() {
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between rounded-t-xl">
               <h3 className="text-sm font-semibold text-gray-800">
-                {editingService ? ' Edit Service' : '➕ New Service'}
+                {editingService ? '✏️ Edit Service' : '➕ New Service'}
               </h3>
               <button
                 onClick={handleCloseModal}
@@ -684,7 +698,7 @@ export default function AdminServicesAfilasGeneralPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="p-4 space-y-3">
-              {/* Image Upload - Always Visible */}
+              {/* Image Upload */}
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 hover:border-gray-400 transition-colors">
                 <div className="flex items-center gap-4">
                   <div className="relative flex-shrink-0">
@@ -755,7 +769,7 @@ export default function AdminServicesAfilasGeneralPage() {
                 <p className="text-[10px] text-gray-400 mt-0.5">{formData.name.length}/100</p>
               </div>
 
-              {/* Category with New Category Option */}
+              {/* Category */}
               <div data-error={!!formErrors.category && touched.category}>
                 <label className="block text-xs font-medium text-gray-600 mb-0.5">
                   Category <span className="text-red-400">*</span>
@@ -908,7 +922,7 @@ export default function AdminServicesAfilasGeneralPage() {
                 />
               </div>
 
-              {/* Active Status - Only in form */}
+              {/* Active Status */}
               <div>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -925,25 +939,25 @@ export default function AdminServicesAfilasGeneralPage() {
               <div className="flex gap-2 pt-2 border-t border-gray-100">
                 <button
                   type="submit"
-                  disabled={uploadingImage}
-                  className="flex-1 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50 text-sm font-medium px-4 py-1.5 transition-colors flex items-center justify-center gap-2"
+                  disabled={uploading}
+                  className="flex-1 rounded-lg bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 text-sm font-medium px-4 py-2 transition-colors flex items-center justify-center gap-2"
                 >
-                  {uploadingImage ? (
+                  {uploading ? (
                     <>
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                      Uploading...
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Saving...
                     </>
                   ) : (
                     <>
-                      <Save className="w-3.5 h-3.5" />
-                      {editingService ? 'Update' : 'Add'}
+                      <Save className="w-4 h-4" />
+                      {editingService ? 'Update Service' : 'Create Service'}
                     </>
                   )}
                 </button>
                 <button
                   type="button"
                   onClick={handleCloseModal}
-                  className="flex-1 rounded-lg bg-white border border-gray-200 text-gray-500 text-sm font-medium px-4 py-1.5 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                  className="flex-1 rounded-lg bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm font-medium px-4 py-2 transition-colors"
                 >
                   Cancel
                 </button>

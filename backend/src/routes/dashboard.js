@@ -1,27 +1,78 @@
-// C:\Afilass\afilas-hospital\backend\src\routes\dashboard.js
+// backend/src/routes/dashboard.js
 const express = require('express');
 const prisma = require('../lib/prisma');
 const { auth, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Get dashboard statistics (Admin only)
+// ============================================================
+// FIXED Helper: Get location filter
+// ============================================================
+function getLocationFilter(location) {
+  // If location is 'all', 'undefined', 'null', or empty, return empty filter
+  if (!location || location === 'all' || location === 'undefined' || location === 'null') {
+    return {}; 
+  }
+  // Otherwise, filter by exact location string match
+  return { location };
+}
+
+// ============================================================
+// GET Dashboard Statistics - ✅ ADMIN only (removed SUPER_ADMIN)
+// ============================================================
 router.get('/stats',
   auth,
-  authorize('SUPER_ADMIN', 'ADMIN'),
+  authorize('ADMIN'), // ✅ FIXED: Only ADMIN, removed SUPER_ADMIN
   async (req, res) => {
     try {
       const { location = 'all' } = req.query;
       
+      console.log(`📊 Dashboard API called. Location param: "${location}"`);
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
       const tomorrow = new Date(today);
       tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      const nextWeek = new Date(today);
+      nextWeek.setDate(nextWeek.getDate() + 7);
 
-      // Get all statistics in parallel using Prisma
+      // Build location filter
+      const locationFilter = getLocationFilter(location);
+
+      console.log(`🔍 Prisma filter being applied:`, JSON.stringify(locationFilter));
+
+      // ============================================================
+      // 🔥 CRASH-PROOF REVIEW QUERIES
+      // ============================================================
+      const safeTotalReviews = await (async () => {
+        try {
+          if (prisma.review && typeof prisma.review.count === 'function') {
+            return await prisma.review.count({ where: locationFilter });
+          }
+          return 0;
+        } catch (e) {
+          return 0;
+        }
+      })();
+
+      const safeAverageRating = await (async () => {
+        try {
+          if (prisma.review && typeof prisma.review.aggregate === 'function') {
+            const result = await prisma.review.aggregate({
+              where: locationFilter,
+              _avg: { rating: true },
+            });
+            return result;
+          }
+          return { _avg: { rating: 0 } };
+        } catch (e) {
+          return { _avg: { rating: 0 } };
+        }
+      })();
+
+      // Get all other statistics in parallel using Prisma
       const [
         totalAppointments,
         todayAppointments,
@@ -34,12 +85,11 @@ router.get('/stats',
         totalNews,
         appointmentsByStatus,
         recentAppointments,
-        totalReviews,
-        averageRating,
       ] = await Promise.all([
-        prisma.appointment.count(),
+        prisma.appointment.count({ where: locationFilter }),
         prisma.appointment.count({
           where: {
+            ...locationFilter,
             date: {
               gte: today,
               lt: tomorrow,
@@ -48,9 +98,10 @@ router.get('/stats',
         }),
         prisma.appointment.count({
           where: {
+            ...locationFilter,
             date: {
               gte: today,
-              lte: new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000),
+              lte: nextWeek,
             },
             status: {
               in: ['PENDING', 'CONFIRMED'],
@@ -58,7 +109,10 @@ router.get('/stats',
           },
         }),
         prisma.doctor.count({
-          where: { isAvailable: true },
+          where: {
+            ...locationFilter,
+            isAvailable: true,
+          },
         }),
         prisma.department.count({
           where: { isActive: true },
@@ -67,7 +121,10 @@ router.get('/stats',
           where: { isActive: true },
         }),
         prisma.user.count({
-          where: { isActive: true },
+          where: {
+            ...locationFilter,
+            isActive: true,
+          },
         }),
         prisma.contact.count({
           where: { status: 'UNREAD' },
@@ -77,9 +134,11 @@ router.get('/stats',
         }),
         prisma.appointment.groupBy({
           by: ['status'],
+          where: locationFilter,
           _count: true,
         }),
         prisma.appointment.findMany({
+          where: locationFilter,
           take: 10,
           orderBy: { createdAt: 'desc' },
           include: {
@@ -96,50 +155,62 @@ router.get('/stats',
             },
           },
         }),
-        // Get total reviews
-        prisma.review.count().catch(() => 0),
-        // Get average rating
-        prisma.review.aggregate({
-          _avg: {
-            rating: true,
-          },
-        }).catch(() => ({ _avg: { rating: 0 } })),
       ]);
 
       // Format status counts
       const statusCounts = {};
-      appointmentsByStatus.forEach(item => {
-        statusCounts[item.status] = item._count;
-      });
+      if (appointmentsByStatus && Array.isArray(appointmentsByStatus)) {
+        appointmentsByStatus.forEach(item => {
+          statusCounts[item.status] = item._count;
+        });
+      }
 
-      // Simulate location data
-      const locationMultiplier = getLocationMultiplier(location);
+      // Map recent appointments for frontend
+      const mappedRecentAppointments = recentAppointments && Array.isArray(recentAppointments) 
+        ? recentAppointments.map(app => ({
+            id: app.id,
+            date: app.date,
+            status: app.status,
+            doctor: app.doctor ? {
+              name: app.doctor.name,
+              specialization: app.doctor.specialization,
+            } : null,
+            service: app.service ? {
+              name: app.service.name,
+            } : null,
+          }))
+        : [];
+
+      console.log(`✅ Returning Stats: Appointments=${totalAppointments}, Doctors=${totalDoctors}, Users=${totalUsers}`);
 
       res.json({
         success: true,
         data: {
           overview: {
-            totalAppointments: Math.floor(totalAppointments * locationMultiplier) || 0,
-            todayAppointments: Math.floor(todayAppointments * locationMultiplier) || 0,
-            upcomingAppointments: Math.floor(upcomingAppointments * locationMultiplier) || 0,
-            totalDoctors: Math.floor(totalDoctors * locationMultiplier) || 0,
-            totalDepartments: Math.floor(totalDepartments * locationMultiplier) || 0,
-            totalServices: Math.floor(totalServices * locationMultiplier) || 0,
-            totalUsers: Math.floor(totalUsers * locationMultiplier) || 0,
-            pendingContacts: Math.floor(pendingContacts * locationMultiplier) || 0,
-            totalNews: Math.floor(totalNews * locationMultiplier) || 0,
+            totalAppointments: totalAppointments || 0,
+            todayAppointments: todayAppointments || 0,
+            upcomingAppointments: upcomingAppointments || 0,
+            totalDoctors: totalDoctors || 0,
+            totalDepartments: totalDepartments || 0,
+            totalServices: totalServices || 0,
+            totalUsers: totalUsers || 0,
+            pendingContacts: pendingContacts || 0,
+            totalNews: totalNews || 0,
           },
           appointmentsByStatus: statusCounts,
-          recentAppointments: recentAppointments || [],
+          recentAppointments: mappedRecentAppointments,
           reviews: {
-            totalReviews: totalReviews || 0,
-            averageRating: averageRating?._avg?.rating || 0,
+            totalReviews: safeTotalReviews || 0,
+            averageRating: safeAverageRating?._avg?.rating || 0,
           },
           location: location,
         },
       });
     } catch (error) {
-      console.error('Dashboard stats error:', error);
+      console.error('❌ Dashboard stats error:', error);
+      console.error('Error details:', error.message);
+      console.error('Stack:', error.stack);
+      
       res.json({
         success: true,
         data: {
@@ -167,36 +238,37 @@ router.get('/stats',
   }
 );
 
-// Helper function to simulate location data
-function getLocationMultiplier(location) {
-  switch(location) {
-    case 'Afilas General Hospital':
-      return 0.6;
-    case 'Afilas Diagnosis Center':
-      return 0.3;
-    case 'Afilas Drug Manufacturing':
-      return 0.1;
-    default:
-      return 1.0;
-  }
-}
-
-// Get chart data for appointments
+// ============================================================
+// GET Appointments Chart Data - ✅ ADMIN only
+// ============================================================
 router.get('/appointments-chart',
   auth,
-  authorize('SUPER_ADMIN', 'ADMIN'),
+  authorize('ADMIN'), // ✅ FIXED: Only ADMIN
   async (req, res) => {
     try {
       const { period = 'month', location = 'all' } = req.query;
       
-      // Get appointments for the last 6 months
-      const sixMonthsAgo = new Date();
-      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      const now = new Date();
+      let startDate = new Date();
+      
+      if (period === 'week') {
+        startDate.setDate(startDate.getDate() - 7);
+      } else if (period === 'month') {
+        startDate.setMonth(startDate.getMonth() - 6);
+      } else if (period === 'year') {
+        startDate.setFullYear(startDate.getFullYear() - 1);
+      } else {
+        startDate.setMonth(startDate.getMonth() - 6);
+      }
+
+      const locationFilter = getLocationFilter(location);
 
       const appointments = await prisma.appointment.findMany({
         where: {
+          ...locationFilter,
           date: {
-            gte: sixMonthsAgo,
+            gte: startDate,
+            lte: now,
           },
         },
         select: {
@@ -205,37 +277,48 @@ router.get('/appointments-chart',
         },
       });
 
-      // Group by month
       const monthMap = {};
+      const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      for (let i = 0; i < 12; i++) {
+        const monthName = monthOrder[i];
+        monthMap[monthName] = { 
+          month: monthName, 
+          appointments: 0, 
+          completed: 0, 
+          cancelled: 0 
+        };
+      }
+
       appointments.forEach(app => {
-        const month = app.date.toLocaleString('default', { month: 'short' });
-        if (!monthMap[month]) {
-          monthMap[month] = { month, appointments: 0, completed: 0, cancelled: 0 };
+        if (app.date) {
+          const month = app.date.toLocaleString('default', { month: 'short' });
+          if (monthMap[month]) {
+            monthMap[month].appointments++;
+            if (app.status === 'COMPLETED') monthMap[month].completed++;
+            if (app.status === 'CANCELLED') monthMap[month].cancelled++;
+          }
         }
-        monthMap[month].appointments++;
-        if (app.status === 'COMPLETED') monthMap[month].completed++;
-        if (app.status === 'CANCELLED') monthMap[month].cancelled++;
       });
 
       let chartData = Object.values(monthMap);
-      // Sort by month order
-      const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       chartData.sort((a, b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month));
 
-      const multiplier = getLocationMultiplier(location);
-      chartData = chartData.map(item => ({
-        ...item,
-        appointments: Math.floor(item.appointments * multiplier),
-        completed: Math.floor(item.completed * multiplier),
-        cancelled: Math.floor(item.cancelled * multiplier),
-      }));
+      const startMonth = startDate.getMonth();
+      const endMonth = now.getMonth();
+      let monthDiff = (endMonth - startMonth + 12) % 12;
+      if (monthDiff === 0 && startDate.getFullYear() < now.getFullYear()) {
+        monthDiff = 12;
+      }
+      
+      chartData = chartData.slice(startMonth, startMonth + monthDiff + 1);
 
       res.json({
         success: true,
         data: chartData,
       });
     } catch (error) {
-      console.error('Appointments chart error:', error);
+      console.error('❌ Appointments chart error:', error);
       res.json({
         success: true,
         data: [],
@@ -244,20 +327,75 @@ router.get('/appointments-chart',
   }
 );
 
-// Get chart data for doctors
-router.get('/doctors-chart',
+// ============================================================
+// GET Users Chart Data - ✅ ADMIN only
+// ============================================================
+router.get('/users-chart',
   auth,
-  authorize('SUPER_ADMIN', 'ADMIN'),
+  authorize('ADMIN'), // ✅ FIXED: Only ADMIN
   async (req, res) => {
     try {
       const { location = 'all' } = req.query;
       
-      // Get departments with doctor counts
+      const locationFilter = getLocationFilter(location);
+
+      const users = await prisma.user.groupBy({
+        by: ['role'],
+        where: {
+          ...locationFilter,
+          isActive: true,
+        },
+        _count: true,
+      });
+
+      let chartData = users.map(user => ({
+        role: user.role,
+        count: user._count,
+      }));
+
+      if (chartData.length === 0) {
+        chartData = [
+          { role: 'SUPER_ADMIN', count: 0 },
+          { role: 'ADMIN', count: 0 },
+          { role: 'DOCTOR', count: 0 },
+          { role: 'USER', count: 0 },
+        ];
+      }
+
+      res.json({
+        success: true,
+        data: chartData,
+      });
+    } catch (error) {
+      console.error('❌ Users chart error:', error);
+      res.json({
+        success: true,
+        data: [],
+      });
+    }
+  }
+);
+
+// ============================================================
+// GET Doctors Chart Data - ✅ ADMIN only
+// ============================================================
+router.get('/doctors-chart',
+  auth,
+  authorize('ADMIN'), // ✅ FIXED: Only ADMIN
+  async (req, res) => {
+    try {
+      const { location = 'all' } = req.query;
+      
+      const locationFilter = getLocationFilter(location);
+
       const departments = await prisma.department.findMany({
         where: { isActive: true },
         include: {
           doctors: {
-            where: { isAvailable: true },
+            where: {
+              ...locationFilter,
+              isAvailable: true,
+            },
           },
         },
       });
@@ -267,18 +405,21 @@ router.get('/doctors-chart',
         count: dept.doctors.length,
       }));
 
-      const multiplier = getLocationMultiplier(location);
-      chartData = chartData.map(item => ({
-        ...item,
-        count: Math.floor(item.count * multiplier),
-      }));
+      if (chartData.length === 0) {
+        chartData = [
+          { department: 'General', count: 0 },
+          { department: 'Cardiology', count: 0 },
+          { department: 'Neurology', count: 0 },
+          { department: 'Pediatrics', count: 0 },
+        ];
+      }
 
       res.json({
         success: true,
         data: chartData,
       });
     } catch (error) {
-      console.error('Doctors chart error:', error);
+      console.error('❌ Doctors chart error:', error);
       res.json({
         success: true,
         data: [],
@@ -287,55 +428,16 @@ router.get('/doctors-chart',
   }
 );
 
-// Get chart data for users
-router.get('/users-chart',
-  auth,
-  authorize('SUPER_ADMIN', 'ADMIN'),
-  async (req, res) => {
-    try {
-      const { location = 'all' } = req.query;
-      
-      // Get users grouped by role
-      const users = await prisma.user.groupBy({
-        by: ['role'],
-        where: { isActive: true },
-        _count: true,
-      });
-
-      let chartData = users.map(user => ({
-        role: user.role,
-        count: user._count,
-      }));
-
-      const multiplier = getLocationMultiplier(location);
-      chartData = chartData.map(item => ({
-        ...item,
-        count: Math.floor(item.count * multiplier),
-      }));
-
-      res.json({
-        success: true,
-        data: chartData,
-      });
-    } catch (error) {
-      console.error('Users chart error:', error);
-      res.json({
-        success: true,
-        data: [],
-      });
-    }
-  }
-);
-
-// Get chart data for services
+// ============================================================
+// GET Services Chart Data - ✅ ADMIN only
+// ============================================================
 router.get('/services-chart',
   auth,
-  authorize('SUPER_ADMIN', 'ADMIN'),
+  authorize('ADMIN'), // ✅ FIXED: Only ADMIN
   async (req, res) => {
     try {
       const { location = 'all' } = req.query;
       
-      // Get departments with service counts
       const departments = await prisma.department.findMany({
         where: { isActive: true },
         include: {
@@ -350,18 +452,21 @@ router.get('/services-chart',
         count: dept.services.length,
       }));
 
-      const multiplier = getLocationMultiplier(location);
-      chartData = chartData.map(item => ({
-        ...item,
-        count: Math.floor(item.count * multiplier),
-      }));
+      if (chartData.length === 0) {
+        chartData = [
+          { department: 'General', count: 0 },
+          { department: 'Cardiology', count: 0 },
+          { department: 'Neurology', count: 0 },
+          { department: 'Pediatrics', count: 0 },
+        ];
+      }
 
       res.json({
         success: true,
         data: chartData,
       });
     } catch (error) {
-      console.error('Services chart error:', error);
+      console.error('❌ Services chart error:', error);
       res.json({
         success: true,
         data: [],
@@ -370,59 +475,87 @@ router.get('/services-chart',
   }
 );
 
-// Get chart data for news/blog
-router.get('/news-chart',
+// ============================================================
+// GET Revenue Chart Data - ✅ ADMIN only
+// ============================================================
+router.get('/revenue',
   auth,
-  authorize('SUPER_ADMIN', 'ADMIN'),
+  authorize('ADMIN'), // ✅ FIXED: Only ADMIN
   async (req, res) => {
     try {
-      const { location = 'all' } = req.query;
+      const { period = 'month', location = 'all' } = req.query;
       
-      // Get news from the last 6 months
-      const sixMonthsAgo = new Date();
-      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+      const now = new Date();
+      let startDate = new Date();
+      
+      if (period === 'week') {
+        startDate.setDate(startDate.getDate() - 7);
+      } else if (period === 'month') {
+        startDate.setMonth(startDate.getMonth() - 6);
+      } else if (period === 'year') {
+        startDate.setFullYear(startDate.getFullYear() - 1);
+      } else {
+        startDate.setMonth(startDate.getMonth() - 6);
+      }
 
-      const news = await prisma.news.findMany({
+      const locationFilter = getLocationFilter(location);
+
+      const appointments = await prisma.appointment.findMany({
         where: {
-          isPublished: true,
-          publishedAt: {
-            gte: sixMonthsAgo,
+          ...locationFilter,
+          date: {
+            gte: startDate,
+            lte: now,
           },
+          status: 'COMPLETED',
         },
-        select: {
-          publishedAt: true,
+        include: {
+          service: {
+            select: {
+              price: true,
+            },
+          },
         },
       });
 
-      // Group by month
       const monthMap = {};
-      news.forEach(item => {
-        if (item.publishedAt) {
-          const month = item.publishedAt.toLocaleString('default', { month: 'short' });
-          if (!monthMap[month]) {
-            monthMap[month] = { month, count: 0 };
+      const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      for (let i = 0; i < 12; i++) {
+        const monthName = monthOrder[i];
+        monthMap[monthName] = { 
+          month: monthName, 
+          revenue: 0 
+        };
+      }
+
+      appointments.forEach(app => {
+        if (app.date && app.service?.price) {
+          const month = app.date.toLocaleString('default', { month: 'short' });
+          if (monthMap[month]) {
+            monthMap[month].revenue += app.service.price;
           }
-          monthMap[month].count++;
         }
       });
 
       let chartData = Object.values(monthMap);
-      // Sort by month order
-      const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       chartData.sort((a, b) => monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month));
 
-      const multiplier = getLocationMultiplier(location);
-      chartData = chartData.map(item => ({
-        ...item,
-        count: Math.floor(item.count * multiplier),
-      }));
+      const startMonth = startDate.getMonth();
+      const endMonth = now.getMonth();
+      let monthDiff = (endMonth - startMonth + 12) % 12;
+      if (monthDiff === 0 && startDate.getFullYear() < now.getFullYear()) {
+        monthDiff = 12;
+      }
+      
+      chartData = chartData.slice(startMonth, startMonth + monthDiff + 1);
 
       res.json({
         success: true,
         data: chartData,
       });
     } catch (error) {
-      console.error('News chart error:', error);
+      console.error('❌ Revenue chart error:', error);
       res.json({
         success: true,
         data: [],

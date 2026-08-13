@@ -95,21 +95,14 @@ export default function AfilasDiagnosticCenter() {
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
       }`}
       style={{
-        // =========================================================
-        // SHAPED SECTION – curve at the bottom
-        // =========================================================
         clipPath: "polygon(50% 100%, 100% 98%, 100% 0, 0 0, 0 98%)",
-        // Background color: visible ONLY in light mode
-        // In dark mode, it becomes transparent
         backgroundColor: "var(--muted, #f1f5f9)",
-        // Override in dark mode via a class approach
       }}
     >
-      {/* Use a child div for the background so we can control it with Tailwind classes */}
-      {/* The actual background div with conditional classes */}
+      {/* Background div with conditional classes */}
       <div className="absolute inset-0 pointer-events-none z-0 bg-muted/30 dark:bg-transparent" />
 
-      {/* Decorative blurred circles – kept for extra depth */}
+      {/* Decorative blurred circles */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-secondary/10 rounded-full blur-3xl" />
@@ -130,10 +123,6 @@ export default function AfilasDiagnosticCenter() {
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
               {t("diagnostic.title")}
             </h2>
-            {/* <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary/60" />
-              {t("diagnostic.subtitle")}
-            </p> */}
           </div>
         </div>
 
@@ -141,8 +130,6 @@ export default function AfilasDiagnosticCenter() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start mb-16">
           {/* Left: About and features */}
           <div className="space-y-6">
-            
-
             {/* Features grid 2x2 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {features.map(({ icon: Icon, title, note }, idx) => (
@@ -216,16 +203,16 @@ export default function AfilasDiagnosticCenter() {
             ))}
           </div>
 
-          {/* CTA – using the new underline button */}
-<div className="mt-8">
-  <Link
-    href="/diagnostics"
-    className="underline-btn"
-  >
-    {t("diagnostic.cta")}
-    <ChevronRight className="btn-icon w-4 h-4" />
-  </Link>
-</div>
+          {/* CTA - Custom Button now displayed on the RIGHT SIDE */}
+          <div className="mt-8 flex justify-end">
+            <Link
+              href="/diagnostics"
+              className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-[#7DB99E] hover:bg-[#6CA88D] text-[#0e4b14] font-medium text-base rounded-full transition-all duration-300 group shadow-[0_4px_6px_rgba(0,0,0,0.3)] hover:shadow-[0_6px_10px_rgba(0,0,0,0.4)] hover:scale-[1.02] active:scale-95"
+            >
+              <span>{t("diagnostic.cta")}</span>
+              <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 text-[#0e4b14]" />
+            </Link>
+          </div>
         </div>
       </div>
     </section>
