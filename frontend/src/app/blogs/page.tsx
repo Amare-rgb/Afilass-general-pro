@@ -1,7 +1,7 @@
 // app/blogs/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Header } from "@/components/Header";
 import { getBlogPosts, BlogPost, getYouTubeEmbedUrl } from "@/lib/blog";
@@ -23,9 +23,28 @@ import {
 } from "lucide-react";
 
 export default function BlogsPage() {
+  return (
+    <Suspense fallback={<BlogsLoadingFallback />}>
+      <BlogsContent />
+    </Suspense>
+  );
+}
+
+function BlogsLoadingFallback() {
+  return (
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <Header />
+      <main className="flex-grow flex items-center justify-center py-20">
+        <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
+      </main>
+    </div>
+  );
+}
+
+function BlogsContent() {
   const searchParams = useSearchParams();
   const locationParam = searchParams.get("location");
-  
+
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +80,6 @@ export default function BlogsPage() {
       if (response.success) {
         setBlogs(response.data || []);
       } else {
-        // ✅ FIXED: Removed 'response.message' - using generic error message
         setError("Failed to load blogs. Please try again.");
         setBlogs([]);
       }
@@ -96,7 +114,7 @@ export default function BlogsPage() {
     e.stopPropagation();
     const isLiked = likedBlogIds[blogId];
     setLikedBlogIds(prev => ({ ...prev, [blogId]: !isLiked }));
-    setBlogs(prev => prev.map(b => 
+    setBlogs(prev => prev.map(b =>
       b.id === blogId ? { ...b, likes: isLiked ? b.likes - 1 : b.likes + 1 } : b
     ));
     if (activeModalBlog && activeModalBlog.id === blogId) {
@@ -106,7 +124,7 @@ export default function BlogsPage() {
 
   const handleOpenBlog = (blog: BlogPost) => {
     setActiveModalBlog(blog);
-    setBlogs(prev => prev.map(b => 
+    setBlogs(prev => prev.map(b =>
       b.id === blog.id ? { ...b, views: b.views + 1 } : b
     ));
   };
@@ -123,7 +141,7 @@ export default function BlogsPage() {
       ...prev,
       [blogId]: [...(prev[blogId] || []), commentObj],
     }));
-    setBlogs(prev => prev.map(b => 
+    setBlogs(prev => prev.map(b =>
       b.id === blogId ? { ...b, comments: b.comments + 1 } : b
     ));
     if (activeModalBlog && activeModalBlog.id === blogId) {
@@ -141,8 +159,8 @@ export default function BlogsPage() {
           <div className="text-center px-4">
             <h2 className="text-2xl font-bold text-foreground mb-4">Oops! Something went wrong</h2>
             <p className="text-muted-foreground mb-6">{error}</p>
-            <button 
-              onClick={() => loadBlogs()} 
+            <button
+              onClick={() => loadBlogs()}
               className="px-6 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold transition-colors"
             >
               Try Again
