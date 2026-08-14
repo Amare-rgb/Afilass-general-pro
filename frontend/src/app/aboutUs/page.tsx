@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, useMemo } from "react";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageProvider";
 import {
   Heart,
@@ -146,15 +144,51 @@ export default function AboutUsPage() {
     [t]
   );
 
-  // Core values data
+  // Core values data - ✅ FIXED: Removed text-white and added correct icon colors
   const coreValues = useMemo(
     () => [
-      { icon: Heart, title: t("about.core_value_1_title"), desc: t("about.core_value_1_desc"), color: "from-rose-500 to-pink-600" },
-      { icon: Star, title: t("about.core_value_2_title"), desc: t("about.core_value_2_desc"), color: "from-amber-500 to-orange-600" },
-      { icon: Shield, title: t("about.core_value_3_title"), desc: t("about.core_value_3_desc"), color: "from-blue-500 to-indigo-600" },
-      { icon: Lightbulb, title: t("about.core_value_4_title"), desc: t("about.core_value_4_desc"), color: "from-emerald-500 to-teal-600" },
-      { icon: Users, title: t("about.core_value_5_title"), desc: t("about.core_value_5_desc"), color: "from-violet-500 to-purple-600" },
-      { icon: CheckCircle2, title: t("about.core_value_6_title"), desc: t("about.core_value_6_desc"), color: "from-cyan-500 to-sky-600" },
+      { 
+        icon: Heart, 
+        title: t("about.core_value_1_title"), 
+        desc: t("about.core_value_1_desc"), 
+        color: "from-rose-500 to-pink-600",
+        iconColor: "text-rose-600 dark:text-rose-400"
+      },
+      { 
+        icon: Star, 
+        title: t("about.core_value_2_title"), 
+        desc: t("about.core_value_2_desc"), 
+        color: "from-amber-500 to-orange-600",
+        iconColor: "text-amber-600 dark:text-amber-400"
+      },
+      { 
+        icon: Shield, 
+        title: t("about.core_value_3_title"), 
+        desc: t("about.core_value_3_desc"), 
+        color: "from-blue-500 to-indigo-600",
+        iconColor: "text-blue-600 dark:text-blue-400"
+      },
+      { 
+        icon: Lightbulb, 
+        title: t("about.core_value_4_title"), 
+        desc: t("about.core_value_4_desc"), 
+        color: "from-emerald-500 to-teal-600",
+        iconColor: "text-emerald-600 dark:text-emerald-400"
+      },
+      { 
+        icon: Users, 
+        title: t("about.core_value_5_title"), 
+        desc: t("about.core_value_5_desc"), 
+        color: "from-violet-500 to-purple-600",
+        iconColor: "text-violet-600 dark:text-violet-400"
+      },
+      { 
+        icon: CheckCircle2, 
+        title: t("about.core_value_6_title"), 
+        desc: t("about.core_value_6_desc"), 
+        color: "from-cyan-500 to-sky-600",
+        iconColor: "text-cyan-600 dark:text-cyan-400"
+      },
     ],
     [t]
   );
@@ -209,7 +243,8 @@ export default function AboutUsPage() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col font-sans transition-colors duration-300">
-      <Header />
+      
+      {/* ✅ REMOVED DUPLICATE HEADER - Header is already in app/layout.tsx */}
 
       <main className="flex-grow">
         {/* ================= HERO / TITLE WITH WAVE ================= */}
@@ -430,7 +465,8 @@ export default function AboutUsPage() {
                         className="group p-6 rounded-2xl bg-card border border-border hover:border-teal-500/30 hover:shadow-lg hover:shadow-teal-500/5 transition-all duration-300"
                       >
                         <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${value.color} flex items-center justify-center mb-4 shadow-sm group-hover:scale-110 transition-transform`}>
-                          <Icon className="w-5 h-5 text-white" />
+                          {/* ✅ FIXED: Icon color now matches the card theme */}
+                          <Icon className={`w-5 h-5 ${value.iconColor}`} />
                         </div>
                         <h3 className="text-base font-bold text-foreground mb-2">
                           {value.title}
@@ -530,7 +566,6 @@ export default function AboutUsPage() {
         </div>
       </main>
 
-      <Footer />
     </div>
   );
 }

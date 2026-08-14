@@ -3,7 +3,6 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { 
   ArrowLeft, 
   Heart, 
@@ -102,7 +101,7 @@ export default function DepartmentDetailPage() {
             </button>
           </div>
         </main>
-        <Footer />
+       
       </div>
     );
   }
@@ -134,7 +133,7 @@ export default function DepartmentDetailPage() {
           </div>
         </div>
       </main>
-      <Footer />
+      
     </>
   );
 }

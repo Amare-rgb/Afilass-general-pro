@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { DoctorFinder } from "@/components/DoctorFinder";
 import { useLanguage } from "@/contexts/LanguageProvider";
 import { 
@@ -220,7 +219,7 @@ export default function DoctorsPage() {
       </main>
 
       {/* Footer */}
-      <Footer />
+      
     </>
   );
 }

@@ -138,9 +138,12 @@ export function PharmaWhyChoose() {
             </span>
           </div>
 
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground mb-6 leading-tight">
-            {t('pharma.why.title')}
+          {/* ✅ CHANGED TITLE & MINIMIZED FONT ONLY FOR TITLE */}
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-foreground mb-6 leading-tight">
+            Why Choose Afilas Drug Manufacturing?
           </h2>
+
+          {/* ✅ DESCRIPTION REMAINS ORIGINAL SIZE (not minimized) */}
           <p className="text-lg text-foreground/70 max-w-3xl mx-auto leading-relaxed">
             {t('pharma.why.subtitle')}
           </p>
@@ -168,19 +171,19 @@ export function PharmaWhyChoose() {
 
                 {/* Content */}
                 <div className="relative z-10">
-                  {/* Icon */}
+                  {/* ✅ ICON REMAINS WITH FULL COLOR */}
                   <div
                     className={`w-16 h-16 rounded-2xl ${card.iconBg} flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-300`}
                   >
                     <Icon className="w-8 h-8" />
                   </div>
 
-                  {/* Title */}
-                  <h3 className="text-xl lg:text-2xl font-bold text-foreground mb-4">
+                  {/* Title - minimized font */}
+                  <h3 className="text-lg lg:text-xl font-bold text-foreground mb-4">
                     {t(card.titleKey)}
                   </h3>
 
-                  {/* Description */}
+                  {/* Description - remains original size */}
                   <p className="text-foreground/70 leading-relaxed mb-8">
                     {t(card.descKey)}
                   </p>
@@ -206,7 +209,7 @@ export function PharmaWhyChoose() {
           })}
         </div>
 
-        {/* Bottom CTA */}
+        {/* Bottom CTA - ✅ FIXED LINK to /appointments/diagnosis */}
         <div
           className={`text-center mt-16 transition-all duration-1000 ease-out delay-500 ${
             headerVisible
@@ -215,7 +218,7 @@ export function PharmaWhyChoose() {
           }`}
         >
           <a
-            href="#b2b-inquiry"
+            href="/appointments/diagnosis"
             className="inline-flex items-center gap-2 px-8 py-4 bg-primary text-primary-foreground font-semibold rounded-full hover:shadow-lg hover:shadow-primary/25 hover:scale-105 transition-all duration-300"
           >
             {t('pharma.why.cta')}

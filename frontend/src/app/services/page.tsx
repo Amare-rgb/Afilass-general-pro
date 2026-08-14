@@ -4,7 +4,6 @@ import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { HospitalServices } from "@/components/HospitalDivision/HospitalServices";
 import { useLanguage } from "@/contexts/LanguageProvider";
 import { 
@@ -280,7 +279,7 @@ function ServicesContent() {
       </main>
 
       {/* Footer */}
-      <Footer />
+      
     </>
   );
 }

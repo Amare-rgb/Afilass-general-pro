@@ -106,8 +106,10 @@ export function DiagnosticsHero() {
                   {t("diagnostics.hero.cta1")}
                   <ChevronRight className="ml-2 w-5 h-5" />
                 </Link>
+                
+                {/* ✅ FIXED: Changed href from "/" to "/appointments/diagnosis" */}
                 <Link
-                  href="/appointments"
+                  href="/appointments/diagnosis"
                   className="inline-flex items-center px-8 py-4 text-base font-bold text-foreground bg-muted hover:bg-muted/80 border border-border rounded-full transition-all hover:scale-105"
                 >
                   {t("diagnostics.hero.cta2")}

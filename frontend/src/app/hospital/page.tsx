@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { useLanguage } from "@/contexts/LanguageProvider";
 import {
   ArrowRight,
@@ -524,7 +523,7 @@ useEffect(() => {
            ========================================================================== */}
 <section className="py-12 sm:py-16 bg-background border-t border-border/40">
   {/* ✅ FIXED HYDRATION ERROR: ALL &#x27; CHANGED TO ' */}
-  <style>{`
+   <style>{`
   .amenity-card {
     position: relative;
     overflow: hidden;
@@ -924,7 +923,7 @@ useEffect(() => {
       </main>
 
       {/* Bottom Footer - Kept untouched */}
-      <Footer />
+      
     </>
   );
 }

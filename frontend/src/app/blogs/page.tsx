@@ -4,7 +4,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { getBlogPosts, BlogPost, getYouTubeEmbedUrl } from "@/lib/blog";
 import {
   Search,
@@ -513,7 +512,7 @@ export default function BlogsPage() {
         </div>
       )}
 
-      <Footer />
+      
     </div>
   );
 }

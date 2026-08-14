@@ -252,6 +252,13 @@ const translations: Record<Language, Record<string, string>> = {
     "about.established_year": "June 2017",
     "about.meaning": "Name Meaning",
     "about.meaning_text": "The voice of scholars is heard",
+        "about.core_value_1_title": "Compassion",
+    "about.core_value_2_title": "Excellence",
+    "about.core_value_3_title": "Integrity",
+    "about.core_value_4_title": "Innovation",
+    "about.core_value_5_title": "Teamwork",
+    "about.core_value_6_title": "Accountability",
+    
 
     // Footer
     "footer.tagline":
@@ -274,6 +281,9 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.emergency_hotline_label": "Emergency Hotline",
     "footer.available_24_7": "24/7 Available",
     "footer.copyright": "© 2026 Afilas Group.",
+
+      "footer.privacy_policy": "Privacy Policy",
+    "footer.terms_of_use": "Terms of Use",
 
     "diagnostics.hero.title": "Afilas Diagnostics Center",
     "diagnostics.hero.subtitle":
@@ -648,6 +658,23 @@ const translations: Record<Language, Record<string, string>> = {
     "diagnostics.prep.cardiac_footwear.title": "Footwear for Cardiac Package",
     "diagnostics.prep.cardiac_footwear.content":
       "If undergoing a Treadmill Stress Test (TMT), please wear comfortable athletic clothing and running/walking shoes.",
+
+      // Add these to the en translations object (around line 1000+ where other nav keys are)
+
+"nav.profile": "My Profile",
+"nav.settings": "Settings",
+"nav.logout": "Logout",
+
+// Add to the en translations object
+"webchat.chat_with_us": "Chat with us",
+"webchat.online": "Online",
+"webchat.offline": "Offline",
+"webchat.type_message": "Type your message...",
+"webchat.send": "Send",
+
+
+
+
   },
 
   am: {
@@ -875,6 +902,12 @@ const translations: Record<Language, Record<string, string>> = {
     "about.established_year": "ሰኔ 2017",
     "about.meaning": "የስም ትርጉም",
     "about.meaning_text": "የእውቀት ድምጽ ተሰማ",
+        "about.core_value_1_title": "ርህራሄ",
+    "about.core_value_2_title": "ብቃት",
+    "about.core_value_3_title": "ታማኝነት",
+    "about.core_value_4_title": "ፈጠራ",
+    "about.core_value_5_title": "የቡድን ስራ",
+    "about.core_value_6_title": "ተጠያቂነት",
 
     // Footer
     "footer.tagline": "በእንክብካቤ፣ ትክክለኛነት እና ምርት ጤናን ማሳደግ።",
@@ -896,6 +929,8 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.emergency_hotline_label": "የድንገተኛ ጊዜ መስመር",
     "footer.available_24_7": "በ24 ሰዓት ይገኛል",
     "footer.copyright": "© 2026 የአፊላስ ቡድን።",
+        "footer.privacy_policy": "የግላዊነት ፖሊሲ",
+    "footer.terms_of_use": "የአጠቃቀም ደንቦች",
 
     // Division Specific Pages
     "hospital.hero.title": "አፊላስ ሆስፒታል ክፍል",
@@ -1266,6 +1301,19 @@ const translations: Record<Language, Record<string, string>> = {
     "doctors.modal.close": "ዝጋ",
     "doctors.modal.active_status": "ዝግጁ እና ስራ ላይ ያለ",
     "doctors.modal.free_fee": "መደበኛ ክፍያ",
+
+    // Add these to the am translations object (around line 1000+ where other nav keys are)
+
+"nav.profile": "ፕሮፋይል",
+"nav.settings": "ቅንብሮች",
+"nav.logout": "ውጣ",
+
+// Add to the am translations object
+"webchat.chat_with_us": "ከእኛ ጋር ያዩሩ",
+"webchat.online": "በመስመር ላይ",
+"webchat.offline": "ከመስመር ውጭ",
+"webchat.type_message": "መልዕክትዎን ይተይቡ...",
+"webchat.send": "ላክ",
   },
 };
 
