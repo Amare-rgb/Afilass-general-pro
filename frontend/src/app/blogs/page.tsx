@@ -1,7 +1,7 @@
 // app/blogs/page.tsx
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Header } from "@/components/Header";
 import { getBlogPosts, BlogPost, getYouTubeEmbedUrl } from "@/lib/blog";
@@ -28,6 +28,7 @@ export default function BlogsPage() {
   
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [selectedLocation, setSelectedLocation] = useState<string>(
@@ -54,13 +55,20 @@ export default function BlogsPage() {
 
   const loadBlogs = async () => {
     setLoading(true);
+    setError(null);
     try {
       const response = await getBlogPosts({ published: true });
       if (response.success) {
-        setBlogs(response.data);
+        setBlogs(response.data || []);
+      } else {
+        // ✅ FIXED: Removed 'response.message' - using generic error message
+        setError("Failed to load blogs. Please try again.");
+        setBlogs([]);
       }
     } catch (error) {
       console.error("Failed to load blogs:", error);
+      setError("Failed to load blogs. Please try again later.");
+      setBlogs([]);
     } finally {
       setLoading(false);
     }
@@ -123,6 +131,27 @@ export default function BlogsPage() {
     }
     setNewCommentText("");
   };
+
+  // Render error state
+  if (error && !loading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex flex-col">
+        <Header />
+        <main className="flex-grow flex items-center justify-center py-20">
+          <div className="text-center px-4">
+            <h2 className="text-2xl font-bold text-foreground mb-4">Oops! Something went wrong</h2>
+            <p className="text-muted-foreground mb-6">{error}</p>
+            <button 
+              onClick={() => loadBlogs()} 
+              className="px-6 py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -247,7 +276,7 @@ export default function BlogsPage() {
         </section>
 
         {/* Featured Blog */}
-        {!loading && selectedCategory === "All" && selectedLocation === "All" && !searchQuery && !selectedTag && featuredBlog && (
+        {!loading && !error && selectedCategory === "All" && selectedLocation === "All" && !searchQuery && !selectedTag && featuredBlog && (
           <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
             <div className="relative rounded-3xl overflow-hidden bg-card border border-border shadow-xl grid md:grid-cols-12 gap-0 group">
               <div className="md:col-span-7 relative min-h-[300px] md:min-h-[420px] bg-slate-900 flex items-center justify-center">
@@ -511,8 +540,6 @@ export default function BlogsPage() {
           </div>
         </div>
       )}
-
-      
     </div>
   );
 }
