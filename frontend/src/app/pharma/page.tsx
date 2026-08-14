@@ -1,7 +1,6 @@
 'use client'
 
 import { Header } from '@/components/Header'
-import { Footer } from '@/components/Footer'
 import { PharmaCatalog } from '@/components/PharmaDivision/PharmaCatalog'
 import { PharmaHero } from '@/components/PharmaDivision/PharmaHero'
 import { PharmaWhyChoose } from '@/components/PharmaDivision/PharmaWhyChoose'
@@ -30,7 +29,7 @@ export default function PharmaPage() {
         {/* B2B Inquiry & Dynamic Quote Request */}
         <PharmaB2BInquiry />
       </main>
-      <Footer />
+     
     </>
   )
 }

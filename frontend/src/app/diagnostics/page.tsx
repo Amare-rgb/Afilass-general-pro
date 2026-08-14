@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
+
 import { DiagnosticsHero } from '@/components/DiagnosticsHero';
 import { useLanguage } from '@/contexts/LanguageProvider';
 import { 
@@ -674,7 +674,7 @@ function getAppointmentLink(service: any) {
         </section>
 
       </main>
-      <Footer />
+      
     </>
   );
 }

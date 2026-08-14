@@ -430,7 +430,7 @@ If you need to reschedule, please contact us.
 --- Amharic ---
 
 ውድ ${patientName}፤
-የቀጠሮ ጥያቄዎ ጸድቋል እና ተረጋግጧል።
+የቀጠሮ ጥያቄዎ ደርሷል እና ተረጋግጧል።
 
 የቀጠሮ ዝርዝር:
 ታካሚ: ${patientName}
@@ -438,7 +438,7 @@ If you need to reschedule, please contact us.
 ሰዓት: ${timeStr}
 የሆስፒታል አይነት: ${location}
 መታከሚያ ቦታ: ${appointment.visitType || 'HOSPITAL'}
-ሁኔታ: ጸድቋል
+ሁኔታ: ደርሷል
 
 እባክዎ 15 ደቂቃ ቀደም ብለው ይገኙ።
 ቀጠሮውን መቀየር ከፈለጉ ያነጋግሩን።
@@ -450,7 +450,7 @@ If you need to reschedule, please contact us.
   const smsMessage = 
 `✅ Appt Approved ${patientName} ${dateStr} ${timeStr} ${location}. Arrive 15min early.
 
-ቀጠሮ ጸድቋል ${patientName} ${dateStr} ${timeStr} ${location}. 15 ደቂቃ ቀድመው ይገኙ.`;
+ቀጠሮ ደርሷል ${patientName} ${dateStr} ${timeStr} ${location}. 15 ደቂቃ ቀድመው ይገኙ.`;
 
   // Send Email
   const emailResult = await sendEmail(appointment.patientEmail, subject, html, text);

@@ -23,6 +23,9 @@ import {
   LogIn,
   UserPlus,
   User,
+  Settings,
+  LogOut,
+  UserCircle,
 } from "lucide-react";
 
 // ============================================================
@@ -71,6 +74,7 @@ export function Header() {
   const [appointmentDropdownOpen, setAppointmentDropdownOpen] = useState(false);
   const [authDropdownOpen, setAuthDropdownOpen] = useState(false);
   const [quickLinksOpen, setQuickLinksOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // Add this state
 
   const groupDropdownRef = useRef<HTMLDivElement>(null);
   const languageDropdownRef = useRef<HTMLDivElement>(null);
@@ -107,6 +111,13 @@ export function Header() {
   useClickOutside(mobileMenuRef, () => setMobileOpen(false));
 
   useEffect(() => setMounted(true), []);
+
+  // Check if user is logged in (you can replace this with your actual auth check)
+  useEffect(() => {
+    // Example: Check for token in localStorage
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, []);
 
   // ============================================================
   // SCROLL DIRECTION – only header slides
@@ -228,6 +239,14 @@ export function Header() {
     theme === "light" ? "Light" : theme === "dark" ? "Dark" : "System";
   const getLanguageLabel = () => (language === "en" ? "English" : "አማርኛ");
 
+  // Handle logout
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setIsLoggedIn(false);
+    setAuthDropdownOpen(false);
+    router.push("/");
+  };
+
   const INDICATOR_HEIGHT = 32; // fixed height in pixels
 
   return (
@@ -316,7 +335,17 @@ export function Header() {
 
         <nav className="relative flex w-full items-center justify-between gap-2 px-2 py-2 sm:px-4 lg:px-6">
           {/* LOGO */}
-          <div className="flex flex-1 items-center justify-start gap-2 overflow-hidden">
+          {/*
+            FIX: this wrapper previously had `overflow-hidden`. It wraps both the
+            logo AND the desktop nav (including the "Afilas Group" mega-menu).
+            The mega-menu panel is up to 800px wide (w-[800px] max-w-[90vw]),
+            which is wider than this flex item on narrower (e.g. 13") screens.
+            `overflow-hidden` clipped anything sticking out of this box, so the
+            dropdown was invisible on narrower viewports even though it was
+            rendering correctly. `min-w-0` gives the same flex-shrink behavior
+            without clipping descendant popovers/dropdowns.
+          */}
+          <div className="flex flex-1 items-center justify-start gap-2 min-w-0">
             <Link
               href="/"
               className="flex flex-col items-start gap-0 flex-shrink-0"
@@ -351,164 +380,152 @@ export function Header() {
               </span>
             </Link>
 
-          {/* DESKTOP NAVIGATION */}
-          <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-start ml-4 xl:ml-6">
-            <div className="flex items-center gap-1 xl:gap-2">
-              {/* HOME */}
-              <Link
-                href="/"
-                className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800`}
-              >
-                {t("nav.home") || "Home"}
-              </Link>
-
-              {/* AFILAS GROUP DROPDOWN */}
-              <div className="relative" ref={groupDropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setGroupDropdownOpen(!groupDropdownOpen)}
-                  className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 ${
-                    groupDropdownOpen ? "bg-slate-100 dark:bg-slate-800" : ""
-                  }`}
-                  aria-haspopup="menu"
-                  aria-expanded={groupDropdownOpen}
+            {/* DESKTOP NAVIGATION */}
+            <div className="hidden lg:flex lg:flex-1 lg:items-center lg:justify-start ml-4 xl:ml-6">
+              <div className="flex items-center gap-1 xl:gap-2">
+                {/* HOME */}
+                <Link
+                  href="/"
+                  className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800`}
                 >
-                  {t("nav.group") || "Afilas Group"}
-                  <ChevronDown
-                    className={`ml-1 h-4 w-4 transition-transform duration-200 ${
-                      groupDropdownOpen ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
+                  {t("nav.home") || "Home"}
+                </Link>
 
-                {groupDropdownOpen && (
-                  <div
-                    className={`absolute left-0 top-full z-50 mt-3 w-[800px] max-w-[90vw] rounded-2xl p-6 transition-all duration-300 shadow-2xl bg-white/95 backdrop-blur-xl border border-slate-200/80 dark:bg-slate-900/95 dark:border-slate-700/80`}
-                    role="menu"
+                {/* AFILAS GROUP DROPDOWN - Fixed to show properly */}
+                <div className="relative" ref={groupDropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setGroupDropdownOpen(!groupDropdownOpen)}
+                    className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800 ${
+                      groupDropdownOpen ? "bg-slate-100 dark:bg-slate-800" : ""
+                    }`}
+                    aria-haspopup="menu"
+                    aria-expanded={groupDropdownOpen}
                   >
-                    <div className="text-center mb-6">
-                      <p
-                        className={`text-sm font-bold tracking-wide uppercase text-slate-800 dark:text-slate-200`}
-                      >
-                        {t("nav.group_dropdown_title") ||
-                          "Explore Our Divisions"}
-                      </p>
-                      <div
-                        className={`w-12 h-0.5 mx-auto mt-2 rounded-full bg-teal-600`}
-                      ></div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-5">
-                      {pillarItems.map((item) => {
-                        const IconComponent = item.icon;
-                        const isSelected = activeBranchItem?.id === item.id;
-                        return (
-                          <button
-                            key={item.id}
-                            onClick={() => handleBranchSelect(item.href)}
-                            className={`group flex flex-col items-center text-center rounded-xl p-6 transition-all duration-300 hover:scale-[1.02] hover:bg-slate-100 dark:hover:bg-slate-800 border-2 ${
-                              isSelected
-                                ? "border-teal-500 dark:border-teal-400 bg-slate-100 dark:bg-slate-800"
-                                : "border-transparent"
-                            }`}
-                          >
-                            <div
-                              className={`mb-4 flex h-16 w-16 items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 bg-slate-100 dark:bg-slate-800`}
+                    {t("nav.group") || "Afilas Group"}
+                    <ChevronDown
+                      className={`ml-1 h-4 w-4 transition-transform duration-200 ${
+                        groupDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {groupDropdownOpen && (
+                    <div
+                      className={`absolute left-0 top-full z-50 mt-3 w-[800px] max-w-[90vw] rounded-2xl p-6 transition-all duration-300 shadow-2xl bg-white/95 backdrop-blur-xl border border-slate-200/80 dark:bg-slate-900/95 dark:border-slate-700/80`}
+                      role="menu"
+                      style={{ minWidth: "320px" }} // Ensure minimum width
+                    >
+                      <div className="text-center mb-6">
+                        <p
+                          className={`text-sm font-bold tracking-wide uppercase text-slate-800 dark:text-slate-200`}
+                        >
+                          {t("nav.group_dropdown_title") ||
+                            "Explore Our Divisions"}
+                        </p>
+                        <div
+                          className={`w-12 h-0.5 mx-auto mt-2 rounded-full bg-teal-600`}
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
+                        {pillarItems.map((item) => {
+                          const IconComponent = item.icon;
+                          const isSelected = activeBranchItem?.id === item.id;
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={() => handleBranchSelect(item.href)}
+                              className={`group flex flex-col items-center text-center rounded-xl p-6 transition-all duration-300 hover:scale-[1.02] hover:bg-slate-100 dark:hover:bg-slate-800 border-2 ${
+                                isSelected
+                                  ? "border-teal-500 dark:border-teal-400 bg-slate-100 dark:bg-slate-800"
+                                  : "border-transparent"
+                              }`}
                             >
-                              <IconComponent
-                                className={`h-8 w-8 text-slate-700 dark:text-slate-300`}
-                              />
-                            </div>
-                            <div className="space-y-1.5">
-                              <p
-                                className={`text-sm font-bold uppercase tracking-wide text-slate-800 dark:text-slate-200`}
+                              <div
+                                className={`mb-4 flex h-16 w-16 items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 bg-slate-100 dark:bg-slate-800`}
                               >
-                                {item.label}
-                              </p>
-                              <p
-                                className={`text-[10px] leading-relaxed max-w-[180px] mx-auto text-slate-500 dark:text-slate-400`}
-                              >
-                                {item.description}
-                              </p>
-                              {isSelected && (
-                                <span className="inline-block mt-2 px-3 py-0.5 text-[9px] font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 rounded-full border border-teal-200 dark:border-teal-800">
-                                  ✓ {t("nav.selected") || "Selected"}
-                                </span>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
+                                <IconComponent
+                                  className={`h-8 w-8 text-slate-700 dark:text-slate-300`}
+                                />
+                              </div>
+                              <div className="space-y-1.5">
+                                <p
+                                  className={`text-sm font-bold uppercase tracking-wide text-slate-800 dark:text-slate-200`}
+                                >
+                                  {item.label}
+                                </p>
+                                <p
+                                  className={`text-[10px] leading-relaxed max-w-[180px] mx-auto text-slate-500 dark:text-slate-400`}
+                                >
+                                  {item.description}
+                                </p>
+                                {isSelected && (
+                                  <span className="inline-block mt-2 px-3 py-0.5 text-[9px] font-bold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 rounded-full border border-teal-200 dark:border-teal-800">
+                                    ✓ {t("nav.selected") || "Selected"}
+                                  </span>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
             </div>
-          </div>
 
-              {/* BRANCH-SPECIFIC MENU */}
-              {isBranchPage && activeBranchItem && (
-                <div className="relative group">
-                  <button
-                    className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800`}
-                  >
-                    {activeBranchItem.label.split(" ").slice(1).join(" ")}{" "}
-                    {t("nav.menu") || "Menu"}
-                    <ChevronDown className="ml-1 h-4 w-4 transition-transform duration-200 group-hover:rotate-180" />
-                  </button>
-                  <div className="absolute left-0 top-full z-50 mt-2 w-[240px] rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-xl border border-slate-200/80 bg-white/95 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/95 p-2">
-                    <div className="flex flex-col gap-1">
-                      <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 mb-1">
-                        {t("nav.quick_links") || "Quick Links"}
-                      </div>
-                      <Link
-                        href="/contact"
-                        className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
-                      >
-                        {t("nav.contact_emergency") || "Contact & Emergency"}
-                      </Link>
-                      <Link
-                        href="/services"
-                        className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
-                      >
-                        {t("nav.service") || "Services"}
-                      </Link>
-                      <Link
-                        href="/doctors"
-                        className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
-                      >
-                        {t("nav.doctors") || "Doctors"}
-                      </Link>
+            {/* BRANCH-SPECIFIC MENU */}
+            {isBranchPage && activeBranchItem && (
+              <div className="relative group">
+                <button
+                  className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800`}
+                >
+                  {activeBranchItem.label.split(" ").slice(1).join(" ")}{" "}
+                  {t("nav.menu") || "Menu"}
+                  <ChevronDown className="ml-1 h-4 w-4 transition-transform duration-200 group-hover:rotate-180" />
+                </button>
+                <div className="absolute left-0 top-full z-50 mt-2 w-[240px] rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 shadow-xl border border-slate-200/80 bg-white/95 backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-900/95 p-2">
+                  <div className="flex flex-col gap-1">
+                    <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-800 mb-1">
+                      {t("nav.quick_links") || "Quick Links"}
                     </div>
-                    <Link href="/services" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
-                      Services
+                    <Link
+                      href="/contact"
+                      className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      {t("nav.contact_emergency") || "Contact & Emergency"}
                     </Link>
-                    <Link href="/doctors" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
-                      Doctors
+                    <Link
+                      href="/services"
+                      className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      {t("nav.service") || "Services"}
                     </Link>
-                    <Link href="/aboutUs" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
-                      About Us
-                    </Link>
-                    <Link href="/blogs" onClick={closeAll} className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors">
-                      Blog
+                    <Link
+                      href="/doctors"
+                      className="flex items-center rounded-lg px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      {t("nav.doctors") || "Doctors"}
                     </Link>
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* GLOBAL LINKS */}
-              <Link
-                href="/aboutUs"
-                className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800`}
-              >
-                {t("nav.about_us") || "About Us"}
-              </Link>
-              <Link
-                href="/blogs"
-                className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800`}
-              >
-                {t("nav.blog") || "Blog"}
-              </Link>
-            </div>
+            {/* GLOBAL LINKS */}
+            <Link
+              href="/aboutUs"
+              className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800`}
+            >
+              {t("nav.about_us") || "About Us"}
+            </Link>
+            <Link
+              href="/blogs"
+              className={`flex items-center rounded-lg px-2.5 py-1.5 text-sm font-medium transition-colors whitespace-nowrap text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800`}
+            >
+              {t("nav.blog") || "Blog"}
+            </Link>
           </div>
 
           {/* RIGHT CONTROLS */}
@@ -589,7 +606,7 @@ export function Header() {
               )}
             </div>
 
-            {/* ACCOUNT */}
+            {/* ACCOUNT - Updated with Profile and Settings */}
             {mounted && (
               <div className="relative" ref={authDropdownRef}>
                 <button
@@ -601,7 +618,7 @@ export function Header() {
                 >
                   <User className="h-2.5 w-2.5 sm:h-3.5 sm:w-3.5" />
                   <span className="hidden sm:inline text-xs">
-                    {t("nav.account") || "Account"}
+                    {isLoggedIn ? t("nav.profile") || "Profile" : t("nav.account") || "Account"}
                   </span>
                   <ChevronDown
                     className={`h-1.5 w-1.5 sm:h-3 sm:w-3 transition-transform duration-200 ${
@@ -611,24 +628,57 @@ export function Header() {
                 </button>
                 {authDropdownOpen && (
                   <div
-                    className={`absolute right-0 top-full z-50 mt-2 w-[160px] sm:w-[180px] rounded-2xl p-2 transition-all duration-200 border border-slate-200/80 bg-white/95 backdrop-blur-xl shadow-2xl dark:border-slate-700/80 dark:bg-slate-900/95`}
+                    className={`absolute right-0 top-full z-50 mt-2 w-[180px] rounded-2xl p-2 transition-all duration-200 border border-slate-200/80 bg-white/95 backdrop-blur-xl shadow-2xl dark:border-slate-700/80 dark:bg-slate-900/95`}
                   >
-                    <Link
-                      href="/login"
-                      onClick={() => setAuthDropdownOpen(false)}
-                      className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800`}
-                    >
-                      <LogIn className="h-4 w-4" />
-                      <span>{t("nav.login") || "Login"}</span>
-                    </Link>
-                    <Link
-                      href="/register"
-                      onClick={() => setAuthDropdownOpen(false)}
-                      className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800`}
-                    >
-                      <UserPlus className="h-4 w-4" />
-                      <span>{t("nav.register") || "Register"}</span>
-                    </Link>
+                    {isLoggedIn ? (
+                      // Logged in user menu
+                      <>
+                        <Link
+                          href="/profile"
+                          onClick={() => setAuthDropdownOpen(false)}
+                          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800`}
+                        >
+                          <UserCircle className="h-4 w-4" />
+                          <span>{t("nav.profile") || "My Profile"}</span>
+                        </Link>
+                        <Link
+                          href="/settings"
+                          onClick={() => setAuthDropdownOpen(false)}
+                          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800`}
+                        >
+                          <Settings className="h-4 w-4" />
+                          <span>{t("nav.settings") || "Settings"}</span>
+                        </Link>
+                        <div className="border-t border-slate-200 dark:border-slate-700 my-1" />
+                        <button
+                          onClick={handleLogout}
+                          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20`}
+                        >
+                          <LogOut className="h-4 w-4" />
+                          <span>{t("nav.logout") || "Logout"}</span>
+                        </button>
+                      </>
+                    ) : (
+                      // Logged out user menu
+                      <>
+                        <Link
+                          href="/login"
+                          onClick={() => setAuthDropdownOpen(false)}
+                          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800`}
+                        >
+                          <LogIn className="h-4 w-4" />
+                          <span>{t("nav.login") || "Login"}</span>
+                        </Link>
+                        <Link
+                          href="/register"
+                          onClick={() => setAuthDropdownOpen(false)}
+                          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800`}
+                        >
+                          <UserPlus className="h-4 w-4" />
+                          <span>{t("nav.register") || "Register"}</span>
+                        </Link>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
@@ -961,25 +1011,60 @@ export function Header() {
               </Link>
             </div>
 
-            {/* MOBILE LOGIN/REGISTER */}
+            {/* MOBILE LOGIN/REGISTER or PROFILE/SETTINGS */}
             {mounted && (
-              <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex items-center gap-4 justify-center">
-                <Link
-                  href="/login"
-                  className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800`}
-                  onClick={closeAll}
-                >
-                  <LogIn className="h-4 w-4" /> {t("nav.login") || "Login"}
-                </Link>
-                <div className="h-5 w-px bg-slate-300 dark:bg-slate-600"></div>
-                <Link
-                  href="/register"
-                  className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800`}
-                  onClick={closeAll}
-                >
-                  <UserPlus className="h-4 w-4" />{" "}
-                  {t("nav.register") || "Register"}
-                </Link>
+              <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex flex-wrap items-center gap-3 justify-center">
+                {isLoggedIn ? (
+                  <>
+                    <Link
+                      href="/profile"
+                      className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800`}
+                      onClick={closeAll}
+                    >
+                      <UserCircle className="h-4 w-4" />{" "}
+                      {t("nav.profile") || "Profile"}
+                    </Link>
+                    <div className="h-5 w-px bg-slate-300 dark:bg-slate-600" />
+                    <Link
+                      href="/settings"
+                      className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800`}
+                      onClick={closeAll}
+                    >
+                      <Settings className="h-4 w-4" />{" "}
+                      {t("nav.settings") || "Settings"}
+                    </Link>
+                    <div className="h-5 w-px bg-slate-300 dark:bg-slate-600" />
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        closeAll();
+                      }}
+                      className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20`}
+                    >
+                      <LogOut className="h-4 w-4" />{" "}
+                      {t("nav.logout") || "Logout"}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800`}
+                      onClick={closeAll}
+                    >
+                      <LogIn className="h-4 w-4" /> {t("nav.login") || "Login"}
+                    </Link>
+                    <div className="h-5 w-px bg-slate-300 dark:bg-slate-600" />
+                    <Link
+                      href="/register"
+                      className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800`}
+                      onClick={closeAll}
+                    >
+                      <UserPlus className="h-4 w-4" />{" "}
+                      {t("nav.register") || "Register"}
+                    </Link>
+                  </>
+                )}
               </div>
             )}
 

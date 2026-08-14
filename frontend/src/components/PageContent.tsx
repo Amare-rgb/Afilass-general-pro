@@ -6,7 +6,6 @@ import { HeroSection } from "@/components/HeroSection";
 import { GeneralSec } from "@/components/generalsec";
 import DiagnosisCenterSection from "@/components/DiagnosisCenterSection";
 import { DoctorFinder } from "@/components/DoctorFinder";
-import { Footer } from "@/components/Footer";
 import DrugManufacturingSection from "@/components/DrugManufacturingSection";
 import { UnifiedPillarsSection } from "@/components/Shared Essential";
 
@@ -39,7 +38,7 @@ export function PageContent() {
         {/* Doctor Finder */}
         <DoctorFinder />
       </main>
-      <Footer />
+     
     </>
   );
 }

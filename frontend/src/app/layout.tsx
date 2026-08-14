@@ -2,6 +2,7 @@
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "@/contexts/ThemeProvider";
 import { LanguageProvider } from "@/contexts/LanguageProvider";
+import LayoutWrapper from "@/components/LayoutWrapper"; // ✅ IMPORT THE WRAPPER
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -38,7 +39,12 @@ export default function RootLayout({
       <body className="antialiased">
         <ThemeProvider>
           <LanguageProvider>
-            {children}
+            
+            {/* ✅ USE THE WRAPPER COMPONENT HERE */}
+            <LayoutWrapper>
+              {children}
+            </LayoutWrapper>
+
           </LanguageProvider>
         </ThemeProvider>
       </body>
