@@ -61,10 +61,11 @@ export default function DoctorsPage() {
       {/* Navigation Header */}
       <Header />
 
-<main 
-  className="bg-background text-foreground min-h-screen"
-  style={{ paddingTop: 'var(--header-offset, 120px)' }}
->        {/* ==========================================================================
+      <main 
+        className="bg-background text-foreground min-h-screen"
+        style={{ paddingTop: '0px' }}
+      >
+        {/* ==========================================================================
            1. HERO / HEADER SECTION
            ========================================================================== */}
         <section className="relative overflow-hidden bg-gradient-to-b from-primary/10 via-background to-background border-b border-border/50 py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
@@ -109,76 +110,7 @@ export default function DoctorsPage() {
         </section>
 
         {/* ==========================================================================
-           2. PILLAR / LOCATION FILTER SECTION (PAGE LEVEL IMPLEMENTATION)
-           ========================================================================== */}
-        <section className="py-8 sm:py-12 px-4 sm:px-6 lg:px-8 border-b border-border/40 bg-card/40">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-6">
-              <h2 className="text-lg sm:text-xl font-bold text-foreground">
-                {t("doctors.location.filter_title")}
-              </h2>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                {t("doctors.location.filter_subtitle")}
-              </p>
-            </div>
-
-            {/* Location Selector Grid (Obvious Active Indicator) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {locationPillars.map((pillar) => {
-                const isSelected = selectedLocation === pillar.id;
-                const IconComponent = pillar.icon;
-
-                return (
-                  <button
-                    key={pillar.id}
-                    onClick={() => setSelectedLocation(pillar.id)}
-                    className={`relative p-5 rounded-2xl border text-left transition-all duration-300 flex flex-col justify-between group cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-                      isSelected
-                        ? "bg-card border-primary ring-2 ring-primary/50 shadow-xl scale-[1.02]"
-                        : "bg-card/80 border-border/80 hover:border-primary/40 hover:bg-card shadow-sm"
-                    }`}
-                  >
-                    {/* Active Selection Badge (Visual Indicator) */}
-                    {isSelected && (
-                      <div className="absolute top-3 right-3 flex items-center gap-1 bg-primary text-primary-foreground text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow-sm">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>{t("doctors.location.active_badge")}</span>
-                      </div>
-                    )}
-
-                    <div>
-                      {/* Icon
-                      <div className={`w-12 h-12 ${pillar.bgColor} rounded-xl flex items-center justify-center mb-3 group-hover:scale-105 transition-transform`}>
-                        <IconComponent className={`w-6 h-6 ${pillar.color}`} />
-                      </div> */}
-
-                      {/* Location Name */}
-                      <h3 className={`text-base font-bold transition-colors ${isSelected ? "text-primary" : "text-foreground group-hover:text-primary"}`}>
-                        {t(pillar.nameKey)}
-                      </h3>
-
-                      {/* Short Description */}
-                      <p className="text-xs text-muted-foreground mt-1.5 leading-relaxed">
-                        {t(pillar.descKey)}
-                      </p>
-                    </div>
-
-                    {/* Bottom Status Bar */}
-                    <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between text-xs font-semibold">
-                      <span className={isSelected ? "text-primary font-bold" : "text-muted-foreground"}>
-                        {isSelected ? "● Currently Filtering" : "Click to select"}
-                      </span>
-                      <ChevronRight className={`w-4 h-4 transition-transform ${isSelected ? "text-primary translate-x-1" : "text-muted-foreground"}`} />
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        {/* ==========================================================================
-           3. DOCTOR FINDER COMPONENT (FILTERED BY SELECTED LOCATION)
+           2. DOCTOR FINDER COMPONENT (FILTERED BY SELECTED LOCATION)
            ========================================================================== */}
         <DoctorFinder 
           selectedLocation={selectedLocation} 
@@ -186,7 +118,7 @@ export default function DoctorsPage() {
         />
 
         {/* ==========================================================================
-           4. BOOKING & EMERGENCY QUICK CTA BANNER
+           3. BOOKING & EMERGENCY QUICK CTA BANNER
            ========================================================================== */}
         <section className="bg-primary/5 border-t border-border py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">

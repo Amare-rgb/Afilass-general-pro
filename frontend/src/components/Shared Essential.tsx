@@ -2,40 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  Building2,
-  ChevronRight,
-  Heart,
-  Award,
-  Microscope,
-  Clock,
-  Smartphone,
-  Briefcase,
-  Droplet,
-  HeartPulse,
-  ClipboardList,
-  ShieldCheck,
-  Archive,
-  Handshake,
-  ArrowRight,
-  FlaskConical,
-  Bug,
-  Waves,
-  ScanLine,
-  Scan,
-  Activity,
-  Stethoscope,
-  Ambulance,
-  Users,
-  MapPin,
-  Phone,
-  Mail,
-  Calendar,
-  FileText,
-  Download,
-  CheckCircle,
-  Sparkles,
-} from "lucide-react";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageProvider";
 
@@ -112,7 +79,6 @@ export function UnifiedPillarsSection() {
     {
       id: 1,
       title: t("pillars.card1_title"),
-      icon: Building2,
       tag: t("pillars.card1_tag") || "24/7 Care",
       description: t("pillars.card1_desc"),
       highlights: [
@@ -126,7 +92,6 @@ export function UnifiedPillarsSection() {
     {
       id: 2,
       title: t("pillars.card2_title"),
-      icon: Microscope,
       tag: t("pillars.card2_tag") || "Precision",
       description: t("pillars.card2_desc"),
       highlights: [
@@ -140,7 +105,6 @@ export function UnifiedPillarsSection() {
     {
       id: 3,
       title: t("pillars.card3_title"),
-      icon: ShieldCheck,
       tag: t("pillars.card3_tag") || "GMP Certified",
       description: t("pillars.card3_desc"),
       highlights: [
@@ -179,7 +143,6 @@ export function UnifiedPillarsSection() {
         {/* Three Cards */}
         <div className="grid md:grid-cols-3 gap-4 sm:gap-5">
           {pillars.map((pillar, index) => {
-            const Icon = pillar.icon;
             return (
               <div
                 key={pillar.id}
@@ -188,10 +151,10 @@ export function UnifiedPillarsSection() {
                 }`}
                 style={{ transitionDelay: `${150 + index * 100}ms` }}
               >
-                {/* Icon & Tag */}
+                {/* Icon placeholder - removed icon */}
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-primary" />
+                    <span className="text-primary font-bold text-lg">✦</span>
                   </div>
                   <span className="text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                     {pillar.tag}
@@ -215,7 +178,7 @@ export function UnifiedPillarsSection() {
                       key={idx}
                       className="flex items-center gap-2 text-sm text-foreground/70"
                     >
-                      <CheckCircle className="w-3.5 h-3.5 text-primary flex-shrink-0" />
+                      <span className="text-primary text-xs">◆</span>
                       <span>{highlight}</span>
                     </div>
                   ))}
@@ -227,7 +190,7 @@ export function UnifiedPillarsSection() {
                   className="group/link inline-flex items-center gap-1.5 text-primary font-semibold text-sm hover:gap-2.5 transition-all duration-300"
                 >
                   {pillar.cta}
-                  <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover/link:translate-x-0.5" />
+                  <span className="text-xs">→</span>
                 </Link>
               </div>
             );
@@ -284,7 +247,7 @@ export function GeneralSec() {
           isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-20 opacity-0 scale-95"
         }`}>
           <div className="flex items-center justify-center gap-2 mb-2 group/title">
-            <Building2 className="w-5 h-5 text-blue-600 group-hover/title:rotate-12 group-hover/title:scale-110 transition-all duration-500" />
+            <span className="text-2xl text-blue-600">🏥</span>
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800">
               <span className="relative inline-block group-hover/title:text-blue-600 transition-colors duration-300">
                 Afilas
@@ -309,7 +272,7 @@ export function GeneralSec() {
         }`} style={{ transitionDelay: "100ms" }}>
           <div className="flex items-start gap-3">
             <div className="bg-blue-100 p-2 rounded-full mt-1 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-              <Heart className="w-4 h-4 text-blue-600" />
+              <span className="text-blue-600 text-sm">❤️</span>
             </div>
             <p className="text-gray-700 text-sm md:text-base leading-relaxed">
               Afilas hospital is a multi-specialty hospital located around Felege Hiwot Hospital, 
@@ -330,7 +293,7 @@ export function GeneralSec() {
             <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
             <span className="relative flex items-center gap-2">
               Explore Hospital Services
-              <ChevronRight className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110" />
+              <span className="text-xs group-hover:translate-x-1 transition-transform">→</span>
             </span>
           </Link>
         </div>
@@ -385,7 +348,7 @@ export function DiagnosticCenterSection() {
           isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-20 opacity-0 scale-95"
         }`}>
           <div className="flex items-center justify-center gap-2 mb-2 group/title">
-            <Building2 className="w-5 h-5 text-sky-600 group-hover/title:rotate-12 group-hover/title:scale-110 transition-all duration-500" />
+            <span className="text-2xl text-sky-600">🔬</span>
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800">
               <span className="relative inline-block group-hover/title:text-sky-600 transition-colors duration-300">
                 Afilas
@@ -410,7 +373,7 @@ export function DiagnosticCenterSection() {
         }`} style={{ transitionDelay: "100ms" }}>
           <div className="flex items-center gap-3 mb-4">
             <div className="bg-sky-100 p-2 rounded-full">
-              <Award className="w-5 h-5 text-sky-600" />
+              <span className="text-sky-600 text-sm">⭐</span>
             </div>
             <h3 className="font-bold text-lg text-gray-800">About Afilas Diagnostic Center</h3>
           </div>
@@ -427,7 +390,7 @@ export function DiagnosticCenterSection() {
               className="group inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-700 text-white font-semibold px-6 py-2.5 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 text-sm"
             >
               Go To Diagnostic Center
-              <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              <span className="text-xs transition-transform group-hover:translate-x-1">→</span>
             </Link>
           </div>
         </div>
@@ -465,34 +428,37 @@ export function DrugManufacturingSection() {
 
   const manufacturingCards = [
     {
-      icon: ClipboardList,
       title: "Manufacturing Capabilities",
       tag: "GMP",
       iconBg: "sky",
       description: "Dosage forms produced include Tablets, Capsules, Liquids, and Ointments designed for safe, reliable patient use.",
     },
     {
-      icon: ShieldCheck,
       title: "Quality Assurance & Compliance",
       tag: "Certified",
       iconBg: "emerald",
       description: "Strict adherence to GMP standards and regulatory approvals ensures every product meets international safety and quality benchmarks.",
     },
     {
-      icon: Archive,
       title: "Product Catalog",
       tag: "Searchable",
       iconBg: "indigo",
       description: "A searchable directory for healthcare providers, pharmacies, and distributors to quickly find suitable formulations and products.",
     },
     {
-      icon: Handshake,
       title: "Partnership & B2B Inquiry",
       tag: "Contact",
       iconBg: "rose",
       description: "Support for supply requests, contract manufacturing, and institutional distribution across public and private health networks.",
     },
   ];
+
+  const iconEmojis = {
+    sky: "🔬",
+    emerald: "🛡️",
+    indigo: "📚",
+    rose: "🤝",
+  };
 
   return (
     <section
@@ -513,7 +479,7 @@ export function DrugManufacturingSection() {
           isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-20 opacity-0 scale-95"
         }`}>
           <div className="flex items-center justify-center gap-2 mb-2 group/title">
-            <Building2 className="w-5 h-5 text-emerald-600 group-hover/title:rotate-12 group-hover/title:scale-110 transition-all duration-500" />
+            <span className="text-2xl text-emerald-600">💊</span>
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800">
               <span className="relative inline-block group-hover/title:text-emerald-600 transition-colors duration-300">
                 Afilas
@@ -538,7 +504,7 @@ export function DrugManufacturingSection() {
         }`} style={{ transitionDelay: "100ms" }}>
           <div className="flex items-start gap-3">
             <div className="bg-emerald-100 p-2 rounded-full mt-1 flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
-              <Heart className="w-4 h-4 text-emerald-600" />
+              <span className="text-emerald-600 text-sm">❤️</span>
             </div>
             <p className="text-gray-700 text-sm md:text-base leading-relaxed">
               Afilas Drug Manufacturing is committed to producing high-quality pharmaceutical products 
@@ -553,7 +519,6 @@ export function DrugManufacturingSection() {
           isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-20 opacity-0 scale-95"
         }`} style={{ transitionDelay: "200ms" }}>
           {manufacturingCards.map((card, index) => {
-            const Icon = card.icon;
             const bgColor = {
               sky: "bg-sky-100 group-hover:bg-sky-200",
               emerald: "bg-emerald-100 group-hover:bg-emerald-200",
@@ -568,13 +533,15 @@ export function DrugManufacturingSection() {
               rose: "text-rose-600",
             }[card.iconBg] || "text-gray-600";
 
+            const emoji = iconEmojis[card.iconBg as keyof typeof iconEmojis] || "📌";
+
             return (
               <div
                 key={index}
                 className="group bg-white/80 backdrop-blur-sm rounded-xl shadow-lg p-5 flex items-start gap-3 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer border border-transparent hover:border-emerald-200"
               >
                 <div className={`${bgColor} p-2.5 rounded-full flex-shrink-0 group-hover:scale-110 transition-all duration-300`}>
-                  <Icon className={`w-5 h-5 ${textColor}`} />
+                  <span className={`text-lg ${textColor}`}>{emoji}</span>
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-800 text-sm mb-1 flex items-center gap-2">
@@ -600,7 +567,7 @@ export function DrugManufacturingSection() {
             <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></span>
             <span className="relative flex items-center gap-2">
               Go to Pharma Page
-              <ChevronRight className="w-4 h-4 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110" />
+              <span className="text-xs group-hover:translate-x-1 transition-transform">→</span>
             </span>
           </Link>
         </div>
@@ -663,7 +630,7 @@ export function AboutUsSection() {
           isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-20 opacity-0 scale-95"
         }`}>
           <div className="flex items-center justify-center gap-2 mb-2 group/title">
-            <Building2 className="w-5 h-5 text-purple-600 group-hover/title:rotate-12 group-hover/title:scale-110 transition-all duration-500" />
+            <span className="text-2xl text-purple-600">🏢</span>
             <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800">
               About <span className="text-purple-600">Afilas</span>
             </h1>
@@ -681,7 +648,7 @@ export function AboutUsSection() {
         }`} style={{ transitionDelay: "100ms" }}>
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300">
             <div className="flex items-center gap-2 mb-3">
-              <Award className="w-5 h-5 text-purple-600" />
+              <span className="text-purple-600 text-sm">⭐</span>
               <h3 className="font-bold text-lg text-gray-800">Vision</h3>
             </div>
             <p className="text-sm text-gray-600 leading-relaxed">
@@ -690,7 +657,7 @@ export function AboutUsSection() {
           </div>
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 hover:shadow-2xl transition-all duration-300">
             <div className="flex items-center gap-2 mb-3">
-              <Heart className="w-5 h-5 text-purple-600" />
+              <span className="text-purple-600 text-sm">❤️</span>
               <h3 className="font-bold text-lg text-gray-800">Mission</h3>
             </div>
             <ul className="text-sm text-gray-600 leading-relaxed space-y-1 list-disc list-inside">
@@ -720,7 +687,7 @@ export function AboutUsSection() {
           isVisible ? "translate-y-0 opacity-100 scale-100" : "translate-y-20 opacity-0 scale-95"
         }`} style={{ transitionDelay: "300ms" }}>
           <div className="flex items-center gap-2 mb-3">
-            <ShieldCheck className="w-5 h-5 text-purple-600" />
+            <span className="text-purple-600 text-sm">🛡️</span>
             <h3 className="font-bold text-lg text-gray-800">Quality & Safety Commitment</h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">

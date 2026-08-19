@@ -321,6 +321,17 @@ export function DoctorFinder({
     return matchesSearch && matchesSpecialty && matchesAvailability && matchesLocation;
   });
 
+  // ============================================================
+  // ✅ HELPER: GET THE CORRECT APPOINTMENT LINK BASED ON BRANCH
+  // ============================================================
+  const getAppointmentLink = (location: string) => {
+    const loc = location.toLowerCase();
+    if (loc.includes("hospital")) return "/appointments/hospital";
+    if (loc.includes("diagnostic") || loc.includes("diagnosis")) return "/appointments/diagnosis";
+    if (loc.includes("pharma") || loc.includes("drug") || loc.includes("manufacturing")) return "/orders/pharma";
+    return "/appointments"; // Fallback
+  };
+
   return (
     <section id="doctors" ref={sectionRef} className="py-8 sm:py-12 lg:py-16 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="max-w-6xl mx-auto">
@@ -402,11 +413,11 @@ export function DoctorFinder({
               return (
                 <div
                   key={doctor.id}
-                  onClick={() => setSelectedDoctor(doctor)}
-                  className={`group bg-card border border-border/60 rounded-2xl overflow-hidden hover:border-primary/50 hover:shadow-xl transition-all duration-500 hover:-translate-y-1 cursor-pointer ${
+                  className={`group bg-card border border-border/60 rounded-2xl overflow-hidden hover:border-primary/50 hover:shadow-xl transition-all duration-500 hover:-translate-y-1 ${(
                     isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-                  }`}
+                  )}`}
                   style={{ transitionDelay: `${150 + delay}ms` }}
+                  onClick={() => setSelectedDoctor(doctor)} // Opens Modal
                 >
                   {/* Doctor Image - Circular */}
                   <div className="relative w-full pt-8 pb-4 flex items-center justify-center bg-gradient-to-b from-primary/5 via-background to-background">
@@ -469,6 +480,23 @@ export function DoctorFinder({
                         © {doctor.location}
                       </p>
                     </div>
+
+                    {/* ============================================================ */}
+                    {/* ✅ BOOK APPOINTMENT BUTTON - WHITE BLUE BACKGROUND, NO ICON */}
+                    {/* ============================================================ */}
+                    <div 
+                      className="pt-4 mt-2 border-t border-border/40"
+                      onClick={(e) => e.stopPropagation()} // ✅ PREVENTS THE MODAL FROM OPENING!
+                    >
+                      <Link
+                        href={getAppointmentLink(doctor.location)}
+                        className="flex w-full items-center justify-center bg-[#EAF4FF] hover:bg-[#D4E8FF] text-[#4A90D9] hover:text-[#2d6a4f] px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-[1.02] active:scale-95"
+                        onClick={(e) => e.stopPropagation()} // Extra safety
+                      >
+                        <span>{t("cta.book_appointment") || "Book Appointment"}</span>
+                      </Link>
+                    </div>
+
                   </div>
                 </div>
               );

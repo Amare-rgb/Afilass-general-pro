@@ -1,9 +1,9 @@
 // ============================================================
-// ✅ FIXED: Use named import instead of default import
+// ✅ FIXED: Added departmentId and doctorId to the interface and payload
 // ============================================================
 
 import api, { extractApiData, getApiErrorMessage } from '@/lib/api';
-import { PharmaOrder } from '@/lib/types'; // ← THIS IS THE FIX
+import { PharmaOrder } from '@/lib/types';
 
 // ============================================================
 // TYPES
@@ -15,6 +15,8 @@ export interface CreatePharmaOrderData {
   customerPhone: string;
   drugName: string;
   quantity: number;
+  departmentId?: string | null;  // ✅ ADDED
+  doctorId?: string | null;      // ✅ ADDED
 }
 
 export interface UpdatePharmaOrderData {
@@ -112,6 +114,8 @@ export const pharmaService = {
         customerPhone: data.customerPhone.trim(),
         drugName: data.drugName.trim(),
         quantity: data.quantity,
+        departmentId: data.departmentId || null, // ✅ SENT TO BACKEND
+        doctorId: data.doctorId || null,         // ✅ SENT TO BACKEND
       };
 
       const response = await api.post('/pharma-orders', payload, false);

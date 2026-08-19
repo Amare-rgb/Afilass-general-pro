@@ -5,7 +5,7 @@ import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { GeneralSec } from "@/components/generalsec";
 import DiagnosisCenterSection from "@/components/DiagnosisCenterSection";
-import { DoctorFinder } from "@/components/DoctorFinder";
+
 import DrugManufacturingSection from "@/components/DrugManufacturingSection";
 import { UnifiedPillarsSection } from "@/components/Shared Essential";
 
@@ -36,7 +36,7 @@ export function PageContent() {
         <div className="w-full h-px bg-border" />
 
         {/* Doctor Finder */}
-        <DoctorFinder />
+        
       </main>
      
     </>

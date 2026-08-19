@@ -7,67 +7,98 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ============================================================
+// USER MODEL
+// ============================================================
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  password      String
-  name          String
-  role          Role      @default(USER)
-  phone         String?
-  avatar        String?
-  isActive      Boolean   @default(true)
-  lastLogin     DateTime?
-  location      String?   @default("Afilas General Hospital")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
-  appointments  Appointment[]
+  id           String         @id @default(cuid())
+  email        String         @unique
+  password     String
+  name         String
+  role         Role           @default(USER)
+  phone        String?
+  avatar       String?
+  isActive     Boolean        @default(true)
+  lastLogin    DateTime?
+  location     String?        @default("Afilas General Hospital")
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  appointments Appointment[]
   notifications Notification[]
-  
+
   @@map("users")
 }
 
+// ============================================================
+// SERVICE MODEL
+// ============================================================
 model Service {
-  id          String    @id @default(cuid())
+  id          String        @id @default(cuid())
   name        String
   description String
   price       Float?
   duration    Int?
   image       String?
   category    String?
-  isActive    Boolean   @default(true)
-  location    String?   @default("Afilas General Hospital")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  appointments  Appointment[]
-  
+  isActive    Boolean       @default(true)
+  location    String?       @default("Afilas General Hospital")
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  appointments Appointment[]
+
   @@map("services")
 }
 
+// ============================================================
+// ✅ NEW: DEPARTMENT MODEL (FOR ADMIN DROPDOWN)
+// ============================================================
+model Department {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  doctors     Doctor[]      // Relation to Doctor
+  pharmaOrders PharmaOrder[] // Relation to Pharma Orders
+}
+
+// ============================================================
+// DOCTOR MODEL
+// ============================================================
 model Doctor {
-  id            String    @id @default(cuid())
-  name          String
-  email         String?   @unique
-  phone         String
-  specialization String
-  bio           String?
-  education     String?
-  experience    Int?
-  image         String?
-  rating        Float     @default(0)
-  isAvailable   Boolean   @default(true)
+  id              String        @id @default(cuid())
+  name            String
+  email           String?       @unique
+  phone           String
+  specialization  String
+  bio             String?
+  education       String?
+  experience      Int?
+  image           String?
+  rating          Float         @default(0)
+  isAvailable     Boolean       @default(true)
   consultationFee Float?
-  location      String?   @default("Afilas General Hospital")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  location        String?       @default("Afilas General Hospital")
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  workingHours    WorkingHour[]
+  appointments    Appointment[]
   
-  // 🔥 FIX: Remove @relation(onDelete: Cascade) from here
-  workingHours  WorkingHour[]
-  
+  // ✅ New Relation to Department
+  departmentId    String?
+  department      Department?   @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
   @@map("doctors")
 }
 
+// ============================================================
+// WORKING HOURS MODEL
+// ============================================================
 model WorkingHour {
   id          String   @id @default(cuid())
   dayOfWeek   Int
@@ -76,17 +107,19 @@ model WorkingHour {
   isAvailable Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   doctorId    String
-  // ✅ onDelete: Cascade is HERE on the child side
   doctor      Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
-  
+
   @@unique([doctorId, dayOfWeek])
   @@map("working_hours")
 }
 
+// ============================================================
+// APPOINTMENT MODEL
+// ============================================================
 model Appointment {
-  id            String    @id @default(cuid())
+  id            String            @id @default(cuid())
   patientName   String
   patientEmail  String
   patientPhone  String
@@ -97,44 +130,56 @@ model Appointment {
   status        AppointmentStatus @default(PENDING)
   notes         String?
   symptoms      String?
-  isEmergency   Boolean   @default(false)
-  location      String?   @default("Afilas General Hospital")
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
+  isEmergency   Boolean           @default(false)
+  location      String?           @default("Afilas General Hospital")
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
   serviceId     String?
-  service       Service?  @relation(fields: [serviceId], references: [id])
+  service       Service?          @relation(fields: [serviceId], references: [id])
   userId        String?
-  user          User?     @relation(fields: [userId], references: [id])
-  
+  user          User?             @relation(fields: [userId], references: [id])
+
+  doctorId      String?
+  doctor        Doctor?           @relation(fields: [doctorId], references: [id])
+
   // Home visit fields
-  visitType     String?   // 'HOSPITAL' or 'HOME'
+  visitType     String?           // 'HOSPITAL' or 'HOME'
   city          String?
   subCity       String?
   woreda        String?
   gpsPin        String?
   homeAddress   String?
-  
+
   @@map("appointments")
 }
 
-// 🔥 NEW: Pharma Order Model
+// ============================================================
+// PHARMA ORDER MODEL
+// ============================================================
 model PharmaOrder {
-  id            String    @id @default(cuid())
+  id            String            @id @default(cuid())
   customerName  String
   customerEmail String
   customerPhone String
   drugName      String
   quantity      Int
+  departmentId  String?           // ✅ Links to Department
   status        PharmaOrderStatus @default(PENDING)
   orderDate     String
   orderTime     String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  // ✅ Relation back to Department
+  department    Department?       @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+
   @@map("pharma_orders")
 }
 
+// ============================================================
+// GALLERY MODEL
+// ============================================================
 model Gallery {
   id          String      @id @default(cuid())
   title       String
@@ -147,10 +192,13 @@ model Gallery {
   location    String?     @default("Afilas General Hospital")
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
-  
+
   @@map("galleries")
 }
 
+// ============================================================
+// NEWS MODEL
+// ============================================================
 model News {
   id          String    @id @default(cuid())
   title       String
@@ -171,39 +219,45 @@ model News {
   location    String?   @default("Afilas General Hospital")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  
+
   @@map("news")
 }
 
+// ============================================================
+// CONTACT MODEL
+// ============================================================
 model Contact {
-  id          String        @id @default(cuid())
-  name        String
-  email       String
-  phone       String?
-  subject     String
-  message     String
-  status      ContactStatus @default(UNREAD)
-  location    String?       @default("Afilas General Hospital")
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  
+  id        String        @id @default(cuid())
+  name      String
+  email     String
+  phone     String?
+  subject   String
+  message   String
+  status    ContactStatus @default(UNREAD)
+  location  String?       @default("Afilas General Hospital")
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
   @@map("contacts")
 }
 
+// ============================================================
+// NOTIFICATION MODEL
+// ============================================================
 model Notification {
-  id          String          @id @default(cuid())
-  title       String
-  message     String
-  type        NotificationType @default(INFO)
-  isRead      Boolean         @default(false)
-  link        String?
-  location    String?         @default("Afilas General Hospital")
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  
-  userId      String
-  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id        String           @id @default(cuid())
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  isRead    Boolean          @default(false)
+  link      String?
+  location  String?          @default("Afilas General Hospital")
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("notifications")
 }
 
@@ -218,7 +272,6 @@ enum Role {
   USER
 }
 
-// ✅ FIXED: Added MISSED here!
 enum AppointmentStatus {
   PENDING
   CONFIRMED
@@ -228,7 +281,6 @@ enum AppointmentStatus {
   MISSED
 }
 
-// 🔥 NEW: Pharma Order Status Enum
 enum PharmaOrderStatus {
   PENDING
   PROCESSING

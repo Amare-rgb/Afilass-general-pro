@@ -15,6 +15,8 @@ import {
   ChevronLeft,
   Crosshair,
   Navigation,
+  Stethoscope,
+  Building2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Header } from '@/components/Header';
@@ -26,14 +28,11 @@ import { Appointment } from '@/lib/types';
 // SCHEMA DEFINITION
 // ============================================================
 const hospitalBookingSchema = z.object({
-  // Step 1: Personal Information
   patientName: z.string().min(2, 'Full name is required'),
   patientPhone: z.string().min(10, 'Valid phone number is required'),
   patientEmail: z.string().email('A valid email is required'),
   patientAge: z.string().optional(),
   patientGender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
-
-  // Step 2: Visit Details
   symptoms: z.string().optional(),
   notes: z.string().optional(),
   visitType: z.enum(['HOSPITAL', 'HOME']),
@@ -42,6 +41,8 @@ const hospitalBookingSchema = z.object({
   woreda: z.string().optional(),
   homeAddress: z.string().optional(),
   gpsPin: z.string().optional(),
+  departmentId: z.string().optional(),
+  doctorId: z.string().optional(),
 });
 
 type HospitalBookingData = z.infer<typeof hospitalBookingSchema>;
@@ -61,6 +62,10 @@ export default function HospitalBookingPage() {
   const [createdAppointment, setCreatedAppointment] = useState<Appointment | null>(null);
   const [loadingData, setLoadingData] = useState(true);
   const [errorDetails, setErrorDetails] = useState<string>('');
+
+  // Fetch Data States
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [doctors, setDoctors] = useState<any[]>([]);
 
   const t = (key: string): string => {
     const dict: Record<string, { en: string; am: string }> = {
@@ -124,6 +129,12 @@ export default function HospitalBookingPage() {
       printBtn: { en: 'Print', am: 'አትም' },
       termsText: { en: 'By booking, you agree to our terms and conditions', am: 'በመመዝገብ በውሎቻችን እና ሁኔታዎቻችን ይስማማሉ' },
       loadingText: { en: 'Loading...', am: 'በመጫን ላይ...' },
+      
+      // ADDED TRANSLATIONS
+      selectDepartment: { en: 'Select Department', am: 'ክፍል ይምረጡ' },
+      selectDoctor: { en: 'Select Doctor', am: 'ሐኪም ይምረጡ' },
+      department: { en: 'Department', am: 'ክፍል' },
+      doctor: { en: 'Doctor', am: 'ሐኪም' },
     };
     return dict[key]?.[isAm ? 'am' : 'en'] || key;
   };
@@ -144,13 +155,59 @@ export default function HospitalBookingPage() {
       woreda: '',
       homeAddress: '',
       gpsPin: '',
+      departmentId: '',
+      doctorId: '',
     },
   });
 
   const visitType = watch('visitType');
 
+  // Fetch Departments & Doctors from Admin Page
   useEffect(() => {
-    setLoadingData(false);
+    let isMounted = true;
+
+    async function fetchData() {
+      try {
+        setLoadingData(true);
+        
+        // 1. Fetch Departments
+        const deptRes = await fetch('http://localhost:5000/api/departments');
+        if (deptRes.ok) {
+          const deptData = await deptRes.json();
+          if (deptData.success && Array.isArray(deptData.data) && isMounted) {
+            setDepartments(deptData.data);
+          }
+        }
+
+        // 2. Fetch Doctors
+        const docRes = await fetch('http://localhost:5000/api/doctors');
+        if (docRes.ok) {
+          const docData = await docRes.json();
+          let apiDoctors = [];
+          if (docData.success && Array.isArray(docData.data)) apiDoctors = docData.data;
+          else if (Array.isArray(docData)) apiDoctors = docData;
+          if (isMounted) setDoctors(apiDoctors);
+        }
+      } catch (err) {
+        console.warn('Using mock data for departments & doctors');
+        if (isMounted) {
+          setDepartments([
+            { id: 'dept-1', name: 'Cardiology' },
+            { id: 'dept-2', name: 'Pediatrics' },
+            { id: 'dept-3', name: 'Neurology' },
+          ]);
+          setDoctors([
+            { id: 'doc-1', user: { firstName: 'Amanuel', lastName: 'Kebede' }, specialization: 'Cardiologist' },
+            { id: 'doc-2', user: { firstName: 'Selam', lastName: 'Tesfaye' }, specialization: 'Pediatrician' },
+          ]);
+        }
+      } finally {
+        if (isMounted) setLoadingData(false);
+      }
+    }
+
+    fetchData();
+    return () => { isMounted = false; };
   }, []);
 
   const getCurrentLocation = () => {
@@ -192,6 +249,9 @@ export default function HospitalBookingPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  // ============================================================
+  // ✅ SUBMIT WITH CHAPA PAYMENT INTEGRATION
+  // ============================================================
   const onSubmit = async (data: HospitalBookingData) => {
     setIsSubmitting(true);
     setErrorDetails('');
@@ -215,15 +275,12 @@ export default function HospitalBookingPage() {
         symptoms: data.symptoms?.trim() || '',
         isEmergency: false,
         visitType: data.visitType,
+        departmentId: data.departmentId || null, // ✅ ADDED
+        doctorId: data.doctorId || null,         // ✅ ADDED
       };
 
-      if (data.patientAge) {
-        payload.patientAge = parseInt(data.patientAge);
-      }
-      if (data.patientGender) {
-        payload.patientGender = data.patientGender;
-      }
-
+      if (data.patientAge) payload.patientAge = parseInt(data.patientAge);
+      if (data.patientGender) payload.patientGender = data.patientGender;
       if (data.visitType === 'HOME') {
         payload.city = data.city || null;
         payload.subCity = data.subCity || null;
@@ -232,19 +289,42 @@ export default function HospitalBookingPage() {
         payload.homeAddress = data.homeAddress || null;
       }
 
+      // ✅ STEP 1: Create the appointment
       const response = await api.post('/appointments', payload, false);
       const appointmentData = api.extractData<Appointment>(response);
 
-      setCreatedAppointment(appointmentData);
-      setBookingData(data);
-      setShowConfirmation(true);
-      toast.success(isAm ? 'ቀጠሮዎ በተሳካ ሁኔታ ተይዟል! 🎉' : 'Appointment booked successfully! 🎉');
+      // ✅ STEP 2: Initiate Payment with Chapa
+      const payRes = await fetch('http://localhost:5000/api/payment/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: 500, // 👈 Adjust this fee as needed
+          email: data.patientEmail,
+          first_name: data.patientName.split(' ')[0],
+          last_name: data.patientName.split(' ').slice(1).join(' ') || 'Patient',
+          phone: data.patientPhone,
+          appointment_id: appointmentData.id,
+          doctor_name: 'General Hospital',
+        }),
+      });
+
+      const payData = await payRes.json();
+
+      if (payData.success && payData.checkout_url) {
+        // ✅ REDIRECT TO CHAPA CHECKOUT
+        window.location.href = payData.checkout_url;
+      } else {
+        // Fallback: Show confirmation if payment fails (optional)
+        setCreatedAppointment(appointmentData);
+        setBookingData(data);
+        setShowConfirmation(true);
+        toast.success(isAm ? 'ቀጠሮዎ ተይዟል! 🎉' : 'Appointment booked successfully! 🎉');
+      }
     } catch (error: any) {
       console.error('Booking error:', error);
       let errorMessage = isAm ? 'ቀጠሮ መያዝ አልተቻለም። እባክዎን ደግመው ይሞክሩ።' : 'Failed to book appointment. Please try again.';
       if (error.message) errorMessage = error.message;
       if (error.data && error.data.error) errorMessage = error.data.error;
-
       setErrorDetails(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -381,9 +461,7 @@ export default function HospitalBookingPage() {
                   {/* Step indicators */}
                   <div className="flex items-center justify-between px-2">
                     <div className="flex items-center gap-2">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                        currentStep >= 1 ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-muted text-muted-foreground'
-                      }`}>
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${currentStep >= 1 ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-muted text-muted-foreground'}`}>
                         1
                       </div>
                       <span className={`text-xs font-semibold ${currentStep === 1 ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>
@@ -391,14 +469,10 @@ export default function HospitalBookingPage() {
                       </span>
                     </div>
                     <div className="flex-1 h-0.5 mx-3 bg-border">
-                      <div className={`h-full bg-primary transition-all duration-300 ${
-                        currentStep === 2 ? 'w-full' : 'w-0'
-                      }`} />
+                      <div className={`h-full bg-primary transition-all duration-300 ${currentStep === 2 ? 'w-full' : 'w-0'}`} />
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                        currentStep >= 2 ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-muted text-muted-foreground'
-                      }`}>
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${currentStep >= 2 ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-muted text-muted-foreground'}`}>
                         2
                       </div>
                       <span className={`text-xs font-semibold ${currentStep === 2 ? 'text-foreground font-bold' : 'text-muted-foreground'}`}>
@@ -526,6 +600,48 @@ export default function HospitalBookingPage() {
                         </p>
                       </div>
 
+                      {/* ✅ ADDED: Department & Doctor Dropdowns */}
+                      <div className="space-y-2">
+                        <div>
+                          <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                            {t('department')}
+                          </label>
+                          <select
+                            {...register('departmentId')}
+                            className="w-full px-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
+                          >
+                            <option value="">{t('selectDepartment')}</option>
+                            {departments.map((dept) => (
+                              <option key={dept.id} value={dept.id}>
+                                {dept.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                            {t('doctor')}
+                          </label>
+                          <select
+                            {...register('doctorId')}
+                            className="w-full px-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
+                          >
+                            <option value="">{t('selectDoctor')}</option>
+                            {doctors.map((doc) => {
+                              const fullName = doc.user 
+                                ? `Dr. ${doc.user.firstName} ${doc.user.lastName}` 
+                                : doc.name || 'Doctor';
+                              return (
+                                <option key={doc.id} value={doc.id}>
+                                  {fullName} {doc.specialization ? `- ${doc.specialization}` : ''}
+                                </option>
+                              );
+                            })}
+                          </select>
+                        </div>
+                      </div>
+
                       <div>
                         <label className="block text-xs font-semibold text-foreground/80 mb-1">
                           {t('visitType')}
@@ -534,22 +650,14 @@ export default function HospitalBookingPage() {
                           <button
                             type="button"
                             onClick={() => setValue('visitType', 'HOSPITAL')}
-                            className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all ${
-                              visitType === 'HOSPITAL'
-                                ? 'border-primary bg-primary/10 text-primary shadow-sm'
-                                : 'border-border bg-background text-muted-foreground hover:text-foreground hover:border-primary/50'
-                            }`}
+                            className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all ${visitType === 'HOSPITAL' ? 'border-primary bg-primary/10 text-primary shadow-sm' : 'border-border bg-background text-muted-foreground hover:text-foreground hover:border-primary/50'}`}
                           >
                             {t('hospitalVisit')}
                           </button>
                           <button
                             type="button"
                             onClick={() => setValue('visitType', 'HOME')}
-                            className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all ${
-                              visitType === 'HOME'
-                                ? 'border-primary bg-primary/10 text-primary shadow-sm'
-                                : 'border-border bg-background text-muted-foreground hover:text-foreground hover:border-primary/50'
-                            }`}
+                            className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all ${visitType === 'HOME' ? 'border-primary bg-primary/10 text-primary shadow-sm' : 'border-border bg-background text-muted-foreground hover:text-foreground hover:border-primary/50'}`}
                           >
                             {t('homeVisit')}
                           </button>

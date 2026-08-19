@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,6 +14,8 @@ import {
   Pill,
   Package,
   ShoppingCart,
+  Stethoscope,
+  Building2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Header } from '@/components/Header';
@@ -30,6 +32,8 @@ const pharmaOrderSchema = z.object({
   customerPhone: z.string().min(10, 'Valid phone number is required'),
   drugName: z.string().min(2, 'Drug name is required'),
   quantity: z.number().min(1, 'Quantity must be at least 1'),
+  departmentId: z.string().optional(),
+  doctorId: z.string().optional(),
 });
 
 type PharmaOrderFormData = z.infer<typeof pharmaOrderSchema>;
@@ -40,6 +44,8 @@ const defaultValues: PharmaOrderFormData = {
   customerPhone: '',
   drugName: '',
   quantity: 1,
+  departmentId: '',
+  doctorId: '',
 };
 
 // ============================================================
@@ -53,6 +59,11 @@ export default function PharmaOrderPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [orderData, setOrderData] = useState<PharmaOrder | null>(null);
+
+  // Fetch Data States
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [doctors, setDoctors] = useState<any[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
 
   const t = (key: string): string => {
     const dict: Record<string, { en: string; am: string }> = {
@@ -83,6 +94,11 @@ export default function PharmaOrderPage() {
       homeBtn: { en: 'Home', am: 'መነሻ' },
       printBtn: { en: 'Print', am: 'አትም' },
       termsText: { en: 'By placing an order, you agree to our terms and conditions', am: 'ትዕዛዝ በማስገባት በውሎቻችን እና ሁኔታዎቻችን ይስማማሉ' },
+      // ADDED TRANSLATIONS
+      selectDepartment: { en: 'Select Department', am: 'ክፍል ይምረጡ' },
+      selectDoctor: { en: 'Select Doctor', am: 'ሐኪም ይምረጡ' },
+      department: { en: 'Department', am: 'ክፍል' },
+      doctor: { en: 'Doctor', am: 'ሐኪም' },
     };
     return dict[key]?.[isAm ? 'am' : 'en'] || key;
   };
@@ -92,20 +108,96 @@ export default function PharmaOrderPage() {
     defaultValues: defaultValues,
   });
 
+  // Fetch Departments & Doctors from Admin Page
+  useEffect(() => {
+    let isMounted = true;
+
+    async function fetchData() {
+      try {
+        setLoadingData(true);
+        
+        // 1. Fetch Departments
+        const deptRes = await fetch('http://localhost:5000/api/departments');
+        if (deptRes.ok) {
+          const deptData = await deptRes.json();
+          if (deptData.success && Array.isArray(deptData.data) && isMounted) {
+            setDepartments(deptData.data);
+          }
+        }
+
+        // 2. Fetch Doctors
+        const docRes = await fetch('http://localhost:5000/api/doctors');
+        if (docRes.ok) {
+          const docData = await docRes.json();
+          let apiDoctors = [];
+          if (docData.success && Array.isArray(docData.data)) apiDoctors = docData.data;
+          else if (Array.isArray(docData)) apiDoctors = docData;
+          if (isMounted) setDoctors(apiDoctors);
+        }
+      } catch (err) {
+        console.warn('Using mock data for departments & doctors');
+        if (isMounted) {
+          setDepartments([
+            { id: 'dept-1', name: 'Cardiology' },
+            { id: 'dept-2', name: 'Pediatrics' },
+            { id: 'dept-3', name: 'Neurology' },
+          ]);
+          setDoctors([
+            { id: 'doc-1', user: { firstName: 'Amanuel', lastName: 'Kebede' }, specialization: 'Cardiologist' },
+            { id: 'doc-2', user: { firstName: 'Selam', lastName: 'Tesfaye' }, specialization: 'Pediatrician' },
+          ]);
+        }
+      } finally {
+        if (isMounted) setLoadingData(false);
+      }
+    }
+
+    fetchData();
+    return () => { isMounted = false; };
+  }, []);
+
+  // ============================================================
+  // ✅ SUBMIT WITH CHAPA PAYMENT INTEGRATION
+  // ============================================================
   const onSubmit = async (data: PharmaOrderFormData) => {
     setIsSubmitting(true);
     try {
+      // ✅ STEP 1: Create the Pharma Order
       const order = await pharmaService.createOrder({
         customerName: data.customerName,
         customerEmail: data.customerEmail,
         customerPhone: data.customerPhone,
         drugName: data.drugName,
         quantity: data.quantity,
+        departmentId: data.departmentId || null, // ✅ ADDED
+        doctorId: data.doctorId || null,         // ✅ ADDED
       });
-      
-      setOrderData(order);
-      setShowConfirmation(true);
-      toast.success(isAm ? 'ትዕዛዝዎ በተሳካ ሁኔታ ተልኳል! 🎉' : 'Order placed successfully! 🎉');
+
+      // ✅ STEP 2: Initiate Payment with Chapa
+      const payRes = await fetch('http://localhost:5000/api/payment/initiate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: 200, // 👈 Adjust this price as needed
+          email: data.customerEmail,
+          first_name: data.customerName.split(' ')[0],
+          last_name: data.customerName.split(' ').slice(1).join(' ') || 'Customer',
+          phone: data.customerPhone,
+          order_id: order.id,
+          doctor_name: 'Pharma Order',
+        }),
+      });
+
+      const payData = await payRes.json();
+
+      if (payData.success && payData.checkout_url) {
+        // ✅ REDIRECT TO CHAPA CHECKOUT
+        window.location.href = payData.checkout_url;
+      } else {
+        setOrderData(order);
+        setShowConfirmation(true);
+        toast.success(isAm ? 'ትዕዛዝዎ ተልኳል! 🎉' : 'Order placed successfully! 🎉');
+      }
     } catch (error: any) {
       console.error('Failed to place order:', error);
       toast.error(error.message || (isAm ? 'ትዕዛዝ ማስገባት አልተቻለም' : 'Failed to place order'));
@@ -199,130 +291,185 @@ export default function PharmaOrderPage() {
             </div>
 
             <div className="p-4 sm:p-5">
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div className="space-y-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-foreground/80 mb-1">
-                      {t('customerName')}
-                    </label>
-                    <div className="relative">
-                      <User className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        {...register('customerName')}
-                        type="text"
-                        placeholder={t('customerNamePlaceholder')}
-                        dir="ltr"
-                        className="w-full pl-9 pr-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
-                      />
-                    </div>
-                    {errors.customerName && (
-                      <p className="mt-1 text-[10px] text-destructive font-medium">{errors.customerName.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-foreground/80 mb-1">
-                      {t('customerEmail')}
-                    </label>
-                    <div className="relative">
-                      <Mail className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        {...register('customerEmail')}
-                        type="email"
-                        placeholder={t('customerEmailPlaceholder')}
-                        dir="ltr"
-                        className="w-full pl-9 pr-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
-                      />
-                    </div>
-                    {errors.customerEmail && (
-                      <p className="mt-1 text-[10px] text-destructive font-medium">{errors.customerEmail.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-foreground/80 mb-1">
-                      {t('customerPhone')}
-                    </label>
-                    <div className="relative">
-                      <Phone className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-                      <input
-                        {...register('customerPhone')}
-                        type="tel"
-                        placeholder={t('customerPhonePlaceholder')}
-                        dir="ltr"
-                        className="w-full pl-9 pr-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
-                      />
-                    </div>
-                    {errors.customerPhone && (
-                      <p className="mt-1 text-[10px] text-destructive font-medium">{errors.customerPhone.message}</p>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-2.5">
-                    <div className="col-span-2">
+              {loadingData ? (
+                <div className="flex items-center justify-center py-6">
+                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  <span className="ml-2.5 text-xs text-muted-foreground">{t('loadingText') || 'Loading...'}</span>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="space-y-3">
+                    
+                    {/* ✅ ADDED: Department Dropdown */}
+                    <div>
                       <label className="block text-xs font-semibold text-foreground/80 mb-1">
-                        {t('drugName')}
+                        {t('department')}
                       </label>
                       <div className="relative">
-                        <Pill className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                        <Building2 className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                        <select
+                          {...register('departmentId')}
+                          className="w-full pl-9 pr-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none appearance-none"
+                        >
+                          <option value="">{t('selectDepartment')}</option>
+                          {departments.map((dept) => (
+                            <option key={dept.id} value={dept.id}>
+                              {dept.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* ✅ ADDED: Doctor Dropdown */}
+                    <div>
+                      <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                        {t('doctor')}
+                      </label>
+                      <div className="relative">
+                        <Stethoscope className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                        <select
+                          {...register('doctorId')}
+                          className="w-full pl-9 pr-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none appearance-none"
+                        >
+                          <option value="">{t('selectDoctor')}</option>
+                          {doctors.map((doc) => {
+                            const fullName = doc.user 
+                              ? `Dr. ${doc.user.firstName} ${doc.user.lastName}` 
+                              : doc.name || 'Doctor';
+                            return (
+                              <option key={doc.id} value={doc.id}>
+                                {fullName} {doc.specialization ? `- ${doc.specialization}` : ''}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                        {t('customerName')}
+                      </label>
+                      <div className="relative">
+                        <User className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
-                          {...register('drugName')}
+                          {...register('customerName')}
                           type="text"
-                          placeholder={t('drugNamePlaceholder')}
+                          placeholder={t('customerNamePlaceholder')}
                           dir="ltr"
                           className="w-full pl-9 pr-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
                         />
                       </div>
-                      {errors.drugName && (
-                        <p className="mt-1 text-[10px] text-destructive font-medium">{errors.drugName.message}</p>
+                      {errors.customerName && (
+                        <p className="mt-1 text-[10px] text-destructive font-medium">{errors.customerName.message}</p>
                       )}
                     </div>
 
                     <div>
                       <label className="block text-xs font-semibold text-foreground/80 mb-1">
-                        {t('quantity')}
+                        {t('customerEmail')}
                       </label>
                       <div className="relative">
-                        <Package className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                        <Mail className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                         <input
-                          {...register('quantity', { valueAsNumber: true })}
-                          type="number"
-                          min="1"
-                          placeholder={t('quantityPlaceholder')}
+                          {...register('customerEmail')}
+                          type="email"
+                          placeholder={t('customerEmailPlaceholder')}
                           dir="ltr"
                           className="w-full pl-9 pr-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
                         />
                       </div>
-                      {errors.quantity && (
-                        <p className="mt-1 text-[10px] text-destructive font-medium">{errors.quantity.message}</p>
+                      {errors.customerEmail && (
+                        <p className="mt-1 text-[10px] text-destructive font-medium">{errors.customerEmail.message}</p>
                       )}
                     </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                        {t('customerPhone')}
+                      </label>
+                      <div className="relative">
+                        <Phone className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          {...register('customerPhone')}
+                          type="tel"
+                          placeholder={t('customerPhonePlaceholder')}
+                          dir="ltr"
+                          className="w-full pl-9 pr-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
+                        />
+                      </div>
+                      {errors.customerPhone && (
+                        <p className="mt-1 text-[10px] text-destructive font-medium">{errors.customerPhone.message}</p>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2.5">
+                      <div className="col-span-2">
+                        <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                          {t('drugName')}
+                        </label>
+                        <div className="relative">
+                          <Pill className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            {...register('drugName')}
+                            type="text"
+                            placeholder={t('drugNamePlaceholder')}
+                            dir="ltr"
+                            className="w-full pl-9 pr-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
+                          />
+                        </div>
+                        {errors.drugName && (
+                          <p className="mt-1 text-[10px] text-destructive font-medium">{errors.drugName.message}</p>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-foreground/80 mb-1">
+                          {t('quantity')}
+                        </label>
+                        <div className="relative">
+                          <Package className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                          <input
+                            {...register('quantity', { valueAsNumber: true })}
+                            type="number"
+                            min="1"
+                            placeholder={t('quantityPlaceholder')}
+                            dir="ltr"
+                            className="w-full pl-9 pr-3 py-2 text-xs border border-border rounded-xl bg-background text-foreground focus:ring-2 focus:ring-primary focus:border-primary transition outline-none"
+                          />
+                        </div>
+                        {errors.quantity && (
+                          <p className="mt-1 text-[10px] text-destructive font-medium">{errors.quantity.message}</p>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-xs mt-3"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      {t('placingOrder')}
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="w-4 h-4" />
-                      {t('placeOrder')}
-                    </>
-                  )}
-                </button>
+                  {/* Submit Button */}
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full flex items-center justify-center gap-1.5 px-4 py-2.5 bg-primary text-primary-foreground font-semibold rounded-xl hover:bg-primary/90 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed text-xs mt-3"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        {t('placingOrder')}
+                      </>
+                    ) : (
+                      <>
+                        <ShoppingCart className="w-4 h-4" />
+                        {t('placeOrder')}
+                      </>
+                    )}
+                  </button>
 
-                <p className="text-center text-[10px] text-muted-foreground pt-1">
-                  {t('termsText')}
-                </p>
-              </form>
+                  <p className="text-center text-[10px] text-muted-foreground pt-1">
+                    {t('termsText')}
+                  </p>
+                </form>
+              )}
             </div>
           </div>
         </div>

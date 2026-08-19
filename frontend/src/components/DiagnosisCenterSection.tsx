@@ -2,17 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import {
-  Microscope,
-  ChevronRight,
-  Award,
-  Clock,
-  ShieldCheck,
-  Smartphone,
-  Briefcase,
-  Droplet,
-  HeartPulse,
-} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageProvider";
 
@@ -20,7 +9,7 @@ import { useLanguage } from "@/contexts/LanguageProvider";
 // CONFIGURATION – Change this to your own image
 // ============================================================
 const DIAGNOSTIC_IMAGE = {
-  src: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800&q=80",
+  src: "/download.jpeg",
   alt: "Afilas Diagnostic Center - Advanced laboratory equipment",
 };
 
@@ -48,22 +37,18 @@ export default function AfilasDiagnosticCenter() {
 
   const features = [
     {
-      icon: Microscope,
       title: t("diagnostic.feature1_title"),
       note: t("diagnostic.feature1_desc"),
     },
     {
-      icon: Clock,
       title: t("diagnostic.feature2_title"),
       note: t("diagnostic.feature2_desc"),
     },
     {
-      icon: ShieldCheck,
       title: t("diagnostic.feature3_title"),
       note: t("diagnostic.feature3_desc"),
     },
     {
-      icon: Smartphone,
       title: t("diagnostic.feature4_title"),
       note: t("diagnostic.feature4_desc"),
     },
@@ -71,17 +56,14 @@ export default function AfilasDiagnosticCenter() {
 
   const packages = [
     {
-      icon: Briefcase,
       name: t("diagnostic.package1_name"),
       note: t("diagnostic.package1_desc"),
     },
     {
-      icon: Droplet,
       name: t("diagnostic.package2_name"),
       note: t("diagnostic.package2_desc"),
     },
     {
-      icon: HeartPulse,
       name: t("diagnostic.package3_name"),
       note: t("diagnostic.package3_desc"),
     },
@@ -110,32 +92,37 @@ export default function AfilasDiagnosticCenter() {
       </div>
 
       <div className="max-w-6xl mx-auto relative z-10">
-        {/* Header */}
-        <div
-          className={`flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-12 transition-all duration-700 ease-out ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-          }`}
-        >
-          <div className="w-14 h-14 bg-primary/10 flex items-center justify-center flex-shrink-0 shadow-sm shadow-primary/5">
-            <Microscope className="w-7 h-7 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
-              {t("diagnostic.title")}
-            </h2>
-          </div>
-        </div>
-
-        {/* Two‑column layout: text + image */}
+        {/* ============================================================
+            Main content: two-column layout
+            ============================================================ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start mb-16">
-          {/* Left: About and features */}
-          <div className="space-y-6">
+          {/* Left: Title Card + About and features */}
+          <div className="space-y-3">
+            
+            {/* ✅ TITLE CARD - SOFT BLUE TEXT, SAME COLOR NORMAL & HOVER */}
+            <div className="transition-all duration-700 ease-out">
+              <Link
+                href="/diagnostics"
+                className="group relative block transition-all duration-300 hover:scale-[1.02] active:scale-95"
+              >
+                {/* Soft blue glow effect behind the title card on hover */}
+                <div className="absolute -inset-1 bg-[#4A90D9]/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                {/* The title card itself - NO BACKGROUND COLOR (transparent) */}
+                <div className="relative bg-transparent group-hover:bg-transparent rounded-2xl px-8 py-4 shadow-none group-hover:shadow-xl transition-all duration-500">
+                  {/* ✅ SOFT BLUE TEXT - SAME IN NORMAL AND HOVER */}
+                  <h2 className="text-3xl sm:text-4xl font-bold text-[#4A90D9] tracking-tight group-hover:text-[#4A90D9] transition-colors duration-300">
+                    {t("diagnostic.title")}
+                  </h2>
+                </div>
+              </Link>
+            </div>
+
             {/* Features grid 2x2 */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {features.map(({ icon: Icon, title, note }, idx) => (
+              {features.map(({ title, note }, idx) => (
                 <div key={idx} className="bg-card border border-border p-4">
                   <div className="flex items-center gap-2 mb-1.5">
-                    <Icon className="w-4 h-4 text-primary flex-shrink-0" />
                     <h4 className="font-semibold text-foreground text-sm">
                       {title}
                     </h4>
@@ -155,13 +142,13 @@ export default function AfilasDiagnosticCenter() {
             <div className="absolute -bottom-6 -left-6 w-64 h-64 bg-secondary/30 rounded-full blur-3xl opacity-70" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
 
-            <div className="relative overflow-hidden shadow-xl shadow-primary/10 bg-card">
+            <div className="relative overflow-hidden shadow-xl shadow-primary/10 bg-card group">
               <div className="aspect-[4/3] relative">
                 <Image
                   src={DIAGNOSTIC_IMAGE.src}
                   alt={DIAGNOSTIC_IMAGE.alt}
                   fill
-                  className="object-cover"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
                   sizes="(max-width: 1024px) 100vw, 50vw"
                   priority
                 />
@@ -185,13 +172,13 @@ export default function AfilasDiagnosticCenter() {
           </div>
 
           <div className="grid sm:grid-cols-3 gap-4">
-            {packages.map(({ icon: Icon, name, note }, idx) => (
+            {packages.map(({ name, note }, idx) => (
               <div
                 key={idx}
                 className="border border-primary/30 p-6"
               >
                 <div className="w-16 h-16 bg-primary/10 flex items-center justify-center mb-4">
-                  <Icon className="w-8 h-8 text-primary" />
+                  <span className="text-2xl">🩺</span>
                 </div>
                 <p className="font-semibold text-foreground text-base mb-1">
                   {name}
@@ -203,14 +190,16 @@ export default function AfilasDiagnosticCenter() {
             ))}
           </div>
 
-          {/* CTA - Custom Button now displayed on the RIGHT SIDE */}
+          {/* CTA - Custom Button now displayed on the RIGHT SIDE - UNCHANGED */}
           <div className="mt-8 flex justify-end">
             <Link
               href="/diagnostics"
               className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-[#7DB99E] hover:bg-[#6CA88D] text-[#0e4b14] font-medium text-base rounded-full transition-all duration-300 group shadow-[0_4px_6px_rgba(0,0,0,0.3)] hover:shadow-[0_6px_10px_rgba(0,0,0,0.4)] hover:scale-[1.02] active:scale-95"
             >
               <span>{t("diagnostic.cta")}</span>
-              <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1 text-[#0e4b14]" />
+              <span className="text-sm transition-transform duration-300 group-hover:translate-x-1 text-[#0e4b14]">
+                →
+              </span>
             </Link>
           </div>
         </div>

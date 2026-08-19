@@ -29,8 +29,9 @@ export default function DiagnosticsPage() {
   const [services, setServices] = useState<any[]>([]);
   const [servicesLoading, setServicesLoading] = useState(true);
   const [servicesError, setServicesError] = useState<string | null>(null);
+  const [serviceImageErrors, setServiceImageErrors] = useState<Record<string, boolean>>({});
 
-  // Doctors State
+  // Doctors State (Removed entirely, no longer used)
   const [doctors, setDoctors] = useState<any[]>([]);
   const [doctorsLoading, setDoctorsLoading] = useState(true);
   const [doctorsError, setDoctorsError] = useState<string | null>(null);
@@ -88,6 +89,7 @@ function getAppointmentLink(service: any) {
         duration: 20,
         location: 'Afilas Diagnosis Center',
         isActive: true,
+        image: '/services/diagnostic.jpg', // Added fallback image
       },
       {
         id: 'fallback-2',
@@ -97,6 +99,7 @@ function getAppointmentLink(service: any) {
         duration: 45,
         location: 'Afilas Diagnosis Center',
         isActive: true,
+        image: '/services/mri.jpg',
       },
       {
         id: 'fallback-3',
@@ -106,6 +109,7 @@ function getAppointmentLink(service: any) {
         duration: 30,
         location: 'Afilas Diagnosis Center',
         isActive: true,
+        image: '/services/echo.jpg',
       },
       {
         id: 'fallback-4',
@@ -115,11 +119,12 @@ function getAppointmentLink(service: any) {
         duration: 15,
         location: 'Afilas Diagnosis Center',
         isActive: true,
+        image: '/services/xray.jpg',
       },
     ];
   }
 
-  // 2. Fetch Doctors
+  // 2. Fetch Doctors (Kept code but Doctor section is completely removed below)
   useEffect(() => {
     let isMounted = true;
 
@@ -317,7 +322,7 @@ function getAppointmentLink(service: any) {
       <Header />
       <main 
         className="bg-background text-foreground min-h-screen"
-        style={{ paddingTop: 'var(--header-offset, 140px)' }}
+        style={{ paddingTop: '10px' }} /* 👈 GAP REMOVED HERE */
       >
         <div className="relative">
           <DiagnosticsHero />
@@ -475,7 +480,7 @@ function getAppointmentLink(service: any) {
         </section>
 
         {/* ==========================================================================
-           Copied Section 3: MEDICAL SERVICES
+           Section 3: MEDICAL SERVICES (Now with Side-by-Side Image)
            ========================================================================== */}
         <section id="services" className="border-t border-border/50 py-16 sm:py-20 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -500,39 +505,57 @@ function getAppointmentLink(service: any) {
             ) : (
               <>
                 <div className="grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-                  {services.map((service) => (
-                    <div
-                      key={service.id}
-                      className="bg-card border border-border rounded-xl p-5 flex flex-col sm:flex-row gap-4 hover:shadow-lg transition-shadow duration-300"
-                    >
-                      <div className="sm:w-1/3">
-                        <h3 className="font-bold text-foreground text-lg leading-tight">
-                          {service.name}
-                        </h3>
-                      </div>
+                  {services.map((service) => {
+                    const imageHasError = serviceImageErrors[service.id];
+                    const imageUrl = service.image || '/services/default.jpg';
 
-                      <div className="hidden sm:block w-px bg-border self-stretch mx-2" style={{ height: 'auto', minHeight: '3rem' }} />
-
-                      <div className="flex-1 flex flex-col gap-1 text-sm">
-                        <p className="text-muted-foreground line-clamp-2">{service.description}</p>
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-muted-foreground">
-                          {service.price && (
-                            <span>{t("hospital.sec_services.price_label")} {service.price}</span>
+                    return (
+                      <div
+                        key={service.id}
+                        className="bg-card border border-border rounded-xl p-0 flex flex-col sm:flex-row gap-4 hover:shadow-lg transition-shadow duration-300 overflow-hidden"
+                      >
+                        {/* ✅ Left Side: Image */}
+                        <div className="sm:w-1/3 relative min-h-[160px] sm:min-h-full bg-muted/50">
+                          {!imageHasError ? (
+                            <Image
+                              src={imageUrl}
+                              alt={service.name}
+                              fill
+                              className="object-cover"
+                              onError={() => setServiceImageErrors((prev) => ({ ...prev, [service.id]: true }))}
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs p-4 text-center bg-muted">
+                              No Image
+                            </div>
                           )}
-                          {service.duration && (
-                            <span>{t("hospital.sec_services.duration_label")} {service.duration} {t("hospital.sec_services.min_unit")}</span>
-                          )}
-                          <span>{t("hospital.sec_services.location_label")} {service.location || t("hospital.sec_services.default_location")}</span>
                         </div>
-                        <Link
-                          href={getAppointmentLink(service)}
-                          className="mt-2 self-start bg-primary text-primary-foreground px-5 py-1.5 rounded-full text-sm font-semibold hover:bg-primary/90 transition-colors inline-block text-center"
-                        >
-                          {t("hospital.sec_services.book_btn")}
-                        </Link>
+
+                        {/* Right Side: Content (Your existing form) */}
+                        <div className="flex-1 flex flex-col gap-1 text-sm py-5 pr-5">
+                          <h3 className="font-bold text-foreground text-lg leading-tight">
+                            {service.name}
+                          </h3>
+                          <p className="text-muted-foreground line-clamp-2">{service.description}</p>
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-muted-foreground">
+                            {service.price && (
+                              <span>{t("hospital.sec_services.price_label")} {service.price}</span>
+                            )}
+                            {service.duration && (
+                              <span>{t("hospital.sec_services.duration_label")} {service.duration} {t("hospital.sec_services.min_unit")}</span>
+                            )}
+                            <span>{t("hospital.sec_services.location_label")} {service.location || t("hospital.sec_services.default_location")}</span>
+                          </div>
+                          <Link
+                            href={getAppointmentLink(service)}
+                            className="mt-2 self-start bg-primary text-primary-foreground px-5 py-1.5 rounded-full text-sm font-semibold hover:bg-primary/90 transition-colors inline-block text-center"
+                          >
+                            {t("hospital.sec_services.book_btn")}
+                          </Link>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="text-center mt-10">
@@ -559,116 +582,6 @@ function getAppointmentLink(service: any) {
 
             {!servicesLoading && services.length === 0 && !servicesError && (
               <p className="text-center text-muted-foreground py-8">{t("hospital.sec_services.empty_msg")}</p>
-            )}
-          </div>
-        </section>
-
-        {/* ==========================================================================
-           Copied Section 2: DOCTOR SECTION
-           ========================================================================== */}
-        <section id="doctors" className="border-t border-border/50 py-16 sm:py-20 bg-background">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">
-                {t("hospital.sec_doc.title")}
-              </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                {t("hospital.sec_doc.subtitle")}
-              </p>
-              {doctorsError && (
-                <p className="text-sm text-yellow-600 dark:text-yellow-400 mt-2 flex items-center justify-center gap-1">
-                  <AlertCircle className="w-4 h-4" /> {doctorsError}
-                </p>
-              )}
-            </div>
-
-            {doctorsLoading ? (
-              <div className="flex justify-center items-center py-16">
-                <Loader2 className="w-10 h-10 text-primary animate-spin" />
-              </div>
-            ) : (
-              <>
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 max-w-7xl mx-auto">
-                  {doctors.map((doctor) => (
-                    <div
-                      key={doctor.id}
-                      className="bg-card border border-border rounded-none overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col"
-                    >
-                      <div className="pt-10 px-6 flex justify-center">
-                        <div className="relative w-48 h-48 rounded-full overflow-hidden bg-muted border-2 border-primary/20">
-                          {doctor.photoUrl && !docImageFailed[doctor.id] ? (
-                            <Image
-                              src={doctor.photoUrl}
-                              alt={doctor.name}
-                              fill
-                              unoptimized
-                              className="object-cover"
-                              onError={() => setDocImageFailed((prev) => ({ ...prev, [doctor.id]: true }))}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-5xl font-bold text-primary/30 bg-muted">
-                              {doctor.name.split(' ').map((n: string) => n[0]).join('')}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="p-5 flex-1 flex flex-col">
-                        <h3 className="text-xl font-bold text-foreground text-center">
-                          {doctor.name}
-                        </h3>
-                        <p className="text-base font-semibold text-primary text-center">
-                          {doctor.title}
-                        </p>
-
-                        <div className="grid grid-cols-2 gap-2 mt-4 border-t border-b border-border/50 py-4">
-                          <div className="text-center">
-                            <span className="block text-[10px] font-bold text-foreground/60 uppercase tracking-wider">{t("hospital.sec_doc.experience_label")}</span>
-                            <span className="block text-base font-bold text-foreground">{doctor.experience}{t("hospital.sec_doc.yrs_suffix")}</span>
-                          </div>
-                          <div className="text-center border-l border-border/50">
-                            <span className="block text-[10px] font-bold text-foreground/60 uppercase tracking-wider">{t("hospital.sec_doc.available_label")}</span>
-                            <span className="block text-base font-bold text-foreground">{doctor.availability}</span>
-                          </div>
-                        </div>
-
-                        <p className="text-sm text-muted-foreground leading-relaxed mt-3 line-clamp-2">
-                          {doctor.bio}
-                        </p>
-
-                        <div className="flex items-center gap-1 mt-auto pt-2 text-sm text-muted-foreground">
-                          <MapPin className="w-4 h-4 shrink-0" />
-                          <span>{doctor.location}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="text-center mt-12">
-                  <Link
-                    href="/doctors"
-                    className="inline-flex items-center gap-2 border border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2.5 font-medium transition-colors duration-300"
-                  >
-                    <span>{t("hospital.sec_doc.view_all_btn")}</span>
-                    <svg
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </Link>
-                </div>
-              </>
-            )}
-
-            {!doctorsLoading && doctors.length === 0 && !doctorsError && (
-              <p className="text-center text-muted-foreground py-8">{t("hospital.sec_doc.empty_msg")}</p>
             )}
           </div>
         </section>

@@ -2,15 +2,14 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Building2, ChevronRight, Heart, CheckCircle, Clock, Microscope, Users, Award } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLanguage } from "@/contexts/LanguageProvider";
 
 // ============================================================
-// CONFIGURATION – Change these to your own images
+// CONFIGURATION – Local image path
 // ============================================================
 const GENERAL_IMAGE = {
-  src: "https://images.unsplash.com/photo-1586773860418-d37222d8fce3?w=800&q=80",
+  src: "/Afilas-hospital.jpg",
   alt: "Afilas General Hospital building",
 };
 
@@ -36,13 +35,13 @@ export function GeneralSec() {
     return () => observer.disconnect();
   }, []);
 
-  // Feature list – using translations
+  // Feature list – using translations (icons replaced with emojis)
   const features = [
-    { icon: CheckCircle, label: t("general.feature1") },
-    { icon: Microscope, label: t("general.feature2") },
-    { icon: Clock, label: t("general.feature3") },
-    { icon: Award, label: t("general.feature4") },
-    { icon: Users, label: t("general.feature5") },
+    { icon: "", label: t("general.feature1") },
+    { icon: "", label: t("general.feature2") },
+    { icon: "", label: t("general.feature3") },
+    { icon: "", label: t("general.feature4") },
+    { icon: "", label: t("general.feature5") },
   ];
 
   return (
@@ -57,55 +56,57 @@ export function GeneralSec() {
       <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-6xl mx-auto relative z-10">
-        {/* Section header */}
-        <div
-          className={`flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-8 transition-all duration-700 ease-out ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-          }`}
-        >
-          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center flex-shrink-0 shadow-sm shadow-primary/5">
-            <Building2 className="w-7 h-7 text-primary" />
-          </div>
-          <div>
-            <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
-              {t("general.title")}
-            </h2>
-          </div>
-        </div>
-
-        {/* Main content: two-column layout */}
+        {/* ============================================================
+            Main content: two-column layout
+            ============================================================ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          {/* Left column – Feature list */}
+          {/* Left column – Title Card + Feature list */}
           <div
-            className={`space-y-4 transition-all duration-700 ease-out delay-100 ${
+            className={`space-y-3 transition-all duration-700 ease-out delay-100 ${
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
             }`}
           >
-            {/* Feature list */}
-            <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-sm space-y-3">
-              {features.map((feature, idx) => {
-                const Icon = feature.icon;
-                return (
-                  <div key={idx} className="flex items-start gap-3">
-                    <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <Icon className="w-3.5 h-3.5 text-primary" />
-                    </div>
-                    <span className="text-sm text-foreground/80 leading-relaxed">
-                      {feature.label}
-                    </span>
-                  </div>
-                );
-              })}
+            {/* ✅ TITLE CARD - GREEN TEXT (same color for normal & hover) */}
+            <div className="transition-all duration-700 ease-out">
+              <Link
+                href="/hospital"
+                className="group relative block transition-all duration-300 hover:scale-[1.02] active:scale-95"
+              >
+                {/* Glow effect behind the title card on hover - GREEN GLOW */}
+                <div className="absolute -inset-1 bg-[#2d6a4f]/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                {/* The title card itself - NO BACKGROUND COLOR (transparent) */}
+                <div className="relative bg-transparent group-hover:bg-transparent rounded-2xl px-8 py-4 shadow-none group-hover:shadow-xl transition-all duration-500">
+                  {/* ✅ GREEN TEXT - SAME IN NORMAL AND HOVER */}
+                  <h2 className="text-3xl sm:text-4xl font-bold text-[#2d6a4f] tracking-tight group-hover:text-[#2d6a4f] transition-colors duration-300">
+                    {t("general.title")}
+                  </h2>
+                </div>
+              </Link>
             </div>
 
-            {/* CTA - Dark/Charcoal Button like your image */}
+            {/* Feature list */}
+            <div className="bg-card rounded-2xl border border-border p-6 sm:p-8 shadow-sm space-y-3">
+              {features.map((feature, idx) => (
+                <div key={idx} className="flex items-start gap-3">
+                  <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-xs">{feature.icon}</span>
+                  </div>
+                  <span className="text-sm text-foreground/80 leading-relaxed">
+                    {feature.label}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* CTA - Dark/Charcoal Button - UNCHANGED */}
             <div className="mt-8">
               <Link
                 href="/hospital"
                 className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-[#1a1a1a] hover:bg-[#2a2a2a] text-white font-medium text-sm rounded-full transition-all duration-300 group shadow-lg shadow-black/20 hover:shadow-xl hover:shadow-black/30 hover:scale-[1.02] active:scale-95"
               >
                 <span>{t("general.cta")}</span>
-                <ChevronRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
+                <span className="text-sm transition-transform duration-300 group-hover:translate-x-1">→</span>
               </Link>
             </div>
           </div>

@@ -26,7 +26,7 @@ export default function AfilasGeneralAppointmentsPage() {
     confirmed: 0,
     completed: 0,
     cancelled: 0,
-    missed: 0,        // 🔥 ADD MISSED
+    missed: 0,
     homeVisits: 0
   });
 
@@ -141,14 +141,13 @@ export default function AfilasGeneralAppointmentsPage() {
       
       const homeVisits = updatedAppointments.filter(a => a.visitType === 'HOME').length;
       
-      // 🔥 UPDATE STATS WITH MISSED
       setStats({
         total: updatedAppointments.length,
         pending: updatedAppointments.filter(a => a.status === 'PENDING').length,
         confirmed: updatedAppointments.filter(a => a.status === 'CONFIRMED').length,
         completed: updatedAppointments.filter(a => a.status === 'COMPLETED').length,
         cancelled: updatedAppointments.filter(a => a.status === 'CANCELLED').length,
-        missed: updatedAppointments.filter(a => a.status === 'MISSED').length,  // 🔥 ADD MISSED
+        missed: updatedAppointments.filter(a => a.status === 'MISSED').length,
         homeVisits: homeVisits,
       });
       
@@ -295,7 +294,7 @@ export default function AfilasGeneralAppointmentsPage() {
         </button>
       </div>
 
-      {/* Stats Cards - WITH MISSED CARD */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {/* Total */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
@@ -327,7 +326,7 @@ export default function AfilasGeneralAppointmentsPage() {
           <p className="text-xl font-bold text-red-600">{stats.cancelled}</p>
         </div>
         
-        {/* 🔥 MISSED - NEW CARD */}
+        {/* MISSED - NEW CARD */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-3">
           <p className="text-xs text-gray-600">⏰ Missed</p>
           <p className="text-xl font-bold text-gray-600">{stats.missed || 0}</p>
@@ -402,6 +401,10 @@ export default function AfilasGeneralAppointmentsPage() {
                   <th className="py-3 px-3 font-semibold">Age</th>
                   <th className="py-3 px-3 font-semibold">Gender</th>
                   <th className="py-3 px-3 font-semibold">Contact</th>
+                  {/* 🔥 DEPARTMENT COLUMN */}
+                  <th className="py-3 px-3 font-semibold">Department</th>
+                  {/* 🔥 DOCTOR COLUMN */}
+                  <th className="py-3 px-3 font-semibold">Doctor</th>
                   <th className="py-3 px-3 font-semibold">Symptoms</th>
                   <th className="py-3 px-3 font-semibold">Notes</th>
                   <th className="py-3 px-3 font-semibold">Date & Time</th>
@@ -419,6 +422,11 @@ export default function AfilasGeneralAppointmentsPage() {
                   const isConfirmed = appointment.status === 'CONFIRMED';
                   const isHomeVisit = appointment.visitType === 'HOME';
                   const hasAddress = hasAddressData(appointment);
+                  
+                  // 🔥 FIX: Use existing valid TypeScript fields only (NO departmentName/doctorName errors)
+                  // Fallback to "Not assigned" if data doesn't exist
+                  const departmentName = appointment.department ? String(appointment.department) : 'Not assigned';
+                  const doctorName = appointment.doctor ? String(appointment.doctor) : 'Not assigned';
                   
                   return (
                     <tr key={appointment.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-0 ${isPast && !missed ? 'bg-orange-50/30' : ''} ${missed ? 'bg-gray-50 opacity-60' : ''} ${isHomeVisit ? 'bg-blue-50/30' : ''}`}>
@@ -445,6 +453,18 @@ export default function AfilasGeneralAppointmentsPage() {
                       <td className="py-3 px-3 text-gray-600">
                         <div className="text-xs truncate max-w-[100px]">{appointment.patientEmail}</div>
                         <div className="text-xs mt-0.5 truncate max-w-[100px]">{appointment.patientPhone}</div>
+                      </td>
+                      {/* 🔥 REAL DATA: Department (Error Fixed) */}
+                      <td className="py-3 px-3">
+                        <span className="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-[10px] font-medium whitespace-nowrap">
+                          {departmentName}
+                        </span>
+                      </td>
+                      {/* 🔥 REAL DATA: Doctor (Error Fixed) */}
+                      <td className="py-3 px-3">
+                        <div className="text-xs font-medium text-gray-700 whitespace-nowrap">
+                          {doctorName}
+                        </div>
                       </td>
                       <td className="py-3 px-3">
                         <div className="text-xs text-gray-800 max-w-[100px] truncate">

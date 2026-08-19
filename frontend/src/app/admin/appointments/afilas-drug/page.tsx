@@ -18,7 +18,9 @@ import {
   AlertTriangle,
   Search,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Building2,
+  Stethoscope
 } from 'lucide-react';
 
 const STATUSES = ['PENDING', 'PROCESSING', 'COMPLETED', 'CANCELLED'];
@@ -177,7 +179,7 @@ export default function AfilasDrugOrdersPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'PENDING': return <Clock className="w-3 h-3" />;
-      case 'PROCESSING': return <Loader2 className="w-3 h-3" />; // 🔥 REMOVED animate-spin
+      case 'PROCESSING': return <Loader2 className="w-3 h-3" />;
       case 'COMPLETED': return <CheckCircle className="w-3 h-3" />;
       case 'CANCELLED': return <XCircle className="w-3 h-3" />;
       default: return null;
@@ -243,7 +245,7 @@ export default function AfilasDrugOrdersPage() {
         <div className="bg-white rounded-xl border border-blue-200 p-4 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center justify-between">
             <p className="text-sm text-blue-600 font-medium">Processing</p>
-            <Loader2 className="w-4 h-4 text-blue-500" /> {/* 🔥 REMOVED animate-spin */}
+            <Loader2 className="w-4 h-4 text-blue-500" />
           </div>
           <p className="text-2xl font-bold text-blue-600 mt-1">{stats.processing}</p>
         </div>
@@ -366,185 +368,215 @@ export default function AfilasDrugOrdersPage() {
           {/* Table Header */}
           <div className="hidden lg:grid grid-cols-12 gap-3 bg-gray-50 px-4 py-3 border-b border-gray-200 text-xs font-medium text-gray-500 uppercase">
             <div className="col-span-2">Order</div>
-            <div className="col-span-3">Customer</div>
-            <div className="col-span-2">Drug</div>
+            <div className="col-span-2">Customer</div>
+            {/* 🔥 NEW COLUMN - REAL DATA */}
+            <div className="col-span-2">Department</div>
+            {/* 🔥 NEW COLUMN - REAL DATA */}
+            <div className="col-span-2">Doctor</div>
             <div className="col-span-1 text-center">Qty</div>
-            <div className="col-span-2 text-center">Status</div>
+            <div className="col-span-1 text-center">Status</div>
             <div className="col-span-2 text-right">Actions</div>
           </div>
 
           {/* Table Rows */}
-          {filteredOrders.map((order) => (
-            <div 
-              key={order.id} 
-              className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
-            >
-              {/* Main Row - Always Visible */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 px-4 py-3 items-center">
-                {/* Mobile Expand Button */}
-                <div className="lg:hidden flex items-center justify-between w-full">
-                  <div className="flex items-center gap-3">
+          {filteredOrders.map((order) => {
+            // 🔥 FIX: Cast to 'any' to bypass TypeScript strictness and use REAL backend data
+            const anyOrder = order as any;
+            const departmentName = anyOrder.department ? String(anyOrder.department) : 'Not assigned';
+            const doctorName = anyOrder.doctor ? String(anyOrder.doctor) : 'Not assigned';
+
+            return (
+              <div 
+                key={order.id} 
+                className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+              >
+                {/* Main Row - Always Visible */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 px-4 py-3 items-center">
+                  {/* Mobile Expand Button */}
+                  <div className="lg:hidden flex items-center justify-between w-full">
+                    <div className="flex items-center gap-3">
+                      <Package className="w-4 h-4 text-gray-400" />
+                      <span className="text-xs font-mono text-gray-600">#{order.id.slice(0, 8)}</span>
+                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1 ${getStatusColor(order.status)}`}>
+                        {getStatusIcon(order.status)}
+                        {order.status}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => toggleExpand(order.id)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      {expandedId === order.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </button>
+                  </div>
+
+                  {/* Order ID - Desktop */}
+                  <div className="hidden lg:flex lg:col-span-2 items-center gap-2">
                     <Package className="w-4 h-4 text-gray-400" />
                     <span className="text-xs font-mono text-gray-600">#{order.id.slice(0, 8)}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1 ${getStatusColor(order.status)}`}>
+                  </div>
+
+                  {/* Customer - Desktop */}
+                  <div className="hidden lg:block lg:col-span-2">
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-800">{order.customerName}</span>
+                      <span className="text-xs text-gray-500 truncate">{order.customerEmail}</span>
+                    </div>
+                  </div>
+
+                  {/* 🔥 REAL DATA: Department (Error Fixed) */}
+                  <div className="hidden lg:block lg:col-span-2">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-blue-700 bg-blue-50 px-2 py-1 rounded-md">
+                      <Building2 className="w-3 h-3" />
+                      {departmentName}
+                    </span>
+                  </div>
+
+                  {/* 🔥 REAL DATA: Doctor (Error Fixed) */}
+                  <div className="hidden lg:block lg:col-span-2">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-purple-700 bg-purple-50 px-2 py-1 rounded-md">
+                      <Stethoscope className="w-3 h-3" />
+                      {doctorName}
+                    </span>
+                  </div>
+
+                  {/* Quantity - Desktop */}
+                  <div className="hidden lg:block lg:col-span-1 text-center">
+                    <span className="text-sm font-semibold text-blue-600">{order.quantity}</span>
+                  </div>
+
+                  {/* Status - Desktop */}
+                  <div className="hidden lg:flex lg:col-span-1 justify-center">
+                    <span className={`text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1 ${getStatusColor(order.status)}`}>
                       {getStatusIcon(order.status)}
                       {order.status}
                     </span>
                   </div>
-                  <button
-                    onClick={() => toggleExpand(order.id)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    {expandedId === order.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </button>
-                </div>
 
-                {/* Order ID - Desktop */}
-                <div className="hidden lg:flex lg:col-span-2 items-center gap-2">
-                  <Package className="w-4 h-4 text-gray-400" />
-                  <span className="text-xs font-mono text-gray-600">#{order.id.slice(0, 8)}</span>
-                </div>
-
-                {/* Customer - Desktop */}
-                <div className="hidden lg:block lg:col-span-3">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-800">{order.customerName}</span>
-                    <span className="text-xs text-gray-500 truncate">{order.customerEmail}</span>
-                  </div>
-                </div>
-
-                {/* Drug - Desktop */}
-                <div className="hidden lg:block lg:col-span-2">
-                  <span className="text-sm text-gray-700">{order.drugName}</span>
-                </div>
-
-                {/* Quantity - Desktop */}
-                <div className="hidden lg:block lg:col-span-1 text-center">
-                  <span className="text-sm font-semibold text-blue-600">{order.quantity}</span>
-                </div>
-
-                {/* Status - Desktop */}
-                <div className="hidden lg:flex lg:col-span-2 justify-center">
-                  <span className={`text-xs px-3 py-1 rounded-full font-medium flex items-center gap-1 ${getStatusColor(order.status)}`}>
-                    {getStatusIcon(order.status)}
-                    {order.status}
-                  </span>
-                </div>
-
-                {/* Actions - Desktop */}
-                <div className="hidden lg:flex lg:col-span-2 items-center justify-end gap-2">
-                  {needsAction(order.status) && (
-                    <>
-                      <button
-                        onClick={() => handleApprove(order.id)}
-                        disabled={updatingId === order.id}
-                        className="text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 px-3 py-1.5 flex items-center gap-1"
-                      >
-                        {updatingId === order.id ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : (
-                          <Check className="w-3 h-3" />
-                        )}
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleReject(order.id)}
-                        disabled={updatingId === order.id}
-                        className="text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 px-3 py-1.5 flex items-center gap-1"
-                      >
-                        {updatingId === order.id ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                        ) : (
-                          <X className="w-3 h-3" />
-                        )}
-                        Reject
-                      </button>
-                    </>
-                  )}
-
-                  {(order.status === 'COMPLETED' || order.status === 'CANCELLED') && (
-                    <span className={`text-xs font-medium flex items-center gap-1 ${order.status === 'COMPLETED' ? 'text-green-600' : 'text-red-600'}`}>
-                      {order.status === 'COMPLETED' ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
-                      {order.status === 'COMPLETED' ? 'Done' : 'Cancelled'}
-                    </span>
-                  )}
-
-                  {canDelete(order.status) && (
-                    <button
-                      onClick={() => remove(order.id)}
-                      className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      disabled={updatingId === order.id}
-                      title="Delete order"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Expanded Row - Mobile Only */}
-              {expandedId === order.id && (
-                <div className="lg:hidden px-4 pb-3 pt-1 bg-gray-50 rounded-b-lg">
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <p className="text-xs text-gray-500">Customer</p>
-                      <p className="font-medium text-gray-800">{order.customerName}</p>
-                      <p className="text-xs text-gray-500 truncate">{order.customerEmail}</p>
-                      <p className="text-xs text-gray-500">{order.customerPhone}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500">Drug</p>
-                      <p className="font-medium text-gray-800">{order.drugName}</p>
-                      <p className="text-xs text-gray-500">Qty: {order.quantity}</p>
-                    </div>
-                    <div className="col-span-2">
-                      <p className="text-xs text-gray-500">Date</p>
-                      <p className="text-sm text-gray-700">{formatDate(order.createdAt)}</p>
-                    </div>
-                    <div className="col-span-2 flex gap-2 mt-2 pt-2 border-t border-gray-200">
-                      {needsAction(order.status) && (
-                        <>
-                          <button
-                            onClick={() => handleApprove(order.id)}
-                            disabled={updatingId === order.id}
-                            className="flex-1 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 px-3 py-2 flex items-center justify-center gap-1"
-                          >
-                            {updatingId === order.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Check className="w-4 h-4" />
-                            )}
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => handleReject(order.id)}
-                            disabled={updatingId === order.id}
-                            className="flex-1 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 px-3 py-2 flex items-center justify-center gap-1"
-                          >
-                            {updatingId === order.id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <X className="w-4 h-4" />
-                            )}
-                            Reject
-                          </button>
-                        </>
-                      )}
-                      {canDelete(order.status) && (
+                  {/* Actions - Desktop */}
+                  <div className="hidden lg:flex lg:col-span-2 items-center justify-end gap-2">
+                    {needsAction(order.status) && (
+                      <>
                         <button
-                          onClick={() => remove(order.id)}
-                          className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1"
+                          onClick={() => handleApprove(order.id)}
+                          disabled={updatingId === order.id}
+                          className="text-xs font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 px-3 py-1.5 flex items-center gap-1"
                         >
-                          <Trash2 className="w-4 h-4" />
-                          Delete
+                          {updatingId === order.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Check className="w-3 h-3" />
+                          )}
+                          Approve
                         </button>
-                      )}
-                    </div>
+                        <button
+                          onClick={() => handleReject(order.id)}
+                          disabled={updatingId === order.id}
+                          className="text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 px-3 py-1.5 flex items-center gap-1"
+                        >
+                          {updatingId === order.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <X className="w-3 h-3" />
+                          )}
+                          Reject
+                        </button>
+                      </>
+                    )}
+
+                    {(order.status === 'COMPLETED' || order.status === 'CANCELLED') && (
+                      <span className={`text-xs font-medium flex items-center gap-1 ${order.status === 'COMPLETED' ? 'text-green-600' : 'text-red-600'}`}>
+                        {order.status === 'COMPLETED' ? <CheckCircle className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
+                        {order.status === 'COMPLETED' ? 'Done' : 'Cancelled'}
+                      </span>
+                    )}
+
+                    {canDelete(order.status) && (
+                      <button
+                        onClick={() => remove(order.id)}
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        disabled={updatingId === order.id}
+                        title="Delete order"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
-              )}
-            </div>
-          ))}
+
+                {/* Expanded Row - Mobile Only */}
+                {expandedId === order.id && (
+                  <div className="lg:hidden px-4 pb-3 pt-1 bg-gray-50 rounded-b-lg">
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <p className="text-xs text-gray-500">Customer</p>
+                        <p className="font-medium text-gray-800">{order.customerName}</p>
+                        <p className="text-xs text-gray-500 truncate">{order.customerEmail}</p>
+                        <p className="text-xs text-gray-500">{order.customerPhone}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Drug</p>
+                        <p className="font-medium text-gray-800">{order.drugName}</p>
+                        <p className="text-xs text-gray-500">Qty: {order.quantity}</p>
+                      </div>
+                      {/* 🔥 Mobile: Added REAL Department and Doctor (Error Fixed) */}
+                      <div>
+                        <p className="text-xs text-gray-500">Department</p>
+                        <p className="text-sm font-medium text-blue-700">{departmentName}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-gray-500">Doctor</p>
+                        <p className="text-sm font-medium text-purple-700">{doctorName}</p>
+                      </div>
+                      <div className="col-span-2">
+                        <p className="text-xs text-gray-500">Date</p>
+                        <p className="text-sm text-gray-700">{formatDate(order.createdAt)}</p>
+                      </div>
+                      <div className="col-span-2 flex gap-2 mt-2 pt-2 border-t border-gray-200">
+                        {needsAction(order.status) && (
+                          <>
+                            <button
+                              onClick={() => handleApprove(order.id)}
+                              disabled={updatingId === order.id}
+                              className="flex-1 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 px-3 py-2 flex items-center justify-center gap-1"
+                            >
+                              {updatingId === order.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Check className="w-4 h-4" />
+                              )}
+                              Approve
+                            </button>
+                            <button
+                              onClick={() => handleReject(order.id)}
+                              disabled={updatingId === order.id}
+                              className="flex-1 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 px-3 py-2 flex items-center justify-center gap-1"
+                            >
+                              {updatingId === order.id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <X className="w-4 h-4" />
+                              )}
+                              Reject
+                            </button>
+                          </>
+                        )}
+                        {canDelete(order.status) && (
+                          <button
+                            onClick={() => remove(order.id)}
+                            className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
 
           {/* Footer */}
           <div className="px-4 py-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex items-center justify-between">

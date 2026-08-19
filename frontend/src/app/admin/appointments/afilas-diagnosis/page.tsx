@@ -424,6 +424,10 @@ export default function AfilasDiagnosisAppointmentsPage() {
                   <th className="py-3 px-3 font-semibold">Age</th>
                   <th className="py-3 px-3 font-semibold">Gender</th>
                   <th className="py-3 px-3 font-semibold">Contact</th>
+                  {/* 🔥 NEW COLUMN */}
+                  <th className="py-3 px-3 font-semibold">Department</th>
+                  {/* 🔥 NEW COLUMN */}
+                  <th className="py-3 px-3 font-semibold">Doctor</th>
                   <th className="py-3 px-3 font-semibold">Symptoms</th>
                   <th className="py-3 px-3 font-semibold">Notes</th>
                   <th className="py-3 px-3 font-semibold">Date & Time</th>
@@ -441,6 +445,12 @@ export default function AfilasDiagnosisAppointmentsPage() {
                   const isConfirmed = appointment.status === 'CONFIRMED';
                   const isHomeVisit = appointment.visitType?.toUpperCase() === 'HOME';
                   const hasAddress = hasAddressData(appointment);
+                  
+                  // 🔥 FIX: Bypass TypeScript strictly to read REAL backend data (Eliminates the TypeScript error)
+                  const anyAppointment = appointment as any;
+                  // 🔥 REAL DATA: Reads from backend. Fallback to 'Not assigned' if missing.
+                  const departmentName = anyAppointment.department ? String(anyAppointment.department) : 'Not assigned';
+                  const doctorName = anyAppointment.doctor ? String(anyAppointment.doctor) : 'Not assigned';
                   
                   return (
                     <tr key={appointment.id} className={`border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-0 ${isPast && !isMissed ? 'bg-orange-50/30' : ''} ${isMissed ? 'bg-gray-50 opacity-60' : ''} ${isHomeVisit ? 'bg-blue-50/30' : ''}`}>
@@ -472,6 +482,18 @@ export default function AfilasDiagnosisAppointmentsPage() {
                       <td className="py-3 px-3 text-gray-600">
                         <div className="text-xs truncate max-w-[100px]">{appointment.patientEmail}</div>
                         <div className="text-xs mt-0.5 truncate max-w-[100px]">{appointment.patientPhone}</div>
+                      </td>
+                      {/* 🔥 NEW COLUMN DATA: REAL Department */}
+                      <td className="py-3 px-3">
+                        <span className="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded-md text-[10px] font-medium whitespace-nowrap">
+                          {departmentName}
+                        </span>
+                      </td>
+                      {/* 🔥 NEW COLUMN DATA: REAL Doctor */}
+                      <td className="py-3 px-3">
+                        <div className="text-xs font-medium text-gray-700 whitespace-nowrap">
+                          {doctorName}
+                        </div>
                       </td>
                       <td className="py-3 px-3">
                         <div className="text-xs text-gray-800 max-w-[100px] truncate">

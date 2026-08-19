@@ -20,7 +20,8 @@ import {
   ChevronDown,
   Crown,
   Loader2,
-  LayoutDashboard
+  LayoutDashboard,
+  Building2 // ✅ Added Icon for Departments
 } from 'lucide-react';
 
 // Define navigation item type with sub-items
@@ -47,6 +48,7 @@ const NAV: NavItem[] = [
       { href: '/admin/user/afilas-general', label: 'Users' },
       { href: '/admin/services/afilas-general', label: 'Services' },
       { href: '/admin/blog/afilas-general', label: 'Blog' },
+      { href: '/admin/departments', label: 'Departments' }, // ✅ ADDED HERE
     ]
   },
   { 
@@ -58,6 +60,7 @@ const NAV: NavItem[] = [
       { href: '/admin/user/afilas-diagnosis', label: 'Users' },
       { href: '/admin/services/afilas-diagnosis', label: 'Services' },
       { href: '/admin/blog/afilas-diagnosis', label: 'Blog' },
+      { href: '/admin/departments', label: 'Departments' }, // ✅ ADDED HERE
     ]
   },
   { 
@@ -69,6 +72,7 @@ const NAV: NavItem[] = [
       { href: '/admin/user/afilas-drug', label: 'Users' },
       { href: '/admin/services/afilas-drug', label: 'Services' },
       { href: '/admin/blog/afilas-drug', label: 'Blog' },
+      { href: '/admin/departments', label: 'Departments' }, // ✅ ADDED HERE
     ]
   },
 ];
@@ -312,7 +316,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
 
     // Check if it's a sub-page
-    const subMatch = pathname.match(/\/admin\/(appointments|doctors|user|services|blog)\/(afilas-general|afilas-diagnosis|afilas-drug)/);
+    const subMatch = pathname.match(/\/admin\/(appointments|doctors|user|services|blog|departments)\/(afilas-general|afilas-diagnosis|afilas-drug)/);
     if (subMatch) {
       const section = subMatch[1];
       const location = subMatch[2];
@@ -321,7 +325,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         'doctors': 'Doctors',
         'user': 'Users',
         'services': 'Services',
-        'blog': 'Blog'
+        'blog': 'Blog',
+        'departments': 'Departments' // ✅ Added here
       };
       const locationNames: { [key: string]: string } = {
         'afilas-general': 'Afilas General Hospital',
@@ -329,6 +334,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         'afilas-drug': 'Afilas Drug Manufacturing'
       };
       return `${sectionNames[section]} - ${locationNames[location]}`;
+    }
+
+    // Check if it's the global departments page
+    if (pathname === '/admin/departments') {
+      return 'Departments';
     }
 
     return 'Dashboard';
@@ -865,8 +875,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <Link
                           href={item.href}
                           onClick={() => setMobileMenuOpen(false)}
-                          className={`flex items-center w-full px-4 py-3 rounded-lg text-sm font-bold transition-all ${
-                            isActive
+                          className={`flex items-center w-full px-4 py-3 rounded-lg text-sm font-bold transition-all ${isActive
                               ? 'bg-white border border-gray-300 text-gray-700 shadow-sm'
                               : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white'
                           }`}
@@ -877,8 +886,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                       ) : (
                         <button
                           onClick={() => hasSubItems && toggleDropdown(item.href)}
-                          className={`flex items-center w-full px-4 py-3 rounded-lg text-sm font-bold transition-all ${
-                            isActive
+                          className={`flex items-center w-full px-4 py-3 rounded-lg text-sm font-bold transition-all ${isActive
                               ? 'bg-green-600 text-white'
                               : 'text-gray-600 dark:text-gray-300 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-300'
                           }`}
@@ -901,8 +909,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                                 key={subItem.href}
                                 href={subItem.href}
                                 onClick={() => setMobileMenuOpen(false)}
-                                className={`flex items-center px-3 py-2 rounded-lg text-sm transition-all ${
-                                  isSubActive
+                                className={`flex items-center px-3 py-2 rounded-lg text-sm transition-all ${isSubActive
                                     ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 font-medium'
                                     : 'text-gray-600 dark:text-gray-400 hover:bg-green-50 dark:hover:bg-green-900/20 hover:text-green-700 dark:hover:text-green-300'
                                 }`}

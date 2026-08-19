@@ -252,14 +252,13 @@ const translations: Record<Language, Record<string, string>> = {
     "about.established_year": "June 2017",
     "about.meaning": "Name Meaning",
     "about.meaning_text": "The voice of scholars is heard",
-        "about.core_value_1_title": "Compassion",
+    "about.core_value_1_title": "Compassion",
     "about.core_value_2_title": "Excellence",
     "about.core_value_3_title": "Integrity",
     "about.core_value_4_title": "Innovation",
     "about.core_value_5_title": "Teamwork",
     "about.core_value_6_title": "Accountability",
     
-
     // Footer
     "footer.tagline":
       "Elevating health through care, precision, and production.",
@@ -281,8 +280,7 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.emergency_hotline_label": "Emergency Hotline",
     "footer.available_24_7": "24/7 Available",
     "footer.copyright": "© 2026 Afilas Group.",
-
-      "footer.privacy_policy": "Privacy Policy",
+    "footer.privacy_policy": "Privacy Policy",
     "footer.terms_of_use": "Terms of Use",
 
     "diagnostics.hero.title": "Afilas Diagnostics Center",
@@ -294,7 +292,7 @@ const translations: Record<Language, Record<string, string>> = {
     "diagnostics.hero.social_proof": "Over 10,000 tests processed monthly",
 
     // pharma page
-    "pharma.hero.title": "Afilas Drug Manufacturing",
+    "pharma.hero.title": "Afilas Drug Share Company",
     "pharma.hero.subtitle":
       "Quality-driven, accessible pharmaceutical production meeting international standards.",
     "pharma.hero.cta1": "View Products",
@@ -346,7 +344,7 @@ const translations: Record<Language, Record<string, string>> = {
     "pharma.b2b.email_label": "Commercial Email",
     "pharma.b2b.location_label": "Manufacturing Facility",
     "pharma.b2b.location_value":
-      "Afilas Drug Manufacturing, Amhara Region, Ethiopia",
+      "Afilas Drug Share company, Amhara Region, Ethiopia",
     "pharma.b2b.hours_label": "Business Hours",
     "pharma.b2b.hours_value": "Mon – Sat, 8:00 AM – 6:00 PM (EAT)",
     "pharma.b2b.stat1": "Partner Institutions",
@@ -414,7 +412,7 @@ const translations: Record<Language, Record<string, string>> = {
     "blog.featured": "Featured Article",
 
     // =========================================================================
-    // GENERAL HOSPITAL PAGE TRANSLATIONS (NEW)
+    // GENERAL HOSPITAL PAGE TRANSLATIONS
     // =========================================================================
     "hospital.hero.headline_prefix": "Afilas General Hospital & ",
     "hospital.hero.headline_span": "Healthcare Network",
@@ -659,22 +657,23 @@ const translations: Record<Language, Record<string, string>> = {
     "diagnostics.prep.cardiac_footwear.content":
       "If undergoing a Treadmill Stress Test (TMT), please wear comfortable athletic clothing and running/walking shoes.",
 
-      // Add these to the en translations object (around line 1000+ where other nav keys are)
-
-"nav.profile": "My Profile",
-"nav.settings": "Settings",
-"nav.logout": "Logout",
-
-// Add to the en translations object
-"webchat.chat_with_us": "Chat with us",
-"webchat.online": "Online",
-"webchat.offline": "Offline",
-"webchat.type_message": "Type your message...",
-"webchat.send": "Send",
-
-
-
-
+    // ======================================================================
+    // NEW KEYS ADDED FOR HEADER (THEME, MORE, ACCOUNT)
+    // ======================================================================
+    "nav.more": "More",
+    "nav.sign_in": "Sign In",
+    "nav.create_account": "Create Account",
+    "nav.profile": "My Profile",
+    "nav.settings": "Settings",
+    "nav.logout": "Logout",
+    "theme.light": "Light",
+    "theme.dark": "Dark",
+    "theme.system": "System",
+    "webchat.chat_with_us": "Chat with us",
+    "webchat.online": "Online",
+    "webchat.offline": "Offline",
+    "webchat.type_message": "Type your message...",
+    "webchat.send": "Send"
   },
 
   am: {
@@ -902,7 +901,7 @@ const translations: Record<Language, Record<string, string>> = {
     "about.established_year": "ሰኔ 2017",
     "about.meaning": "የስም ትርጉም",
     "about.meaning_text": "የእውቀት ድምጽ ተሰማ",
-        "about.core_value_1_title": "ርህራሄ",
+    "about.core_value_1_title": "ርህራሄ",
     "about.core_value_2_title": "ብቃት",
     "about.core_value_3_title": "ታማኝነት",
     "about.core_value_4_title": "ፈጠራ",
@@ -929,7 +928,7 @@ const translations: Record<Language, Record<string, string>> = {
     "footer.emergency_hotline_label": "የድንገተኛ ጊዜ መስመር",
     "footer.available_24_7": "በ24 ሰዓት ይገኛል",
     "footer.copyright": "© 2026 የአፊላስ ቡድን።",
-        "footer.privacy_policy": "የግላዊነት ፖሊሲ",
+    "footer.privacy_policy": "የግላዊነት ፖሊሲ",
     "footer.terms_of_use": "የአጠቃቀም ደንቦች",
 
     // Division Specific Pages
@@ -1179,7 +1178,7 @@ const translations: Record<Language, Record<string, string>> = {
     "doctors.location.hospital_desc": "ክሊኒካል፣ ቀዶ ጥገና እና ድንገተኛ ህክምና",
     "doctors.location.diagnostics": "አፊላስ የምርመራ ማዕከል",
     "doctors.location.diagnostics_desc": "ሬዲዮሎጂ፣ ፓቶሎጂ እና ምርመራዎች",
-    "doctors.location.pharma": "አፊላስ መድኃኒት ማምረቻ",
+    "doctors.location.pharma": "አፊላስ መድሃኒት ማምረቻ",
     "doctors.location.pharma_desc": "ፋርማኮሎጂ እና ምርምር ስፔሻሊስቶች",
     "doctors.location.active_badge": "የተመረጠ ቦታ",
 
@@ -1302,18 +1301,23 @@ const translations: Record<Language, Record<string, string>> = {
     "doctors.modal.active_status": "ዝግጁ እና ስራ ላይ ያለ",
     "doctors.modal.free_fee": "መደበኛ ክፍያ",
 
-    // Add these to the am translations object (around line 1000+ where other nav keys are)
-
-"nav.profile": "ፕሮፋይል",
-"nav.settings": "ቅንብሮች",
-"nav.logout": "ውጣ",
-
-// Add to the am translations object
-"webchat.chat_with_us": "ከእኛ ጋር ያዩሩ",
-"webchat.online": "በመስመር ላይ",
-"webchat.offline": "ከመስመር ውጭ",
-"webchat.type_message": "መልዕክትዎን ይተይቡ...",
-"webchat.send": "ላክ",
+    // ======================================================================
+    // NEW KEYS ADDED FOR HEADER (THEME, MORE, ACCOUNT)
+    // ======================================================================
+    "nav.more": "ተጨማሪ",
+    "nav.sign_in": "ይግቡ",
+    "nav.create_account": "መለያ ይፍጠሩ",
+    "nav.profile": "ፕሮፋይል",
+    "nav.settings": "ቅንብሮች",
+    "nav.logout": "ውጣ",
+    "theme.light": "ብርሃን",
+    "theme.dark": "ጨለማ",
+    "theme.system": "ስርዓት",
+    "webchat.chat_with_us": "ከእኛ ጋር ያዩሩ",
+    "webchat.online": "በመስመር ላይ",
+    "webchat.offline": "ከመስመር ውጭ",
+    "webchat.type_message": "መልዕክትዎን ይተይቡ...",
+    "webchat.send": "ላክ"
   },
 };
 

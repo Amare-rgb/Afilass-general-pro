@@ -42,7 +42,52 @@ function mapAppointment(appointment) {
     woreda: appointment.woreda || null,
     gpsPin: appointment.gpsPin || null,
     homeAddress: appointment.homeAddress || null,
+    userId: appointment.userId,
+    doctorId: appointment.doctorId,
+    doctor: appointment.doctor ? {
+      id: appointment.doctor.id,
+      name: appointment.doctor.name,
+      specialization: appointment.doctor.specialization, // ✅ FIXED: specialty -> specialization
+    } : null,
   };
+}
+
+// ============================================================
+// Helper to validate Ethiopian phone number
+// ============================================================
+function isValidEthiopianPhone(phone) {
+  const phoneRegex = /^0[97]\d{8}$/;
+  return phoneRegex.test(phone);
+}
+
+// ============================================================
+// Helper to check time slot availability
+// ============================================================
+async function isTimeSlotAvailable(date, time, excludeAppointmentId = null) {
+  try {
+    const where = {
+      date: new Date(date),
+      time: time,
+      NOT: {
+        status: {
+          in: ['CANCELLED', 'MISSED']
+        }
+      }
+    };
+    
+    if (excludeAppointmentId) {
+      where.id = { not: excludeAppointmentId };
+    }
+    
+    const existing = await prisma.appointment.findFirst({
+      where: where
+    });
+    
+    return !existing;
+  } catch (error) {
+    console.error('Error checking time slot:', error);
+    return true;
+  }
 }
 
 // ============================================================
@@ -50,11 +95,16 @@ function mapAppointment(appointment) {
 // ============================================================
 router.get('/', auth, authorize('ADMIN', 'USER'), async (req, res) => {
   try {
-    const { status, startDate, endDate, location } = req.query;
+    const { status, startDate, endDate, location, doctorId } = req.query;
     
     const where = {};
     
+    if (req.user.role === 'USER') {
+      where.userId = req.user.id;
+    }
+    
     if (status) where.status = status;
+    if (doctorId) where.doctorId = doctorId;
     if (location && location !== 'all' && location !== 'undefined') {
       where.location = location;
     }
@@ -82,6 +132,13 @@ router.get('/', auth, authorize('ADMIN', 'USER'), async (req, res) => {
             name: true,
             email: true,
             phone: true,
+          },
+        },
+        doctor: {
+          select: {
+            id: true,
+            name: true,
+            specialization: true, // ✅ FIXED: specialty -> specialization
           },
         },
       },
@@ -130,6 +187,13 @@ router.get('/:id', auth, authorize('ADMIN', 'USER'), async (req, res) => {
             phone: true,
           },
         },
+        doctor: {
+          select: {
+            id: true,
+            name: true,
+            specialization: true, // ✅ FIXED: specialty -> specialization
+          },
+        },
       },
     });
 
@@ -137,6 +201,13 @@ router.get('/:id', auth, authorize('ADMIN', 'USER'), async (req, res) => {
       return res.status(404).json({
         success: false,
         error: 'Appointment not found',
+      });
+    }
+
+    if (req.user.role === 'USER' && appointment.userId !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        error: 'You do not have permission to view this appointment',
       });
     }
 
@@ -155,20 +226,35 @@ router.get('/:id', auth, authorize('ADMIN', 'USER'), async (req, res) => {
 
 // ============================================================
 // CREATE appointment - PUBLIC (no auth required)
-// Users can book appointments without login
 // ============================================================
 router.post('/', [
   body('patientName').trim().notEmpty().withMessage('Patient name is required'),
   body('patientEmail').isEmail().withMessage('Valid email is required'),
-  body('patientPhone').trim().notEmpty().withMessage('Phone number is required'),
-  body('date').matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('Valid date is required (YYYY-MM-DD)'),
+  body('patientPhone').trim().notEmpty().withMessage('Phone number is required')
+    .custom((value) => {
+      if (!isValidEthiopianPhone(value)) {
+        throw new Error('Invalid Ethiopian phone number (e.g., 0912345678)');
+      }
+      return true;
+    }),
+  body('date').matches(/^\d{4}-\d{2}-\d{2}$/).withMessage('Valid date is required (YYYY-MM-DD)')
+    .custom((value) => {
+      const date = new Date(value);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (date < today) {
+        throw new Error('Date cannot be in the past');
+      }
+      return true;
+    }),
   body('time').matches(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Valid time is required (HH:MM)'),
   body('serviceId').optional().isString(),
+  body('doctorId').optional().isString().withMessage('Invalid doctor ID'),
   body('location').optional().isString(),
   body('notes').optional().isString(),
   body('symptoms').optional().isString(),
   body('isEmergency').optional().isBoolean(),
-  body('patientAge').optional().isInt({ min: 0, max: 150 }),
+  body('patientAge').optional().isInt({ min: 0, max: 150 }).withMessage('Age must be between 0 and 150'),
   body('patientGender').optional().isIn(['MALE', 'FEMALE', 'OTHER']),
   body('visitType').optional().isIn(['HOSPITAL', 'HOME']).withMessage('Visit type must be HOSPITAL or HOME'),
   body('city').optional().isString(),
@@ -188,7 +274,7 @@ router.post('/', [
 
     const { 
       patientName, patientEmail, patientPhone, patientAge,
-      patientGender, date, time, serviceId,
+      patientGender, date, time, serviceId, doctorId,
       notes, symptoms, isEmergency, location,
       visitType, city, subCity, woreda, gpsPin, homeAddress
     } = req.body;
@@ -199,6 +285,15 @@ router.post('/', [
       return res.status(400).json({
         success: false,
         error: 'Invalid date format. Please use YYYY-MM-DD',
+      });
+    }
+
+    // Check time slot availability
+    const isAvailable = await isTimeSlotAvailable(appointmentDate, time);
+    if (!isAvailable) {
+      return res.status(409).json({
+        success: false,
+        error: 'This time slot is already booked. Please choose another time.',
       });
     }
 
@@ -216,6 +311,21 @@ router.post('/', [
       }
     }
 
+    // Check doctor availability if doctorId is provided
+    if (doctorId) {
+      const doctor = await prisma.doctor.findUnique({
+        where: { id: doctorId },
+      });
+
+      if (!doctor || !doctor.isAvailable) {
+        return res.status(400).json({
+          success: false,
+          error: 'Doctor is not available',
+        });
+      }
+    }
+
+    // Find or create user
     let userId = null;
     if (req.user) {
       userId = req.user.id;
@@ -226,10 +336,26 @@ router.post('/', [
       });
       if (existingUser) {
         userId = existingUser.id;
+      } else {
+        try {
+          const newUser = await prisma.user.create({
+            data: {
+              name: patientName,
+              email: patientEmail,
+              phone: patientPhone,
+              role: 'USER',
+              password: 'temporary_password_' + Date.now(),
+            },
+            select: { id: true },
+          });
+          userId = newUser.id;
+        } catch (createError) {
+          console.warn('Could not create user:', createError.message);
+        }
       }
     }
 
-    // Build appointment data - NO doctor fields
+    // Build appointment data
     const appointmentData = {
       patientName,
       patientEmail,
@@ -251,39 +377,64 @@ router.post('/', [
       homeAddress: homeAddress || null,
     };
 
+    // Add relations if they exist
     if (serviceId) {
       appointmentData.serviceId = serviceId;
     }
-
+    if (doctorId) {
+      appointmentData.doctorId = doctorId;
+    }
     if (userId) {
-      appointmentData.user = {
-        connect: { id: userId }
+      appointmentData.userId = userId;
+    }
+
+    // Build include options dynamically
+    const includeOptions = {
+      service: {
+        select: {
+          id: true,
+          name: true,
+          price: true,
+          duration: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+        },
+      },
+    };
+
+    // Only include doctor if doctorId exists
+    if (doctorId) {
+      includeOptions.doctor = {
+        select: {
+          id: true,
+          name: true,
+          specialization: true, // ✅ FIXED: specialty -> specialization
+        },
       };
     }
 
     const appointment = await prisma.appointment.create({
       data: appointmentData,
-      include: {
-        service: {
-          select: {
-            id: true,
-            name: true,
-            price: true,
-            duration: true,
-          },
-        },
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-          },
-        },
-      },
+      include: includeOptions,
     });
 
     console.log(`✅ Appointment created: ${appointment.id} for ${appointment.patientName}`);
+
+    // Send confirmation notification
+    try {
+      if (notificationService.sendAppointmentConfirmation) {
+        await notificationService.sendAppointmentConfirmation(appointment);
+        console.log('📧 Confirmation notification sent');
+      }
+    } catch (notifyError) {
+      console.warn('⚠️ Failed to send confirmation notification:', notifyError.message);
+    }
 
     res.status(201).json({
       success: true,
@@ -304,6 +455,7 @@ router.post('/', [
 // ============================================================
 router.patch('/:id/status', auth, authorize('ADMIN'), [
   body('status').isIn(['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'MISSED']),
+  body('doctorId').optional().isString(),
 ], async (req, res) => {
   try {
     const errors = validationResult(req);
@@ -312,7 +464,7 @@ router.patch('/:id/status', auth, authorize('ADMIN'), [
     }
 
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, doctorId } = req.body;
 
     console.log(`📡 Updating appointment ${id} to status: ${status}`);
 
@@ -327,6 +479,12 @@ router.patch('/:id/status', auth, authorize('ADMIN'), [
             duration: true,
           },
         },
+        doctor: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 
@@ -337,10 +495,24 @@ router.patch('/:id/status', auth, authorize('ADMIN'), [
       });
     }
 
+    const updateData = { status };
+    if (doctorId) {
+      const doctor = await prisma.doctor.findUnique({
+        where: { id: doctorId },
+      });
+      if (!doctor || !doctor.isAvailable) {
+        return res.status(400).json({
+          success: false,
+          error: 'Doctor is not available',
+        });
+      }
+      updateData.doctorId = doctorId;
+    }
+
     const oldStatus = appointment.status;
     const updated = await prisma.appointment.update({
       where: { id },
-      data: { status },
+      data: updateData,
       include: {
         service: {
           select: {
@@ -350,51 +522,51 @@ router.patch('/:id/status', auth, authorize('ADMIN'), [
             duration: true,
           },
         },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+        doctor: {
+          select: {
+            id: true,
+            name: true,
+            specialization: true, // ✅ FIXED: specialty -> specialization
+          },
+        },
       },
     });
 
     console.log(`✅ Appointment ${id} status updated from ${oldStatus} to ${status}`);
 
-    // ============================================================
-    // 🔥 SEND NOTIFICATIONS
-    // ============================================================
     let notifications = { email: false, sms: false };
     
-    // ✅ APPROVED - when status changes to CONFIRMED
     if (status === 'CONFIRMED' && oldStatus !== 'CONFIRMED') {
-      console.log(`📧 Sending APPROVED notification for appointment ${id}`);
+      console.log(`📧 Sending CONFIRMED notification for appointment ${id}`);
       try {
-        const result = await notificationService.sendAppointmentApproved(updated);
-        notifications.email = result.email?.success || false;
-        notifications.sms = result.sms?.success || false;
-        
-        if (notifications.email) {
-          console.log(`✅ Approval email sent to ${appointment.patientEmail}`);
-        }
-        if (notifications.sms) {
-          console.log(`✅ Approval SMS sent to ${appointment.patientPhone}`);
+        if (notificationService.sendAppointmentApproved) {
+          const result = await notificationService.sendAppointmentApproved(updated);
+          notifications.email = result.email?.success || false;
+          notifications.sms = result.sms?.success || false;
         }
       } catch (error) {
-        console.error('❌ Failed to send approval notification:', error);
+        console.error('❌ Failed to send confirmation notification:', error);
       }
     }
 
-    // ❌ REJECTED - when status changes to CANCELLED
     if (status === 'CANCELLED' && oldStatus !== 'CANCELLED') {
-      console.log(`📧 Sending REJECTED notification for appointment ${id}`);
+      console.log(`📧 Sending CANCELLED notification for appointment ${id}`);
       try {
-        const result = await notificationService.sendAppointmentRejected(updated);
-        notifications.email = result.email?.success || false;
-        notifications.sms = result.sms?.success || false;
-        
-        if (notifications.email) {
-          console.log(`✅ Rejection email sent to ${appointment.patientEmail}`);
-        }
-        if (notifications.sms) {
-          console.log(`✅ Rejection SMS sent to ${appointment.patientPhone}`);
+        if (notificationService.sendAppointmentRejected) {
+          const result = await notificationService.sendAppointmentRejected(updated);
+          notifications.email = result.email?.success || false;
+          notifications.sms = result.sms?.success || false;
         }
       } catch (error) {
-        console.error('❌ Failed to send rejection notification:', error);
+        console.error('❌ Failed to send cancellation notification:', error);
       }
     }
 
@@ -425,7 +597,7 @@ router.put('/:id', auth, authorize('ADMIN'), async (req, res) => {
     const { 
       patientName, patientEmail, patientPhone, 
       patientAge, patientGender, date, time, 
-      serviceId, notes, symptoms, isEmergency, location,
+      serviceId, doctorId, notes, symptoms, isEmergency, location,
       visitType, city, subCity, woreda, gpsPin, homeAddress
     } = req.body;
 
@@ -440,6 +612,17 @@ router.put('/:id', auth, authorize('ADMIN'), async (req, res) => {
       });
     }
 
+    if (date && time) {
+      const newDate = new Date(date);
+      const isAvailable = await isTimeSlotAvailable(newDate, time, id);
+      if (!isAvailable) {
+        return res.status(409).json({
+          success: false,
+          error: 'This time slot is already booked. Please choose another time.',
+        });
+      }
+    }
+
     const updated = await prisma.appointment.update({
       where: { id },
       data: {
@@ -451,6 +634,7 @@ router.put('/:id', auth, authorize('ADMIN'), async (req, res) => {
         date: date ? new Date(date) : appointment.date,
         time: time || appointment.time,
         serviceId: serviceId !== undefined ? serviceId : appointment.serviceId,
+        doctorId: doctorId !== undefined ? doctorId : appointment.doctorId,
         notes: notes !== undefined ? notes : appointment.notes,
         symptoms: symptoms !== undefined ? symptoms : appointment.symptoms,
         isEmergency: isEmergency !== undefined ? isEmergency : appointment.isEmergency,
@@ -469,6 +653,21 @@ router.put('/:id', auth, authorize('ADMIN'), async (req, res) => {
             name: true,
             price: true,
             duration: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+          },
+        },
+        doctor: {
+          select: {
+            id: true,
+            name: true,
+            specialization: true, // ✅ FIXED: specialty -> specialization
           },
         },
       },
@@ -548,14 +747,44 @@ router.delete('/:id/cancel', auth, async (req, res) => {
       });
     }
 
+    if (!['PENDING', 'CONFIRMED'].includes(appointment.status)) {
+      return res.status(400).json({
+        success: false,
+        error: `Cannot cancel appointment with status: ${appointment.status}`,
+      });
+    }
+
     const updated = await prisma.appointment.update({
       where: { id },
       data: { status: 'CANCELLED' },
+      include: {
+        service: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        doctor: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
+
+    try {
+      if (notificationService.sendAppointmentCancelled) {
+        await notificationService.sendAppointmentCancelled(updated);
+        console.log(`📧 Cancellation notification sent for appointment ${id}`);
+      }
+    } catch (error) {
+      console.warn('⚠️ Failed to send cancellation notification:', error.message);
+    }
 
     res.json({
       success: true,
-      data: updated,
+      data: mapAppointment(updated),
       message: 'Appointment cancelled successfully',
     });
   } catch (error) {
@@ -563,6 +792,74 @@ router.delete('/:id/cancel', auth, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to cancel appointment',
+    });
+  }
+});
+
+// ============================================================
+// GET available time slots for a date
+// ============================================================
+router.get('/available-slots/:date', async (req, res) => {
+  try {
+    const { date } = req.params;
+    const { doctorId } = req.query;
+    
+    const appointmentDate = new Date(date);
+    if (isNaN(appointmentDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid date format',
+      });
+    }
+
+    const where = {
+      date: appointmentDate,
+      NOT: {
+        status: {
+          in: ['CANCELLED', 'MISSED']
+        }
+      }
+    };
+    
+    if (doctorId) {
+      where.doctorId = doctorId;
+    }
+
+    const bookedAppointments = await prisma.appointment.findMany({
+      where,
+      select: {
+        time: true,
+      },
+    });
+
+    const bookedSlots = bookedAppointments.map(a => a.time);
+
+    // Define all possible time slots (9 AM to 5 PM, 30 min intervals)
+    const allSlots = [];
+    for (let hour = 9; hour < 17; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const time = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        allSlots.push(time);
+      }
+    }
+
+    const availableSlots = allSlots.filter(slot => !bookedSlots.includes(slot));
+
+    res.json({
+      success: true,
+      data: {
+        date: date,
+        availableSlots: availableSlots,
+        bookedSlots: bookedSlots,
+        totalSlots: allSlots.length,
+        availableCount: availableSlots.length,
+      },
+    });
+  } catch (error) {
+    console.error('Get available slots error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch available slots',
     });
   }
 });
