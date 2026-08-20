@@ -1,6 +1,7 @@
 // D:\Afilass-general-pro\frontend\src\app\departments\dtail\page.tsx
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
 import { useLanguage } from "@/contexts/LanguageProvider";
@@ -44,7 +45,8 @@ const getDepartmentIcon = (name: string) => {
   return { Icon: Stethoscope, color: "text-indigo-500", bgColor: "bg-indigo-50 dark:bg-indigo-950/30", borderColor: "border-indigo-200 dark:border-indigo-800" };
 };
 
-export default function DepartmentDetailPage() {
+// Main component that uses useSearchParams
+function DepartmentDetailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { t } = useLanguage();
@@ -185,7 +187,7 @@ export default function DepartmentDetailPage() {
                 {t("departments.about") || "About"} {department.name}
               </h2>
               <p className="text-foreground/80 leading-relaxed text-base">
-                {department.description || `${department.name} ${t("departments.about_description") || "department at our hospital provides comprehensive medical care for patients requiring specialized treatment. Our team of experienced healthcare professionals is dedicated to delivering the highest quality care using the latest medical technologies and treatment approaches."}`}
+                {department.description || `${department.name} ${t("departments.about_description") || "department provides comprehensive medical care for patients requiring specialized treatment. Our team of experienced healthcare professionals is dedicated to delivering the highest quality care using the latest medical technologies."}`}
               </p>
             </div>
 
@@ -286,5 +288,29 @@ export default function DepartmentDetailPage() {
         </div>
       </main>
     </>
+  );
+}
+
+// Loading fallback for Suspense
+function DepartmentDetailFallback() {
+  return (
+    <div className="min-h-screen bg-background">
+      <Header />
+      <main>
+        <div className="container mx-auto px-4 py-20 text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-foreground/70">Loading department...</p>
+        </div>
+      </main>
+    </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function DepartmentDetailPage() {
+  return (
+    <Suspense fallback={<DepartmentDetailFallback />}>
+      <DepartmentDetailContent />
+    </Suspense>
   );
 }
