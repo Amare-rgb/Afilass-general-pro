@@ -27,6 +27,7 @@ import {
   LogOut,
   UserCircle,
   HelpCircle,
+  Stethoscope,
 } from "lucide-react";
 
 // ============================================================
@@ -171,9 +172,15 @@ export function Header() {
     [t],
   );
 
-  // "More" menu items
+  // "More" menu items with Departments added
   const moreItems = useMemo(
     () => [
+      { 
+        id: "departments", 
+        label: t("nav.departments") || "Departments", 
+        href: "/departments",
+        icon: Stethoscope,
+      },
       { id: "aboutUs", label: t("nav.about_us") || "About Us", href: "/aboutUs" },
       { id: "blogs", label: t("nav.blog") || "Blog", href: "/blogs" },
       { id: "contact", label: t("nav.contact_emergency") || "Contact & Emergency", href: "/contact" },
@@ -337,9 +344,8 @@ export function Header() {
                 />
               </div>
               
-              {/* Text Logo (Placed directly under the Icon) */}
+              {/* Text Logo */}
               <div className="flex flex-col items-start -mt-1 sm:mt-0">
-                
                 <span className={`text-[8px] sm:text-[10px] font-medium tracking-wide uppercase ${
                   isSolid ? "text-[#4A90D9] dark:text-[#2d6a4f]" : "text-white/70"
                 }`}>
@@ -406,7 +412,7 @@ export function Header() {
               </Link>
 
               {/* ============================================================
-                  MORE DROPDOWN (Includes THEME & ACCOUNT)
+                  MORE DROPDOWN (Includes DEPARTMENTS, THEME & ACCOUNT)
                   ============================================================ */}
               <div className="relative" ref={moreDropdownRef}>
                 <button
@@ -431,13 +437,13 @@ export function Header() {
                       : "bg-white/10 backdrop-blur-2xl border border-white/25"
                   }`} role="menu">
                     
-                    {/* STANDARD MORE LINKS */}
+                    {/* STANDARD MORE LINKS (Including Departments) */}
                     {moreItems.map((item) => (
                       <Link
                         key={item.id}
                         href={item.href}
                         onClick={() => setMoreDropdownOpen(false)}
-                        className={`flex w-full items-center rounded-lg px-3 py-2.5 text-sm transition-colors ${
+                        className={`flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-sm transition-colors ${
                           isActiveLink(item.href)
                             ? isSolid
                               ? "bg-[#4A90D9]/15 text-[#2d6a4f] dark:bg-[#2d6a4f]/20 dark:text-[#4A90D9]"
@@ -447,6 +453,7 @@ export function Header() {
                               : "text-white/90 hover:bg-white/20 hover:text-white"
                         }`}
                       >
+                        {item.icon && <item.icon className="h-4 w-4" />}
                         {item.label}
                       </Link>
                     ))}
@@ -654,7 +661,6 @@ export function Header() {
                   <Link href="/appointments/diagnosis" onClick={() => setAppointmentDropdownOpen(false)} className={`flex w-full items-center rounded-lg px-3 py-2.5 text-sm transition-colors ${isSolid ? "text-[#2d6a4f] hover:bg-[#4A90D9]/10 dark:text-[#4A90D9] dark:hover:bg-[#2d6a4f]/10" : "text-white/90 hover:bg-white/20 hover:text-white"}`}>
                     <div className="flex flex-col"><span className="font-medium text-[#2d6a4f] dark:text-[#4A90D9]">{t("nav.division.diagnostics") || "Diagnosis Center"}</span><span className="text-[10px] opacity-70 text-[#4A90D9] dark:text-[#2d6a4f]">{t("nav.book_lab_tests") || "Book lab tests & scans"}</span></div>
                   </Link>
-                  {/* ✅ FIXED: Correct redirection to /appointments/pharma */}
                   <Link href="/appointments/pharma" onClick={() => setAppointmentDropdownOpen(false)} className={`flex w-full items-center rounded-lg px-3 py-2.5 text-sm transition-colors ${isSolid ? "text-[#2d6a4f] hover:bg-[#4A90D9]/10 dark:text-[#4A90D9] dark:hover:bg-[#2d6a4f]/10" : "text-white/90 hover:bg-white/20 hover:text-white"}`}>
                     <div className="flex flex-col"><span className="font-medium text-[#2d6a4f] dark:text-[#4A90D9]">{t("nav.division.pharma") || "Drug Manufacturing"}</span><span className="text-[10px] opacity-70 text-[#4A90D9] dark:text-[#2d6a4f]">{t("nav.order_medications") || "Order medications & supplies"}</span></div>
                   </Link>
@@ -736,7 +742,7 @@ export function Header() {
               {t("nav.doctors") || "Doctors"}
             </Link>
 
-            {/* MORE */}
+            {/* MORE with Departments in mobile */}
             <button
               type="button"
               onClick={() => setMoreDropdownOpen(!moreDropdownOpen)}
@@ -752,7 +758,7 @@ export function Header() {
                     key={item.id}
                     href={item.href}
                     onClick={closeAll}
-                    className={`flex w-full items-center rounded-lg px-3 py-2 text-sm transition-colors ${isActiveLink(item.href)
+                    className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${isActiveLink(item.href)
                         ? isSolid
                           ? "bg-[#4A90D9]/15 text-[#2d6a4f] dark:bg-[#2d6a4f]/20 dark:text-[#4A90D9]"
                           : "bg-white/25 text-white"
@@ -761,6 +767,7 @@ export function Header() {
                           : "text-white/90 hover:bg-white/20 hover:text-white"
                     }`}
                   >
+                    {item.icon && <item.icon className="h-4 w-4" />}
                     {item.label}
                   </Link>
                 ))}
@@ -776,7 +783,6 @@ export function Header() {
               <Link href="/appointments/diagnosis" className={`flex items-center rounded-lg p-3 transition-colors ${isSolid ? "text-[#2d6a4f] hover:bg-[#4A90D9]/10 dark:text-[#4A90D9] dark:hover:bg-[#2d6a4f]/10" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
                 <div><div className="font-medium">{t("nav.division.diagnostics") || "Diagnosis Center"}</div><div className="text-xs opacity-70 text-[#4A90D9] dark:text-[#2d6a4f]">{t("nav.book_lab_tests") || "Book lab tests & scans"}</div></div>
               </Link>
-              {/* ✅ FIXED: Correct redirection in Mobile Menu */}
               <Link href="/appointments/pharma" className={`flex items-center rounded-lg p-3 transition-colors ${isSolid ? "text-[#2d6a4f] hover:bg-[#4A90D9]/10 dark:text-[#4A90D9] dark:hover:bg-[#2d6a4f]/10" : "text-white/90 hover:bg-white/20 hover:text-white"}`} onClick={closeAll}>
                 <div><div className="font-medium">{t("nav.division.pharma") || "Drug Manufacturing"}</div><div className="text-xs opacity-70 text-[#4A90D9] dark:text-[#2d6a4f]">{t("nav.order_medications") || "Order medications & supplies"}</div></div>
               </Link>
@@ -800,7 +806,6 @@ export function Header() {
                       </p>
                     </div>
                   </div>
-                  {/* Only Profile and Settings in mobile */}
                   {accountItems.map((item) => (
                     <Link
                       key={item.id}

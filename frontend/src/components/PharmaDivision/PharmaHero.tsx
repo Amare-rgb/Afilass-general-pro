@@ -6,12 +6,13 @@
 // Supports local public folder paths (e.g., "/slider-2.jpg") or full URLs.
 // The image will automatically resize & scale (object-cover) inside the card.
 // =========================================================================
-export const PHARMA_HERO_IMAGE_PATH = "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTJ8fHBoYXJtYWNldXRpY2Fsc3xlbnwwfHwwfHx8MA%3D%3D";
+export const PHARMA_HERO_IMAGE_PATH = "/images (10).jpeg";
 
 import { useLanguage } from "@/contexts/LanguageProvider";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowDown, ChevronRight, Pill, Package } from "lucide-react";
+import { ArrowDown, ChevronRight } from "lucide-react";
+import Image from "next/image";
 
 export function PharmaHero() {
   const { t } = useLanguage();
@@ -54,7 +55,7 @@ export function PharmaHero() {
 
   return (
     <div ref={heroRef} className="relative min-h-screen py-12 lg:py-16 overflow-hidden flex items-center justify-center">
-      {/* Background pattern overlay - retained pattern with high-contrast primary tint */}
+      {/* Background pattern overlay */}
       <div
         className="absolute inset-0 z-0 opacity-15 dark:opacity-20 pointer-events-none"
         style={{
@@ -119,10 +120,12 @@ export function PharmaHero() {
             <div className="hidden lg:flex items-center justify-center lg:justify-end">
               <div className="relative w-full max-w-md lg:max-w-lg">
                 <div className="relative aspect-square rounded-2xl bg-card border border-border flex items-center justify-center overflow-hidden shadow-2xl">
-                  <img
+                  <Image
                     src={PHARMA_HERO_IMAGE_PATH}
                     alt="Afilas Drug Manufacturing"
-                    className="w-full h-full object-cover rounded-2xl"
+                    fill
+                    className="object-cover rounded-2xl"
+                    priority
                   />
                 </div>
                 <div className="absolute -top-4 -right-4 w-20 h-20 bg-primary/20 rounded-full blur-xl pointer-events-none" />
