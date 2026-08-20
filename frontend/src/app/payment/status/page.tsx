@@ -1,17 +1,37 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { CheckCircle, XCircle, Loader2, ArrowLeft } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
-export default function PaymentStatusPage() {
+// Types
+interface PaymentData {
+  transaction_id?: string;
+  id?: string;
+  tx_ref?: string;
+  amount?: number | string;
+  status?: string;
+  [key: string]: unknown;
+}
+
+interface VerificationResponse {
+  success: boolean;
+  data?: PaymentData;
+  message?: string;
+}
+
+type StatusType = 'loading' | 'success' | 'failed' | 'error';
+
+// Separate component that uses useSearchParams
+function PaymentStatusContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const tx_ref = searchParams.get('tx_ref');
-  const [status, setStatus] = useState('loading');
-  const [paymentData, setPaymentData] = useState(null);
-  const [error, setError] = useState(null);
+  const [status, setStatus] = useState<StatusType>('loading');
+  const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!tx_ref) {
@@ -34,20 +54,24 @@ export default function PaymentStatusPage() {
           }
         );
 
-        const data = await response.json();
+        const data: VerificationResponse = await response.json();
         console.log('📦 Verification response:', data);
 
         if (data.success) {
           setStatus('success');
-          setPaymentData(data.data);
+          setPaymentData(data.data || null);
         } else {
           setStatus('failed');
           setError(data.message || 'Payment verification failed');
         }
-      } catch (err) {
+      } catch (err: unknown) {
         console.error('❌ Verification error:', err);
         setStatus('error');
-        setError(err.message || 'Failed to verify payment');
+        if (err instanceof Error) {
+          setError(err.message || 'Failed to verify payment');
+        } else {
+          setError('Failed to verify payment');
+        }
       }
     };
 
@@ -82,16 +106,16 @@ export default function PaymentStatusPage() {
             <div className="bg-gray-50 rounded-lg p-4 mb-6 text-left">
               <div className="grid grid-cols-2 gap-2 text-sm">
                 <span className="text-gray-500">Transaction ID:</span>
-                <span className="font-medium truncate">{paymentData.transaction_id || paymentData.id}</span>
+                <span className="font-medium truncate">{paymentData.transaction_id || paymentData.id || 'N/A'}</span>
                 
                 <span className="text-gray-500">Reference:</span>
-                <span className="font-medium truncate">{paymentData.tx_ref || tx_ref}</span>
+                <span className="font-medium truncate">{paymentData.tx_ref || tx_ref || 'N/A'}</span>
                 
                 <span className="text-gray-500">Amount:</span>
-                <span className="font-medium">{paymentData.amount} ETB</span>
+                <span className="font-medium">{paymentData.amount ? `${paymentData.amount} ETB` : 'N/A'}</span>
                 
                 <span className="text-gray-500">Status:</span>
-                <span className="font-medium text-green-600">{paymentData.status}</span>
+                <span className="font-medium text-green-600">{paymentData.status || 'Completed'}</span>
               </div>
             </div>
           )}
@@ -156,5 +180,22 @@ export default function PaymentStatusPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// Main page component with Suspense boundary
+export default function PaymentStatusPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <Loader2 className="h-16 w-16 animate-spin text-blue-600 mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold text-gray-700">Loading...</h2>
+          <p className="text-gray-500 mt-2">Please wait</p>
+        </div>
+      </div>
+    }>
+      <PaymentStatusContent />
+    </Suspense>
   );
 }
